@@ -2,9 +2,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import {
-  Sparkles,
+  FileText,
   CheckCircle,
-  Users,
   CalendarDays,
   Video,
   ArrowRight,
@@ -12,35 +11,35 @@ import {
 
 const actions = [
   {
-    title: "Criar Conteúdo",
-    description: "Textos e imagens com IA",
-    icon: Sparkles,
+    title: "Redigir Discurso",
+    description: "Textos e materiais com IA",
+    icon: FileText,
     link: "/create",
-    gradient: "from-primary/15 to-primary/5",
+    gradient: "from-primary/12 to-primary/4",
     iconColor: "text-primary",
   },
   {
-    title: "Revisar Conteúdo",
-    description: "Feedback inteligente",
+    title: "Revisar Material",
+    description: "Análise e feedback",
     icon: CheckCircle,
     link: "/review",
-    gradient: "from-success/15 to-success/5",
+    gradient: "from-success/12 to-success/4",
     iconColor: "text-success",
   },
   {
-    title: "Planejar Calendário",
-    description: "Organize suas postagens",
+    title: "Planejar Campanha",
+    description: "Organize a comunicação",
     icon: CalendarDays,
     link: "/plan",
-    gradient: "from-accent/15 to-accent/5",
+    gradient: "from-accent/12 to-accent/4",
     iconColor: "text-accent",
   },
   {
-    title: "Gerar Vídeo",
-    description: "Vídeos criativos com IA",
+    title: "Gerar Propaganda",
+    description: "Vídeos para campanha",
     icon: Video,
     link: "/create-video",
-    gradient: "from-secondary/15 to-secondary/5",
+    gradient: "from-secondary/12 to-secondary/4",
     iconColor: "text-secondary",
   },
 ];
@@ -65,10 +64,10 @@ export const DashboardQuickActions = () => (
     {actions.map((action) => (
       <motion.div key={action.title} variants={item}>
         <Link to={action.link} className="block h-full">
-          <Card className="group h-full border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden">
+          <Card className="group h-full border border-border/40 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden">
             <CardContent className={`p-4 h-full bg-gradient-to-br ${action.gradient} flex flex-col justify-between gap-3`}>
               <div className="flex items-center justify-between">
-                <div className={`p-2 rounded-lg bg-card/80 backdrop-blur-sm shadow-sm ${action.iconColor}`}>
+                <div className={`p-2 rounded-md bg-card/80 backdrop-blur-sm shadow-sm border border-border/20 ${action.iconColor}`}>
                   <action.icon className="h-5 w-5" />
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />

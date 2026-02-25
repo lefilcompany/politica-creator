@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, Tags, UserCircle, Palette } from "lucide-react";
+import { FileText, Landmark, Users, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface DashboardStatsProps {
@@ -19,33 +19,33 @@ const statItem = {
 export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, themesCount = 0, hasTeam = false }: DashboardStatsProps) => {
   const stats = [
     {
-      label: hasTeam ? "Conteúdos da Equipe" : "Conteúdos Criados",
+      label: hasTeam ? "Documentos do Gabinete" : "Documentos Redigidos",
       value: actionsCount,
-      icon: Sparkles,
+      icon: FileText,
       color: "text-primary",
       bg: "bg-primary/10",
       link: "/history",
     },
     {
-      label: "Marcas Ativas",
+      label: "Partidos Ativos",
       value: brandsCount,
-      icon: Tags,
+      icon: Landmark,
       color: "text-accent",
       bg: "bg-accent/10",
       link: "/brands",
     },
     {
-      label: "Personas",
+      label: "Eleitores-Alvo",
       value: personasCount,
-      icon: UserCircle,
+      icon: Users,
       color: "text-secondary",
       bg: "bg-secondary/10",
       link: "/personas",
     },
     {
-      label: "Temas Estratégicos",
+      label: "Pautas Estratégicas",
       value: themesCount,
-      icon: Palette,
+      icon: BookOpen,
       color: "text-success",
       bg: "bg-success/10",
       link: "/themes",
@@ -62,13 +62,13 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       {stats.map((stat) => (
         <motion.div key={stat.label} variants={statItem}>
           <Link to={stat.link}>
-            <Card className="group border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
+            <Card className="group border border-border/40 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${stat.bg} ${stat.color}`}>
+                <div className={`p-2 rounded-md ${stat.bg} ${stat.color}`}>
                   <stat.icon className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value.toLocaleString()}</p>
+                  <p className="text-2xl font-bold tracking-tight text-foreground font-['Playfair_Display']">{stat.value.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>
               </CardContent>

@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound } from "lucide-react";
+import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, BookOpen, Coins, Briefcase } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -176,15 +176,15 @@ export function AppSidebar() {
 
   const navLinks = [
     { id: "nav-dashboard", href: "/dashboard", icon: Home, label: t.sidebar.home },
-    { id: "nav-brands", href: "/brands", icon: Tag, label: t.sidebar.brands },
-    { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
+    { id: "nav-brands", href: "/brands", icon: Landmark, label: t.sidebar.brands },
+    { id: "nav-themes", href: "/themes", icon: BookOpen, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
-    { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
-    { id: "nav-team", href: "/team", icon: UsersRound, label: t.sidebar.team },
+    { id: "nav-history", href: "/history", icon: Archive, label: t.sidebar.history },
+    { id: "nav-team", href: "/team", icon: Briefcase, label: t.sidebar.team },
   ];
 
   const actionButtons = [
-    { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
+    { id: "nav-create-content", href: "/create", icon: FileText, label: t.sidebar.createContent, variant: "primary" as const },
     { id: "nav-review-content", href: "/review", icon: CheckCircle, label: t.sidebar.reviewContent, variant: "accent" as const },
     { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
   ];
@@ -250,7 +250,7 @@ export function AppSidebar() {
                     id="nav-credits"
                     to="/credits"
                     onClick={handleMobileNavigate}
-                    className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                    className="flex items-center justify-center gap-3 p-3 rounded-md transition-all duration-300 ease-in-out hover:scale-105 bg-primary text-primary-foreground shadow-sm"
                   >
                     <Coins className="h-5 w-5 flex-shrink-0" />
                   </NavLink>
@@ -263,11 +263,11 @@ export function AppSidebar() {
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <NavLink
-                id="nav-credits"
-                to="/credits"
-                onClick={handleMobileNavigate}
-                className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                <NavLink
+                  id="nav-credits"
+                  to="/credits"
+                  onClick={handleMobileNavigate}
+                  className="flex items-center gap-3 p-3 rounded-md transition-all duration-300 ease-in-out hover:scale-105 bg-primary text-primary-foreground shadow-sm"
               >
                 <Coins className="h-5 w-5 flex-shrink-0" />
                 <div className="flex flex-col">
