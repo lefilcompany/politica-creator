@@ -3,69 +3,98 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts — Playfair Display + Source Serif 4 */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
 @layer base {
   :root {
-    --layout-bg: #F5DDEE;
-    --background: 288 80% 98%;
-    --foreground: 228 21% 17%;
-    --card: 288 80% 98%;
-    --card-foreground: 228 21% 17%;
-    --popover: 288 80% 98%;
-    --popover-foreground: 228 21% 17%;
-    --primary: 330 100% 38%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 269 66% 48%;
+    --layout-bg: #EDE8DF;
+    --background: 40 30% 96%;
+    --foreground: 30 10% 15%;
+    --card: 40 28% 97%;
+    --card-foreground: 30 10% 15%;
+    --popover: 40 28% 97%;
+    --popover-foreground: 30 10% 15%;
+    --primary: 350 50% 32%;
+    --primary-foreground: 40 30% 96%;
+    --secondary: 220 35% 28%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 48%;
-    --accent: 201 73% 40%;
+    --muted: 35 15% 88%;
+    --muted-foreground: 30 10% 45%;
+    --accent: 38 55% 48%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142.1 76.2% 36.3%;
+    --success: 150 35% 35%;
     --success-foreground: 0 0% 100%;
 
-    --border: 269 66% 48%;
-    --input: 228 21% 17%;
-    --ring: 269 66% 48%;
-    --radius: 0.5rem;
+    --border: 35 15% 78%;
+    --input: 30 10% 30%;
+    --ring: 350 50% 32%;
+    --radius: 0.375rem;
 
-    --chart-1: 48 96% 53%;
-    --chart-2: 201 96% 48%;
-    --chart-3: 142 76% 40%;
-    --chart-4: 271 91% 65%;
-    --chart-5: 330 100% 48%;
+    --chart-1: 38 70% 55%;
+    --chart-2: 220 45% 50%;
+    --chart-3: 150 40% 42%;
+    --chart-4: 350 50% 45%;
+    --chart-5: 28 60% 50%;
+
+    --creator-primary: 350 50% 32%;
+    --creator-secondary: 220 35% 28%;
+    --creator-accent: 38 55% 48%;
+
+    --sidebar-background: 40 28% 97%;
+    --sidebar-foreground: 30 10% 15%;
+    --sidebar-primary: 350 50% 32%;
+    --sidebar-primary-foreground: 40 30% 96%;
+    --sidebar-accent: 38 55% 48%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 35 15% 78%;
+    --sidebar-ring: 350 50% 32%;
   }
 
   .dark {
-    --layout-bg: #2D1F28;
-    --background: 227 18% 12%;
-    --foreground: 0 0% 100%;
-    --card: 227 18% 18%;
-    --card-foreground: 0 0% 100%;
-    --popover: 227 18% 18%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 330 100% 50%;
+    --layout-bg: #2A2520;
+    --background: 30 12% 11%;
+    --foreground: 40 20% 92%;
+    --card: 30 12% 15%;
+    --card-foreground: 40 20% 92%;
+    --popover: 30 12% 15%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 350 50% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 271 72% 45%;
+    --secondary: 220 30% 42%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 227 18% 25%;
-    --muted-foreground: 0 0% 90%;
-    --accent: 201 73% 50%;
+    --muted: 30 10% 22%;
+    --muted-foreground: 35 15% 65%;
+    --accent: 38 50% 52%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 55% 48%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142.1 70.2% 50%;
+    --success: 150 35% 45%;
     --success-foreground: 0 0% 100%;
-    --border: 227 18% 30%;
-    --input: 227 18% 25%;
-    --ring: 330 100% 50%;
+    --border: 30 10% 26%;
+    --input: 30 10% 22%;
+    --ring: 350 50% 48%;
 
-    --chart-1: 48 96% 60%;
-    --chart-2: 201 96% 55%;
-    --chart-3: 142 76% 50%;
-    --chart-4: 271 91% 70%;
-    --chart-5: 330 100% 55%;
+    --chart-1: 38 65% 58%;
+    --chart-2: 220 40% 55%;
+    --chart-3: 150 35% 48%;
+    --chart-4: 350 45% 52%;
+    --chart-5: 28 55% 55%;
+
+    --creator-primary: 350 50% 48%;
+    --creator-secondary: 220 30% 42%;
+    --creator-accent: 38 50% 52%;
+
+    --sidebar-background: 30 12% 13%;
+    --sidebar-foreground: 40 20% 92%;
+    --sidebar-primary: 350 50% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 50% 52%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 30 10% 26%;
+    --sidebar-ring: 350 50% 48%;
   }
 }
 
@@ -79,10 +108,12 @@
   }
 
   body {
-    /* ✨ ALTERADO: Adicionado um gradiente sutil ao fundo */
     @apply bg-background text-foreground;
-    background-image: linear-gradient(to top right, hsl(var(--background)), hsl(var(--muted)/0.5));
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Serif 4', 'Georgia', serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', 'Georgia', serif;
   }
 }
 
@@ -92,36 +123,29 @@
 }
 
 /* --- ESTILIZAÇÃO DA BARRA DE SCROLL --- */
-/* Para navegadores WebKit (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
-  width: 8px; /* Largura da barra de rolagem vertical mais fina */
-  height: 8px; /* Altura da barra de rolagem horizontal */
+  width: 6px;
+  height: 6px;
 }
 
-/* Fundo da barra de rolagem (a "pista") */
 ::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
-/* A parte que se move ("polegar") */
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, hsl(var(--primary) / 0.6), hsl(var(--secondary) / 0.6));
-  border-radius: 8px;
-  border: 2px solid transparent;
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 6px;
+  border: 1px solid transparent;
   background-clip: padding-box;
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.1);
 }
 
-/* Efeito ao passar o mouse sobre o polegar */
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, hsl(var(--primary) / 0.8), hsl(var(--secondary) / 0.8));
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.2);
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* Efeito quando a barra está sendo arrastada */
 ::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--secondary)));
+  background: hsl(var(--muted-foreground) / 0.7);
 }
 
 /* --- ANIMAÇÕES DE ÍCONES DO HEADER --- */
@@ -165,14 +189,30 @@
   }
 }
 
-/* Customização do spotlight do Joyride */
 .__floater__open [data-action="spotlight"] {
   animation: tour-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
   border-radius: 8px !important;
   transition: all 0.3s ease-in-out !important;
 }
 
-/* Tooltip do tour com animação suave */
 .react-joyride__tooltip {
   animation: fade-in 0.3s ease-out, scale-in 0.2s ease-out !important;
+}
+
+/* Newspaper divider */
+.newspaper-divider {
+  border-top: 2px solid hsl(var(--foreground) / 0.15);
+  position: relative;
+}
+.newspaper-divider::after {
+  content: '§';
+  position: absolute;
+  top: -0.7em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: hsl(var(--background));
+  padding: 0 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
 }
