@@ -166,13 +166,13 @@ function ActionButton({
 export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
-  const { user, isTrialExpired } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const { t } = useTranslation();
 
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
-  const isNavigationDisabled = isTrialExpired;
+  const isNavigationDisabled = false; // Payment system disabled
 
   const navLinks = [
     { id: "nav-dashboard", href: "/dashboard", icon: Home, label: t.sidebar.home },

@@ -42,18 +42,7 @@ export default function ProtectedRoute({ children, requireTeam = false }: Protec
       return;
     }
 
-    // Verificar créditos expirados apenas se exigir verificação
-    if (isTrialExpired && user?.credits <= 0) {
-      const currentPath = window.location.pathname;
-      const allowedPaths = ['/credits', '/history', '/profile', '/credit-history'];
-      const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
-      
-      if (!isAllowedPath) {
-        toast.error('Seus créditos acabaram. Adquira mais créditos para continuar.');
-        navigate('/credits?expired=true');
-        return;
-      }
-    }
+    // Payment system disabled - free access
 
     // Se requer equipe especificamente e não tem, mostra mensagem
     if (requireTeam && !team) {

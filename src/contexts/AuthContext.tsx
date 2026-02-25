@@ -235,8 +235,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(userData);
       setTeam(teamData);
-      setIsTrialExpired(isExpired || false);
-      setTrialDaysRemaining(calculatedDaysRemaining);
+      // Payment system disabled - never expire
+      setIsTrialExpired(false);
+      setTrialDaysRemaining(null);
     } catch (error) {
       // Silent error
     } finally {
