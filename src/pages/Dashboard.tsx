@@ -182,8 +182,6 @@ const Dashboard = () => {
         startDelay={1000}
       />
       
-      <ExpiredTrialBlocker />
-      <TrialBanner />
       <IncompleteProfileBanner />
 
       {/* Banner */}
@@ -194,12 +192,7 @@ const Dashboard = () => {
         <DashboardQuickActions />
       </div>
 
-      {/* Credits Card */}
-      <DashboardCreditsCard
-        remainingCredits={remainingCredits}
-        totalCredits={totalCredits}
-        progressPercentage={progressPercentage}
-      />
+      {/* Stats */}
 
       {/* Stats */}
       <div id="dashboard-stats">
