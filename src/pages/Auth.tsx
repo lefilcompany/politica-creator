@@ -482,7 +482,7 @@ const Auth = () => {
 
   // Formulário de registro
   const registerFormContent = (
-    <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
+    <form ref={registerFormRef} onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Grupo 1: Informações Pessoais */}
       <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -678,7 +678,7 @@ const Auth = () => {
         </p>
       </div>
 
-      <div className="space-y-4 pt-2">
+      <div className="space-y-4 pt-2 md:col-span-2">
         <div className="flex items-start gap-2">
           <Checkbox
             id="privacy"
