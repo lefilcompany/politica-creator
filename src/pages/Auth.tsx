@@ -743,7 +743,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
+      <div className="min-h-screen flex flex-col items-center relative overflow-y-auto py-8 px-4 sm:px-6"
         style={{
           background: 'linear-gradient(135deg, hsl(330 70% 92%) 0%, hsl(310 50% 93%) 20%, hsl(280 55% 94%) 40%, hsl(330 60% 95%) 60%, hsl(200 60% 93%) 80%, hsl(270 50% 92%) 100%)',
         }}
@@ -852,7 +852,7 @@ const Auth = () => {
         </Button>
 
         {/* Container centralizado */}
-        <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full sm:max-w-[440px]">
+        <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full max-w-lg">
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -870,7 +870,7 @@ const Auth = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full relative flex-shrink-0"
           >
-            <div className="bg-card/90 backdrop-blur-xl rounded-2xl shadow-xl shadow-primary/5 border border-border/40 p-5 sm:p-7 md:p-8 flex flex-col">
+            <div className="flex flex-col">
               {/* Tabs */}
               <div className="flex mb-5 sm:mb-6 flex-shrink-0 border-b border-border/30">
                 <button
@@ -933,7 +933,7 @@ const Auth = () => {
               </div>
 
               {/* Formulário com scroll para cadastro */}
-              <div className={`flex-1 min-h-0 -mx-1 px-1 ${!isLoginMode ? 'max-h-[50vh] overflow-y-auto' : ''}`}>
+              <div className="flex-1 min-h-0">
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={isLoginMode ? "login" : "register"}
