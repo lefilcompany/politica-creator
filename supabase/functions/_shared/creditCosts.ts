@@ -8,6 +8,9 @@ export const CREDIT_COSTS = {
   TEXT_REVIEW: 2,           // Revisão de copy/texto
   CONTENT_PLAN: 3,          // Planejamento de conteúdo
   VIDEO_GENERATION: 20,     // Geração de vídeo
+  FAKE_NEWS_MONITOR: 2,     // Monitor de fake news
+  FAKE_NEWS_RESPOND: 3,     // Resposta a fake news
+  FACT_CHECK: 1,            // Verificação de conteúdo
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {
