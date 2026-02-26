@@ -1,7 +1,9 @@
 /**
  * Shared helper to fetch the user's political profile and build
  * a context string that can be injected into any AI prompt.
+ * Also integrates the knowledge base from "A Próxima Democracia".
  */
+import { getKnowledgeBaseContext } from './knowledgeBase.ts';
 export interface PoliticalProfile {
   political_role: string | null;
   political_party: string | null;
@@ -39,31 +41,42 @@ export async function fetchPoliticalProfile(
  * Returns empty string if no political data is available.
  */
 export function buildPoliticalContext(profile: PoliticalProfile | null): string {
-  if (!profile) return '';
+  const parts: string[] = [];
 
-  const lines: string[] = [];
-
-  if (profile.political_role) lines.push(`- Cargo político: ${profile.political_role}`);
-  if (profile.political_party) lines.push(`- Partido: ${profile.political_party}`);
-  if (profile.political_level) lines.push(`- Nível de atuação: ${profile.political_level}`);
-  if (profile.political_experience) lines.push(`- Experiência política: ${profile.political_experience}`);
-  if (profile.mandate_stage) lines.push(`- Fase atual: ${profile.mandate_stage}`);
-  if (profile.focus_areas && profile.focus_areas.length > 0) lines.push(`- Áreas de foco: ${profile.focus_areas.join(', ')}`);
-  if (profile.main_social_networks && profile.main_social_networks.length > 0) lines.push(`- Redes sociais principais: ${profile.main_social_networks.join(', ')}`);
-  if (profile.target_audience_description) lines.push(`- Público-alvo: ${profile.target_audience_description}`);
-  if (profile.biography) lines.push(`- Biografia e trajetória: ${profile.biography}`);
-  if (profile.tone_of_voice) lines.push(`- Tom de voz preferido: ${profile.tone_of_voice}`);
-  if (profile.evidence_history) lines.push(`- Evidências e histórico: ${profile.evidence_history}`);
-
-  if (lines.length === 0) return '';
-
-  let context = `\n# PERFIL POLÍTICO DO AUTOR\n${lines.join('\n')}\n`;
-
-  if (profile.red_lines) {
-    context += `\n# LINHAS VERMELHAS (RESTRIÇÕES ABSOLUTAS)\n${profile.red_lines}\n\nATENÇÃO: As linhas vermelhas acima são PROIBIÇÕES. O conteúdo NUNCA deve violar essas restrições.\n`;
+  // 1. Inject knowledge base context
+  const knowledgeBase = getKnowledgeBaseContext();
+  if (knowledgeBase) {
+    parts.push(knowledgeBase);
   }
 
-  context += `\nIMPORTANTE: Considere o perfil político acima para adaptar tom, linguagem e contexto do conteúdo gerado. O conteúdo deve ser adequado ao cargo, partido e áreas de atuação do político.\n`;
+  // 2. Inject political profile context
+  if (profile) {
+    const lines: string[] = [];
 
-  return context;
+    if (profile.political_role) lines.push(`- Cargo político: ${profile.political_role}`);
+    if (profile.political_party) lines.push(`- Partido: ${profile.political_party}`);
+    if (profile.political_level) lines.push(`- Nível de atuação: ${profile.political_level}`);
+    if (profile.political_experience) lines.push(`- Experiência política: ${profile.political_experience}`);
+    if (profile.mandate_stage) lines.push(`- Fase atual: ${profile.mandate_stage}`);
+    if (profile.focus_areas && profile.focus_areas.length > 0) lines.push(`- Áreas de foco: ${profile.focus_areas.join(', ')}`);
+    if (profile.main_social_networks && profile.main_social_networks.length > 0) lines.push(`- Redes sociais principais: ${profile.main_social_networks.join(', ')}`);
+    if (profile.target_audience_description) lines.push(`- Público-alvo: ${profile.target_audience_description}`);
+    if (profile.biography) lines.push(`- Biografia e trajetória: ${profile.biography}`);
+    if (profile.tone_of_voice) lines.push(`- Tom de voz preferido: ${profile.tone_of_voice}`);
+    if (profile.evidence_history) lines.push(`- Evidências e histórico: ${profile.evidence_history}`);
+
+    if (lines.length > 0) {
+      parts.push(`\n# PERFIL POLÍTICO DO AUTOR\n${lines.join('\n')}\n`);
+    }
+
+    if (profile.red_lines) {
+      parts.push(`\n# LINHAS VERMELHAS (RESTRIÇÕES ABSOLUTAS)\n${profile.red_lines}\n\nATENÇÃO: As linhas vermelhas acima são PROIBIÇÕES. O conteúdo NUNCA deve violar essas restrições.\n`);
+    }
+
+    if (lines.length > 0) {
+      parts.push(`\nIMPORTANTE: Considere o perfil político acima para adaptar tom, linguagem e contexto do conteúdo gerado. O conteúdo deve ser adequado ao cargo, partido e áreas de atuação do político.\n`);
+    }
+  }
+
+  return parts.join('\n');
 }
