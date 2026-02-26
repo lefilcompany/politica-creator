@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins } from "lucide-react";
+import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins, Undo2, Redo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -45,6 +45,8 @@ export default function ContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
+  const [imageHistory, setImageHistory] = useState<string[]>([]);
+  const [imageHistoryIndex, setImageHistoryIndex] = useState(-1);
   useEffect(() => {
     const loadContent = async () => {
       // Limpar imagens antigas do sessionStorage (mais de 1 hora)
@@ -69,6 +71,10 @@ export default function ContentResult() {
         // ✅ ETAPA 1: Definir contentData IMEDIATAMENTE (antes de qualquer validação)
         setContentData(data);
         setIsLoading(false);
+        if (data.mediaUrl && data.type === "image") {
+          setImageHistory([data.mediaUrl]);
+          setImageHistoryIndex(0);
+        }
 
         // Verificar se já foi salvo no histórico
         setIsSavedToHistory(!!data.actionId);
@@ -423,6 +429,10 @@ export default function ContentResult() {
           const timestamp = Date.now();
           const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
           updatedContent.mediaUrl = imageUrlWithTimestamp;
+          // Add to image history for undo/redo
+          const newHistory = [...imageHistory.slice(0, imageHistoryIndex + 1), imageUrlWithTimestamp];
+          setImageHistory(newHistory);
+          setImageHistoryIndex(newHistory.length - 1);
           console.log("✅ Imagem editada atualizada com sucesso:", imageUrlWithTimestamp);
         } catch (error) {
           console.error("❌ Erro ao editar imagem:", error);
@@ -697,6 +707,14 @@ export default function ContentResult() {
         }}>
             <CardContent className="p-0">
               <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
+                {isReviewing && reviewType === "image" && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader className="h-10 w-10 animate-spin text-primary" />
+                      <span className="text-sm font-medium text-muted-foreground">Editando imagem...</span>
+                    </div>
+                  </div>
+                )}
                 {contentData.isProcessing ? <div className="flex items-center justify-center h-full">
                     <div className="text-center space-y-4">
                       <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
@@ -739,6 +757,43 @@ export default function ContentResult() {
                       Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
                     </div>}
                 </div>
+                {imageHistory.length > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => {
+                        if (imageHistoryIndex > 0) {
+                          const newIndex = imageHistoryIndex - 1;
+                          setImageHistoryIndex(newIndex);
+                          setContentData({ ...contentData, mediaUrl: imageHistory[newIndex] });
+                        }
+                      }}
+                      disabled={imageHistoryIndex <= 0}
+                      className="gap-2 px-3"
+                    >
+                      <Undo2 className="h-4 w-4" /> Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => {
+                        if (imageHistoryIndex < imageHistory.length - 1) {
+                          const newIndex = imageHistoryIndex + 1;
+                          setImageHistoryIndex(newIndex);
+                          setContentData({ ...contentData, mediaUrl: imageHistory[newIndex] });
+                        }
+                      }}
+                      disabled={imageHistoryIndex >= imageHistory.length - 1}
+                      className="gap-2 px-3"
+                    >
+                      <Redo2 className="h-4 w-4" /> Próxima
+                    </Button>
+                    <span className="text-xs text-muted-foreground self-center">
+                      Versão {imageHistoryIndex + 1}/{imageHistory.length}
+                    </span>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
