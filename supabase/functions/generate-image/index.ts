@@ -22,68 +22,314 @@ function cleanInput(text: string | string[] | undefined | null): string {
 }
 
 // =====================================
-// STYLE SETTINGS - Visual Style Mapping
+// VIBE STYLES - Mapeamento de Vibes
 // =====================================
-const getStyleSettings = (styleType: string) => {
-  const styles: Record<string, { suffix: string; negativePrompt: string }> = {
-    realistic: {
-      suffix: "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting",
-      negativePrompt: "deformed eyes, asymmetrical face, plastic skin, doll-like, cartoon, anime, 3d render, lowres, fused eyes, extra eyelashes, bad anatomy, elongated face, makeup overkill, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, crossed eyes, lazy eye, unnatural skin color"
-    },
-    animated: {
-      suffix: "3D animated character in Pixar/Disney style, expressive features, smooth stylized rendering, vibrant colors, professional 3D animation quality, studio lighting, octane render",
-      negativePrompt: "realistic photo, photograph, ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, low quality"
-    },
-    cartoon: {
-      suffix: "cartoon illustration style, bold outlines, flat colors, expressive character design, comic book style, vibrant and playful, clean vector-like illustration",
-      negativePrompt: "realistic, photograph, 3d render, dark, scary, blurry, low quality, bad anatomy"
-    },
-    anime: {
-      suffix: "anime art style, Japanese animation aesthetic, detailed eyes, clean lineart, vibrant cel-shading, manga-inspired, studio quality anime illustration",
-      negativePrompt: "realistic, photograph, western cartoon, ugly, deformed, blurry, low quality, bad anatomy, extra limbs"
-    },
-    watercolor: {
-      suffix: "watercolor painting style, soft washes of color, visible brush strokes, artistic texture, traditional watercolor on paper effect, delicate and flowing",
-      negativePrompt: "digital art, photograph, sharp edges, flat colors, cartoon, anime, low quality"
-    },
-    oil_painting: {
-      suffix: "oil painting style, rich textures, visible brushwork, classical art technique, masterful use of light and shadow, gallery-quality fine art",
-      negativePrompt: "digital art, photograph, flat colors, cartoon, anime, low quality, blurry"
-    },
-    digital_art: {
-      suffix: "professional digital art, polished illustration, concept art quality, detailed rendering, vibrant digital painting, artstation quality",
-      negativePrompt: "photograph, blurry, low quality, bad anatomy, ugly, deformed"
-    },
-    sketch: {
-      suffix: "pencil sketch style, hand-drawn lines, artistic crosshatching, graphite on paper texture, expressive sketching technique, traditional drawing",
-      negativePrompt: "photograph, color, digital, painted, blurry, low quality"
-    },
-    minimalist: {
-      suffix: "minimalist design, clean lines, simple shapes, limited color palette, elegant simplicity, modern aesthetic, white space emphasis",
-      negativePrompt: "busy, cluttered, complex, realistic photo, detailed, ornate, low quality"
-    },
-    vintage: {
-      suffix: "vintage retro aesthetic, nostalgic color grading, film grain texture, 70s/80s inspired style, warm tones, analog photography feel",
-      negativePrompt: "modern, digital, clean, sharp, contemporary, low quality"
-    }
-  };
-  return styles[styleType] || styles.realistic;
+const VIBE_STYLES: Record<string, string> = {
+  minimalist: "Fotografia flat lay estúdio, fundo limpo, espaço negativo amplo, composição equilibrada, tons neutros elegantes",
+  pop_neon: "Cores saturadas, iluminação neon, contraste forte, estilo arte urbana, vibrante e energético",
+  professional: "Fotografia corporativa de alta qualidade, profundidade de campo rasa, tons neutros, iluminação studio profissional",
+  cinematic: "Fotografia cinematográfica 4K, color grading de filme, composição dramática, iluminação volumétrica",
+  "3d_modern": "3D render minimalista, iluminação studio suave, materiais realistas, composição clean moderna",
+  illustration: "Ilustração vetorial moderna, cores vibrantes, formas geométricas, design gráfico contemporâneo",
+  // Legacy styles mapping
+  realistic: "Fotografia de alta qualidade, hiper-realista, 8K, iluminação natural profissional",
+  animated: "3D animado estilo Pixar/Disney, renderização estilizada, cores vibrantes",
+  cartoon: "Ilustração cartoon, contornos marcados, cores planas, design expressivo",
+  anime: "Estilo anime japonês, cel-shading, lineart detalhada",
+  watercolor: "Estilo aquarela, pinceladas suaves, textura artística",
+  oil_painting: "Estilo pintura a óleo, texturas ricas, pinceladas visíveis",
+  digital_art: "Arte digital profissional, conceito art, renderização polida",
+  sketch: "Estilo desenho a lápis, linhas expressivas, grafite sobre papel",
+  vintage: "Estética vintage retrô, color grading nostálgico, grain de filme, tons quentes",
 };
 
 // =====================================
-// PORTRAIT DETECTION
+// FONT STYLES - Mapeamento de Tipografia
 // =====================================
-const isPortraitRequest = (promptText: string): boolean => {
-  const portraitKeywords = [
-    'retrato', 'portrait', 'rosto', 'face', 'pessoa', 'person', 
-    'homem', 'man', 'mulher', 'woman', 'criança', 'child',
-    'close-up', 'headshot', 'selfie', 'avatar', 'modelo', 'model',
-    'executivo', 'executive', 'profissional', 'professional',
-    'jovem', 'young', 'idoso', 'elderly', 'adulto', 'adult'
-  ];
-  const lowerPrompt = promptText.toLowerCase();
-  return portraitKeywords.some(keyword => lowerPrompt.includes(keyword));
+const FONT_STYLES: Record<string, string> = {
+  elegant: "serifa clássica, refinada, com elegância tipográfica",
+  modern: "sans-serif limpa, geométrica, moderna e minimalista",
+  fun: "script casual ou display arrojada, divertida e expressiva",
+  impactful: "bold condensada, display forte, grande impacto visual",
 };
+
+// =====================================
+// FETCH COMPLETE DATA FROM DB
+// =====================================
+async function fetchBrandData(supabase: any, brandId: string) {
+  const { data, error } = await supabase
+    .from('brands')
+    .select('name, segment, values, keywords, color_palette, brand_color, goals, promise, restrictions, logo, moodboard, reference_image')
+    .eq('id', brandId)
+    .single();
+  if (error) { console.error('Error fetching brand:', error); return null; }
+  return data;
+}
+
+async function fetchThemeData(supabase: any, themeId: string) {
+  const { data, error } = await supabase
+    .from('strategic_themes')
+    .select('title, description, tone_of_voice, platforms, target_audience, objectives, macro_themes, objective_type, color_palette, hashtags')
+    .eq('id', themeId)
+    .single();
+  if (error) { console.error('Error fetching theme:', error); return null; }
+  return data;
+}
+
+async function fetchPersonaData(supabase: any, personaId: string) {
+  const { data, error } = await supabase
+    .from('personas')
+    .select('name, age, gender, location, professional_context, preferred_tone_of_voice, challenges, main_goal, beliefs_and_interests')
+    .eq('id', personaId)
+    .single();
+  if (error) { console.error('Error fetching persona:', error); return null; }
+  return data;
+}
+
+// =====================================
+// STEP 1: ENRICH PROMPT WITH GEMINI FLASH
+// =====================================
+async function enrichPromptWithFlash(
+  rawDescription: string,
+  brandData: any,
+  themeData: any,
+  personaData: any,
+  politicalContext: string
+): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    console.warn('LOVABLE_API_KEY not found, skipping enrichment');
+    return rawDescription;
+  }
+
+  const contextParts: string[] = [];
+  if (brandData) {
+    contextParts.push(`Marca: ${brandData.name}, Segmento: ${brandData.segment || 'N/A'}, Valores: ${brandData.values || 'N/A'}`);
+  }
+  if (themeData) {
+    contextParts.push(`Pauta: ${themeData.title}, Objetivos: ${themeData.objectives || 'N/A'}, Macro-temas: ${themeData.macro_themes || 'N/A'}`);
+  }
+  if (personaData) {
+    contextParts.push(`Audiência: ${personaData.name}, ${personaData.age || ''} anos, ${personaData.location || ''}, Contexto: ${personaData.professional_context || 'N/A'}`);
+  }
+
+  const systemPrompt = `Você é um diretor de arte digital especialista em criar descrições visuais cinematográficas para geração de imagens por IA.
+
+Sua tarefa: Transformar uma descrição simples numa scene_description rica e visual, detalhando:
+- Iluminação (tipo, direção, temperatura de cor)
+- Composição (plano, ângulo, profundidade)
+- Atmosfera e mood (sensação emocional)
+- Detalhes visuais específicos (texturas, materiais, cores)
+- Elementos de cena (objetos, cenário, fundo)
+
+Contexto do projeto: ${contextParts.join(' | ')}
+${politicalContext ? `Contexto político: ${politicalContext.substring(0, 500)}` : ''}
+
+REGRAS:
+- Responda APENAS com a descrição visual enriquecida, sem explicações
+- Máximo 300 palavras
+- Em português
+- Seja específico e visual, não genérico`;
+
+  try {
+    console.log('🎨 Step 1: Enriching prompt with Gemini Flash...');
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3-flash-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Transforme esta descrição simples numa cena visual rica e cinematográfica:\n\n"${rawDescription}"` },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const status = response.status;
+      console.error(`Flash enrichment failed with status ${status}`);
+      if (status === 429) console.warn('Rate limited on enrichment, using original');
+      if (status === 402) console.warn('Payment required on enrichment, using original');
+      return rawDescription;
+    }
+
+    const data = await response.json();
+    const enriched = data.choices?.[0]?.message?.content?.trim();
+    if (enriched && enriched.length > 20) {
+      console.log(`✅ Prompt enriched: ${enriched.length} chars`);
+      return enriched;
+    }
+    return rawDescription;
+  } catch (error) {
+    console.error('Error enriching prompt:', error);
+    return rawDescription;
+  }
+}
+
+// =====================================
+// BUILD "DIRETOR DE ARTE DIGITAL" PROMPT
+// =====================================
+function buildDirectorPrompt(params: {
+  userName: string;
+  description: string;
+  enrichedDescription: string;
+  brandData: any;
+  themeData: any;
+  personaData: any;
+  politicalContext: string;
+  vibeStyle: string;
+  fontStyle: string;
+  includeText: boolean;
+  textContent: string;
+  textPosition: string;
+  contentType: string;
+  platform: string;
+  objective: string;
+  tones: string[];
+  additionalInfo: string;
+  preserveImagesCount: number;
+  styleReferenceImagesCount: number;
+}): string {
+  const sections: string[] = [];
+
+  // === ROLE ===
+  sections.push(`Atue como um Diretor de Arte Digital e Designer de Social Media de Alta Costura. O seu objetivo é criar um post de rede social impecável, esteticamente perfeito e com design inteligente para o utilizador ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
+
+  // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
+  const contextLines: string[] = [];
+  if (params.brandData) {
+    contextLines.push(`- **Marca:** ${params.brandData.name}`);
+    if (params.brandData.segment) contextLines.push(`- **Setor/Nicho:** ${params.brandData.segment}`);
+    if (params.brandData.values) contextLines.push(`- **Valores:** ${params.brandData.values}`);
+    if (params.brandData.keywords) contextLines.push(`- **Keywords:** ${params.brandData.keywords}`);
+    if (params.brandData.promise) contextLines.push(`- **Promessa da marca:** ${params.brandData.promise}`);
+    if (params.brandData.goals) contextLines.push(`- **Objetivos:** ${params.brandData.goals}`);
+    
+    // Color palette
+    const colors: string[] = [];
+    if (params.brandData.brand_color) colors.push(params.brandData.brand_color);
+    if (params.brandData.color_palette && Array.isArray(params.brandData.color_palette)) {
+      params.brandData.color_palette.forEach((c: any) => {
+        if (c.hex) colors.push(c.hex);
+      });
+    }
+    if (colors.length > 0) {
+      contextLines.push(`- **Paleta de Cores Obrigatória:** ${colors.join(', ')}`);
+    }
+    if (params.brandData.restrictions) {
+      contextLines.push(`- **Restrições:** ${params.brandData.restrictions}`);
+    }
+  }
+  if (params.themeData) {
+    contextLines.push(`- **Pauta Estratégica:** ${params.themeData.title}`);
+    if (params.themeData.objectives) contextLines.push(`- **Objetivos da Pauta:** ${params.themeData.objectives}`);
+    if (params.themeData.macro_themes) contextLines.push(`- **Macro-temas:** ${params.themeData.macro_themes}`);
+    if (params.themeData.target_audience) contextLines.push(`- **Público-Alvo da Pauta:** ${params.themeData.target_audience}`);
+    if (params.themeData.hashtags) contextLines.push(`- **Hashtags:** ${params.themeData.hashtags}`);
+  }
+  if (params.personaData) {
+    contextLines.push(`- **Audiência:** ${params.personaData.name}`);
+    if (params.personaData.age) contextLines.push(`- **Idade:** ${params.personaData.age}`);
+    if (params.personaData.gender) contextLines.push(`- **Gênero:** ${params.personaData.gender}`);
+    if (params.personaData.location) contextLines.push(`- **Localização:** ${params.personaData.location}`);
+    if (params.personaData.professional_context) contextLines.push(`- **Contexto Profissional:** ${params.personaData.professional_context}`);
+    if (params.personaData.challenges) contextLines.push(`- **Desafios:** ${params.personaData.challenges}`);
+    if (params.personaData.main_goal) contextLines.push(`- **Objetivo Principal:** ${params.personaData.main_goal}`);
+    if (params.personaData.beliefs_and_interests) contextLines.push(`- **Interesses:** ${params.personaData.beliefs_and_interests}`);
+  }
+
+  // Tom de voz
+  const toneStr = params.tones.length > 0 ? params.tones.join(', ') : 
+    (params.themeData?.tone_of_voice || params.personaData?.preferred_tone_of_voice || 'profissional');
+  contextLines.push(`- **Tom de Voz da Marca:** ${toneStr}`);
+
+  if (contextLines.length > 0) {
+    sections.push(`### 1. CONTEXTO DO UTILIZADOR E MARCA\n${contextLines.join('\n')}`);
+  }
+
+  // === 2. CONTEÚDO E COMPOSIÇÃO DO POST ===
+  const compositionLines: string[] = [];
+  
+  if (params.includeText && params.textContent?.trim()) {
+    compositionLines.push(`- **Headline (Texto Principal na Imagem):** "${params.textContent}"`);
+  }
+  
+  compositionLines.push(`- **Descrição da Cena:** ${params.enrichedDescription}`);
+  
+  const vibeDesc = VIBE_STYLES[params.vibeStyle] || VIBE_STYLES['professional'] || params.vibeStyle;
+  compositionLines.push(`- **Estilo Visual:** ${vibeDesc}`);
+
+  if (params.platform) compositionLines.push(`- **Plataforma:** ${params.platform}`);
+  if (params.objective) compositionLines.push(`- **Objetivo:** ${params.objective}`);
+  if (params.contentType === 'ads') {
+    compositionLines.push(`- **Tipo:** Conteúdo de ANÚNCIO PAGO - foco em conversão, CTA implícito, produto/serviço em destaque`);
+  } else {
+    compositionLines.push(`- **Tipo:** Conteúdo ORGÂNICO - foco em engajamento, autenticidade, conexão com comunidade`);
+  }
+
+  sections.push(`### 2. CONTEÚDO E COMPOSIÇÃO DO POST\n${compositionLines.join('\n')}`);
+
+  // === 3. INSTRUÇÕES CRUCIAIS DE DESIGN ===
+  const designLines: string[] = [];
+  
+  if (params.includeText && params.textContent?.trim()) {
+    const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
+    designLines.push(`- **Fidelidade Tipográfica:** O texto "${params.textContent}" deve ser renderizado PERFEITAMENTE, sem erros ortográficos, usando uma tipografia ${fontDesc}.`);
+    
+    const posLabels: Record<string, string> = {
+      'top': 'no topo da imagem',
+      'center': 'centralizado na imagem',
+      'bottom': 'na parte inferior da imagem',
+      'top-left': 'no canto superior esquerdo',
+      'top-right': 'no canto superior direito',
+      'bottom-left': 'no canto inferior esquerdo',
+      'bottom-right': 'no canto inferior direito',
+    };
+    designLines.push(`- **Posição do Texto:** ${posLabels[params.textPosition] || 'centralizado'}`);
+    designLines.push(`- **Legibilidade e Contraste:** Garanta que o texto seja o foco principal e seja 100% legível. Utilize espaço negativo estratégico, sobreposições de gradiente sutil ou caixas de texto limpas para separar o texto do fundo.`);
+  } else {
+    designLines.push(`- **SEM TEXTO:** CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
+  }
+  
+  designLines.push(`- **Design Inteligente:** Organize os elementos visuais de acordo com o Tom de Voz "${toneStr}". O layout deve guiar o olhar naturalmente pela composição.`);
+
+  sections.push(`### 3. INSTRUÇÕES CRUCIAIS DE DESIGN\n${designLines.join('\n')}`);
+
+  // === 4. REFERÊNCIAS VISUAIS ===
+  if (params.preserveImagesCount > 0 || params.styleReferenceImagesCount > 0) {
+    const refLines: string[] = [];
+    if (params.preserveImagesCount > 0) {
+      refLines.push(`${params.preserveImagesCount} imagem(ns) da IDENTIDADE DA MARCA foram fornecidas. Use-as como REFERÊNCIA DE ESTILO (Style Reference): extraia a atmosfera, iluminação, paleta de cores e sentimento geral, aplicando-os à cena descrita. A nova imagem DEVE parecer parte do mesmo conjunto visual.`);
+    }
+    if (params.styleReferenceImagesCount > 0) {
+      refLines.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA DO USUÁRIO foram fornecidas. Use como inspiração adicional de composição e estética.`);
+    }
+    sections.push(`### 4. REFERÊNCIAS VISUAIS\n${refLines.join('\n')}`);
+  }
+
+  // === COMPLIANCE ===
+  sections.push(`### 5. COMPLIANCE ÉTICO
+DIRETRIZES ÉTICAS E LEGAIS OBRIGATÓRIAS (CONAR/CDC):
+- HONESTIDADE: A imagem NÃO PODE induzir ao erro
+- DIGNIDADE HUMANA: PROIBIDO discriminação
+- CONCORRÊNCIA: NÃO ridicularize concorrentes
+- Se político: respeitar regulamentações eleitorais`);
+
+  // === POLITICAL CONTEXT ===
+  if (params.politicalContext) {
+    sections.push(params.politicalContext);
+  }
+
+  // === ADDITIONAL INFO ===
+  if (params.additionalInfo) {
+    sections.push(`### INFORMAÇÕES ADICIONAIS\n${params.additionalInfo}`);
+  }
+
+  return sections.join('\n\n');
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -96,7 +342,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Authenticate user from JWT token
+    // Authenticate user
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
     
@@ -110,7 +356,6 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      console.error('Auth error:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -119,27 +364,25 @@ serve(async (req) => {
 
     const authenticatedUserId = user.id;
 
-    // Fetch user profile (team_id agora é opcional)
+    // Fetch profile + political profile in parallel
     const [profileResult, politicalProfile] = await Promise.all([
-      supabase.from('profiles').select('team_id, credits').eq('id', authenticatedUserId).single(),
+      supabase.from('profiles').select('team_id, credits, name').eq('id', authenticatedUserId).single(),
       fetchPoliticalProfile(supabase, authenticatedUserId)
     ]);
     const { data: profile, error: profileError } = profileResult;
 
     if (profileError) {
-      console.error('Profile error:', profileError);
       return new Response(
         JSON.stringify({ error: 'Erro ao carregar perfil do usuário' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // team_id agora é opcional
     const authenticatedTeamId = profile?.team_id || null;
+    const userName = profile?.name || 'Usuário';
 
     const formData = await req.json();
     
-    // Input validation
     if (!formData.description || typeof formData.description !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Descrição inválida' }),
@@ -147,57 +390,102 @@ serve(async (req) => {
       );
     }
 
-    console.log('Generate Image Request:', { 
+    console.log('🎬 Generate Image Request (Premium Pipeline):', { 
       description: formData.description?.substring(0, 100),
       brandId: formData.brandId,
       themeId: formData.themeId,
       personaId: formData.personaId,
+      vibeStyle: formData.vibeStyle,
+      fontStyle: formData.fontStyle,
       platform: formData.platform,
-      visualStyle: formData.visualStyle,
-      contentType: formData.contentType,
-      userId: authenticatedUserId, 
-      teamId: authenticatedTeamId,
-      preserveImagesCount: formData.preserveImages?.length || 0,
-      styleReferenceImagesCount: formData.styleReferenceImages?.length || 0,
+      userId: authenticatedUserId,
     });
 
-    // Check user credits (individual)
+    // Check user credits
     const creditsCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
-
     if (!creditsCheck.hasCredits) {
       return new Response(
         JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.COMPLETE_IMAGE} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
     const creditsBefore = creditsCheck.currentCredits;
 
-    // Build comprehensive structured prompt
-    let enhancedPrompt = buildDetailedPrompt(formData);
+    // =====================================
+    // FETCH COMPLETE DATA FROM DB (in parallel)
+    // =====================================
+    const [brandData, themeData, personaData] = await Promise.all([
+      formData.brandId ? fetchBrandData(supabase, formData.brandId) : null,
+      formData.themeId ? fetchThemeData(supabase, formData.themeId) : null,
+      formData.personaId ? fetchPersonaData(supabase, formData.personaId) : null,
+    ]);
+
+    console.log('📦 Data fetched:', {
+      brand: brandData?.name || 'none',
+      theme: themeData?.title || 'none', 
+      persona: personaData?.name || 'none',
+    });
+
+    // =====================================
+    // STEP 1: ENRICH PROMPT WITH GEMINI FLASH
+    // =====================================
     const politicalContext = buildPoliticalContext(politicalProfile);
-    if (politicalContext) {
-      enhancedPrompt += `\n${politicalContext}`;
+    const enrichedDescription = await enrichPromptWithFlash(
+      formData.description,
+      brandData,
+      themeData,
+      personaData,
+      politicalContext
+    );
+
+    // =====================================
+    // STEP 2: BUILD STRUCTURED "DIRETOR DE ARTE" PROMPT
+    // =====================================
+    const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
+    const preserveImages = formData.preserveImages || [];
+    const styleReferenceImages = formData.styleReferenceImages || [];
+
+    const enhancedPrompt = buildDirectorPrompt({
+      userName,
+      description: formData.description,
+      enrichedDescription,
+      brandData,
+      themeData,
+      personaData,
+      politicalContext,
+      vibeStyle: formData.vibeStyle || formData.visualStyle || 'professional',
+      fontStyle: formData.fontStyle || 'modern',
+      includeText: formData.includeText ?? false,
+      textContent: cleanInput(formData.textContent),
+      textPosition: formData.textPosition || 'center',
+      contentType: formData.contentType || 'organic',
+      platform: cleanInput(formData.platform),
+      objective: cleanInput(formData.objective),
+      tones,
+      additionalInfo: cleanInput(formData.additionalInfo),
+      preserveImagesCount: preserveImages.length,
+      styleReferenceImagesCount: styleReferenceImages.length,
+    });
+
+    console.log('📝 Director prompt built:', enhancedPrompt.length, 'chars');
+
+    // =====================================
+    // STEP 3: GENERATE IMAGE WITH GEMINI 3 PRO (Lovable AI Gateway)
+    // =====================================
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
-    }
-
-    console.log('Calling Gemini Image Preview API...');
-
-    // Build messages array with reference images
+    // Build message content with images
     const messageContent: any[] = [
       { type: 'text', text: enhancedPrompt }
     ];
     
-    // Add preserve images first (highest priority - brand images)
-    const preserveImages = formData.preserveImages || [];
-    if (preserveImages && preserveImages.length > 0) {
-      console.log(`✅ Adicionando ${preserveImages.length} imagem(ns) da marca/identidade...`);
+    // Add brand images (style reference)
+    if (preserveImages.length > 0) {
+      console.log(`✅ Adding ${preserveImages.length} brand identity image(s)...`);
       preserveImages.forEach((img: string, index: number) => {
-        console.log(`  - Imagem marca ${index + 1}: ${(img.length / 1024).toFixed(0)}KB`);
         messageContent.push({
           type: 'image_url',
           image_url: { url: img }
@@ -205,22 +493,20 @@ serve(async (req) => {
       });
     }
     
-    // Add style reference images after (user uploads)
-    const styleReferenceImages = formData.styleReferenceImages || [];
-    if (styleReferenceImages && styleReferenceImages.length > 0) {
-      console.log(`✅ Adicionando ${styleReferenceImages.length} imagem(ns) de referência do usuário...`);
+    // Add user reference images
+    if (styleReferenceImages.length > 0) {
+      console.log(`✅ Adding ${styleReferenceImages.length} user reference image(s)...`);
       styleReferenceImages.forEach((img: string, index: number) => {
-        console.log(`  - Imagem usuário ${index + 1}: ${(img.length / 1024).toFixed(0)}KB`);
         messageContent.push({
           type: 'image_url',
           image_url: { url: img }
         });
       });
     }
-    
-    console.log(`📦 Total de conteúdos na mensagem: ${messageContent.length} (1 texto + ${messageContent.length - 1} imagens)`);
 
-    // Retry logic for image generation
+    console.log(`📦 Total message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
+
+    // Retry logic
     const MAX_RETRIES = 3;
     let lastError: any = null;
     let imageUrl: string | null = null;
@@ -228,152 +514,128 @@ serve(async (req) => {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`Image generation attempt ${attempt}/${MAX_RETRIES}...`);
+        console.log(`🖼️ Image generation attempt ${attempt}/${MAX_RETRIES} via Lovable AI Gateway (Gemini 3 Pro)...`);
 
-        // Convert messageContent to Gemini format
-        const geminiParts = await Promise.all(messageContent.map(async (item: any) => {
-          if (item.type === "text") {
-            return { text: item.text };
-          } else if (item.type === "image_url") {
-            const url = item.image_url.url;
-            
-            // If it's already base64
-            if (url.startsWith('data:')) {
-              const base64Data = url.split(',')[1];
-              const mimeType = url.match(/data:(.*?);/)?.[1] || 'image/png';
-              return { 
-                inlineData: { 
-                  mimeType, 
-                  data: base64Data 
-                } 
-              };
-            }
-            
-            // If it's a URL, fetch and convert to base64
-            try {
-              const imageResponse = await fetch(url);
-              if (!imageResponse.ok) {
-                console.error(`Failed to fetch image from ${url}: ${imageResponse.status}`);
-                return null;
-              }
-              
-              const arrayBuffer = await imageResponse.arrayBuffer();
-              const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-              
-              // Detect mime type from content-type header or default to png
-              const contentType = imageResponse.headers.get('content-type') || 'image/png';
-              
-              return { 
-                inlineData: { 
-                  mimeType: contentType, 
-                  data: base64Data 
-                } 
-              };
-            } catch (fetchError) {
-              console.error(`Error fetching image from ${url}:`, fetchError);
-              return null;
-            }
-          }
-          return null;
-        })).then(parts => parts.filter(p => p !== null));
-
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent', {
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
-            'x-goog-api-key': GEMINI_API_KEY,
           },
           body: JSON.stringify({
-            contents: [{ parts: geminiParts }],
-            generationConfig: {
-              responseModalities: ["IMAGE", "TEXT"]
-            }
+            model: 'google/gemini-3-pro-image-preview',
+            messages: [{ role: 'user', content: messageContent }],
+            modalities: ['image', 'text'],
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gemini API error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gateway error (attempt ${attempt}):`, response.status, errorText);
           
-          // Don't retry on rate limit errors
           if (response.status === 429) {
             return new Response(
               JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
               { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
+          if (response.status === 402) {
+            return new Response(
+              JSON.stringify({ error: 'Créditos da plataforma esgotados. Entre em contato com o suporte.' }),
+              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
           
-          lastError = new Error(`Gemini API error: ${response.status}`);
-          
+          lastError = new Error(`Gateway error: ${response.status}`);
           if (attempt < MAX_RETRIES) {
-            console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
             await new Promise(resolve => setTimeout(resolve, 2000));
             continue;
           }
-          
           throw lastError;
         }
 
         const data = await response.json();
-        console.log('Gemini API response received');
+        console.log('Gateway response received');
 
-        // Extract image from response
-        if (data.candidates && data.candidates[0]?.content?.parts) {
-          const parts = data.candidates[0].content.parts;
+        // Extract image from response - handle both OpenAI-style and Gemini-style responses
+        if (data.choices?.[0]?.message?.content) {
+          const content = data.choices[0].message.content;
           
-          for (const part of parts) {
-            if (part.inlineData?.data) {
-              const base64Image = part.inlineData.data;
-              const mimeType = part.inlineData.mimeType || 'image/png';
-              imageUrl = `data:${mimeType};base64,${base64Image}`;
-              console.log('Image extracted successfully from Gemini response');
-              break;
+          // If content is an array (multimodal response)
+          if (Array.isArray(content)) {
+            for (const part of content) {
+              if (part.type === 'image_url' && part.image_url?.url) {
+                imageUrl = part.image_url.url;
+                console.log('Image extracted from array response');
+                break;
+              }
+              if (part.type === 'text' && part.text) {
+                description = part.text;
+              }
             }
           }
+          // If content is a string (text only response with inline image)
+          else if (typeof content === 'string') {
+            description = content;
+          }
+        }
 
-          // Extract text description if available
+        // Also check for inline_data style (Gemini native format proxied)
+        if (!imageUrl && data.candidates?.[0]?.content?.parts) {
+          const parts = data.candidates[0].content.parts;
           for (const part of parts) {
+            if (part.inlineData?.data) {
+              const mimeType = part.inlineData.mimeType || 'image/png';
+              imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+              console.log('Image extracted from Gemini native format');
+              break;
+            }
             if (part.text) {
               description = part.text;
-              break;
             }
           }
         }
 
         if (!imageUrl) {
-          throw new Error('No image found in Gemini response');
+          throw new Error('No image found in response');
         }
 
-        // Success - break retry loop
-        break;
-
+        break; // Success
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
         lastError = error;
-        
         if (attempt < MAX_RETRIES) {
-          console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
           await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
     }
 
     if (!imageUrl) {
-      console.error('Failed to generate image after all retries:', lastError);
+      console.error('Failed after all retries:', lastError);
       return new Response(
         JSON.stringify({ error: 'Falha ao gerar imagem após múltiplas tentativas' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Upload image to Supabase Storage
+    // =====================================
+    // UPLOAD TO STORAGE
+    // =====================================
     console.log('Uploading image to storage...');
     const timestamp = Date.now();
-    const fileName = `content-images/${authenticatedTeamId}/${timestamp}.png`;
+    const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
     
-    // Convert base64 to blob
-    const base64Data = imageUrl.split(',')[1];
-    const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    // Handle both base64 and URL responses
+    let binaryData: Uint8Array;
+    if (imageUrl.startsWith('data:')) {
+      const base64Data = imageUrl.split(',')[1];
+      binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    } else {
+      // It's a URL, fetch it
+      const imgResp = await fetch(imageUrl);
+      const arrayBuf = await imgResp.arrayBuffer();
+      binaryData = new Uint8Array(arrayBuf);
+    }
     
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('content-images')
@@ -390,22 +652,16 @@ serve(async (req) => {
       );
     }
 
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('content-images')
       .getPublicUrl(fileName);
 
     console.log('Image uploaded successfully:', publicUrl);
 
-    // Deduct user credits (individual)
+    // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
     const creditsAfter = deductResult.newCredits;
 
-    if (!deductResult.success) {
-      console.error('Error deducting credits:', deductResult.error);
-    }
-
-    // Record credit usage
     await recordUserCreditUsage(supabase, {
       userId: authenticatedUserId,
       teamId: authenticatedTeamId,
@@ -413,11 +669,17 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem completa',
-      metadata: { platform: formData.platform, visualStyle: formData.visualStyle }
+      description: 'Geração de imagem (Pipeline Premium)',
+      metadata: { 
+        platform: formData.platform, 
+        vibeStyle: formData.vibeStyle || formData.visualStyle,
+        fontStyle: formData.fontStyle,
+        model: 'gemini-3-pro-image-preview',
+        enriched: enrichedDescription !== formData.description,
+      }
     });
 
-    // Save to history (actions table) with storage paths
+    // Save to actions
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
@@ -435,14 +697,16 @@ serve(async (req) => {
           themeId: formData.themeId,
           personaId: formData.personaId,
           platform: formData.platform,
-          visualStyle: formData.visualStyle,
+          vibeStyle: formData.vibeStyle || formData.visualStyle,
+          fontStyle: formData.fontStyle,
           contentType: formData.contentType,
-          preserveImagesCount: formData.preserveImages?.length || 0,
-          styleReferenceImagesCount: formData.styleReferenceImages?.length || 0
+          preserveImagesCount: preserveImages.length,
+          styleReferenceImagesCount: styleReferenceImages.length,
+          pipeline: 'premium_v2',
         },
         result: {
           imageUrl: publicUrl,
-          description: description
+          description: description,
         }
       })
       .select()
@@ -470,325 +734,3 @@ serve(async (req) => {
     );
   }
 });
-
-// =====================================
-// STRUCTURED PROMPT BUILDER
-// =====================================
-function buildDetailedPrompt(formData: any): string {
-  const promptSections: string[] = [];
-  
-  // Extract and clean all inputs
-  const brand = cleanInput(formData.brand);
-  const theme = cleanInput(formData.theme);
-  const persona = cleanInput(formData.persona);
-  const platform = cleanInput(formData.platform);
-  const objective = cleanInput(formData.objective);
-  const description = cleanInput(formData.description);
-  const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
-  const additionalInfo = cleanInput(formData.additionalInfo);
-  const contentType = formData.contentType || 'organic';
-  const visualStyle = formData.visualStyle || 'realistic';
-  
-  // Advanced configurations
-  const negativePrompt = cleanInput(formData.negativePrompt);
-  const colorPalette = formData.colorPalette || 'auto';
-  const lighting = formData.lighting || 'natural';
-  const composition = formData.composition || 'auto';
-  const cameraAngle = formData.cameraAngle || 'eye_level';
-  const detailLevel = formData.detailLevel || 7;
-  const mood = formData.mood || 'auto';
-  
-  // Reference images
-  const preserveImages = formData.preserveImages || [];
-  const styleReferenceImages = formData.styleReferenceImages || [];
-
-  // =====================================
-  // [1] COMPLIANCE - Brazilian Advertising Regulations
-  // =====================================
-  promptSections.push(`[COMPLIANCE]
-DIRETRIZES ÉTICAS E LEGAIS OBRIGATÓRIAS (Código CONAR e CDC - Brasil):
-- HONESTIDADE: A imagem NÃO PODE induzir ao erro sobre características do produto/serviço
-- DIGNIDADE HUMANA: PROIBIDO qualquer forma de discriminação
-- PROTEÇÃO DE VULNERÁVEIS: Se público incluir menores, aplique restrições MÁXIMAS
-- BEBIDAS ALCOÓLICAS: NUNCA mostre ou sugira o ato de consumo/ingestão
-- ALIMENTOS: NÃO estimule consumo excessivo ou compulsivo
-- APOSTAS/JOGOS: OBRIGATÓRIO símbolo 18+ de forma visível
-- SUSTENTABILIDADE: Benefícios ambientais devem ser específicos, não vagos
-- CONCORRÊNCIA: NÃO ridicularize ou deprecie concorrentes
-ESTAS DIRETRIZES SÃO INVIOLÁVEIS.`);
-
-  // =====================================
-  // [2] MAIN INSTRUCTION
-  // =====================================
-  promptSections.push(`[INSTRUCTION]
-GERAR NOVA IMAGEM: ${description}`);
-
-  // =====================================
-  // [3] BRAND CONTEXT
-  // =====================================
-  if (brand) {
-    promptSections.push(`[BRAND CONTEXT]
-MARCA: ${brand}
-${theme ? `TEMA ESTRATÉGICO: ${theme}` : ''}
-A imagem deve refletir a identidade visual e valores da marca.`);
-  }
-
-  // =====================================
-  // [4] TARGET AUDIENCE (PERSONA)
-  // =====================================
-  if (persona) {
-    promptSections.push(`[TARGET AUDIENCE]
-PERSONA: ${persona}
-A imagem deve ressoar emocionalmente e visualmente com este público-alvo específico.`);
-  }
-
-  // =====================================
-  // [5] PLATFORM OPTIMIZATION
-  // =====================================
-  if (platform) {
-    const platformLabels: Record<string, string> = {
-      'Instagram': 'Instagram (visual-first, engagement-focused, mobile-optimized)',
-      'Facebook': 'Facebook (broad audience, shareable, community-focused)',
-      'TikTok': 'TikTok (dynamic, trendy, youth-oriented)',
-      'Twitter/X': 'Twitter/X (concise, newsworthy, conversation-starter)',
-      'LinkedIn': 'LinkedIn (professional, business-oriented, thought-leadership)',
-      'Comunidades': 'Communities (niche-focused, authentic, value-driven)',
-      'instagram_feed': 'Instagram Feed (square format, high visual impact)',
-      'instagram_stories': 'Instagram Stories (vertical 9:16, ephemeral, dynamic)',
-      'instagram_reels': 'Instagram Reels (vertical 9:16, trendy, engaging)',
-      'linkedin_post': 'LinkedIn (professional, business-oriented)',
-      'tiktok': 'TikTok (vertical 9:16, trendy, youth-oriented)',
-      'facebook_post': 'Facebook (shareable, community-focused)',
-      'twitter': 'Twitter/X (concise, newsworthy)',
-      'pinterest': 'Pinterest (vertical, aesthetic, inspirational)',
-      'youtube_thumbnail': 'YouTube Thumbnail (16:9, attention-grabbing, click-worthy)'
-    };
-    promptSections.push(`[PLATFORM]
-Optimized for ${platformLabels[platform] || platform}`);
-  }
-
-  // =====================================
-  // [6] CONTENT TYPE
-  // =====================================
-  if (contentType === 'ads') {
-    promptSections.push(`[CONTENT TYPE]
-PAID ADVERTISING CONTENT
-- Commercial and persuasive focus
-- Clear call-to-action implied
-- Product/service prominence
-- Conversion-oriented composition`);
-  } else {
-    promptSections.push(`[CONTENT TYPE]
-ORGANIC SOCIAL MEDIA CONTENT
-- Engagement and connection focus
-- Authentic and relatable
-- Community-building elements
-- Shareable and memorable`);
-  }
-
-  // =====================================
-  // [7] POST OBJECTIVE
-  // =====================================
-  if (objective) {
-    promptSections.push(`[POST OBJECTIVE]
-${objective}`);
-  }
-
-  // =====================================
-  // [8] TONE OF VOICE
-  // =====================================
-  if (tones.length > 0) {
-    const toneLabels: Record<string, string> = {
-      'inspirador': 'inspiring and uplifting',
-      'motivacional': 'motivational and encouraging',
-      'profissional': 'professional and corporate',
-      'casual': 'casual and relaxed',
-      'elegante': 'elegant and sophisticated',
-      'moderno': 'modern and contemporary',
-      'tradicional': 'traditional and classic',
-      'divertido': 'fun and playful',
-      'sério': 'serious and formal'
-    };
-    const tonesList = tones.map((t: string) => toneLabels[t] || t).join(', ');
-    promptSections.push(`[TONE OF VOICE]
-${tonesList}
-The visual mood and atmosphere should reflect these tones.`);
-  }
-
-  // =====================================
-  // [9] ADDITIONAL CONTEXT
-  // =====================================
-  if (additionalInfo) {
-    promptSections.push(`[ADDITIONAL CONTEXT]
-${additionalInfo}`);
-  }
-
-  // =====================================
-  // [10] VISUAL STYLE
-  // =====================================
-  const styleSettings = getStyleSettings(visualStyle);
-  const isPortrait = visualStyle === 'realistic' && isPortraitRequest(description || '');
-  
-  // For portraits in realistic style, use enhanced portrait settings
-  let finalStyleSuffix = styleSettings.suffix;
-  if (isPortrait) {
-    finalStyleSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting, detailed iris, catchlight in eyes";
-  }
-  
-  promptSections.push(`[VISUAL STYLE]
-${visualStyle.toUpperCase()}
-${finalStyleSuffix}`);
-
-  // =====================================
-  // [11] REFERENCE IMAGES INSTRUCTIONS
-  // =====================================
-  if (preserveImages.length > 0) {
-    promptSections.push(`[BRAND IDENTITY IMAGES] (${preserveImages.length} provided)
-These are OFFICIAL brand identity images:
-- Use EXACTLY the visual style, color palette, and aesthetic from these images
-- Maintain the SAME visual quality and finish level
-- Replicate design elements (borders, textures, filters, effects)
-- Preserve the atmosphere and mood transmitted
-- The new image MUST look like part of the same visual set
-- If there are logos or specific elements, keep them recognizable`);
-  }
-
-  if (styleReferenceImages.length > 0) {
-    promptSections.push(`[STYLE REFERENCE IMAGES] (${styleReferenceImages.length} provided)
-Use these as additional inspiration:
-- Analyze visual elements (colors, layout, objects, atmosphere)
-- Adapt these elements coherently
-- Use as complement to main brand images
-- Not necessary to replicate exactly, just draw inspiration`);
-  }
-
-  // =====================================
-  // [12] ADVANCED STYLE SETTINGS
-  // =====================================
-  const advancedSettings: string[] = [];
-  
-  // Color Palette
-  if (colorPalette !== 'auto') {
-    const colorPaletteLabels: Record<string, string> = {
-      warm: 'Warm palette: orange, red, yellow, and golden tones',
-      cool: 'Cool palette: blue, green, purple, and silver tones',
-      monochrome: 'Monochromatic palette with variations of a single tone',
-      vibrant: 'Vibrant palette with saturated and contrasting colors',
-      pastel: 'Soft pastel colors, delicate and subtle',
-      earthy: 'Earthy palette with natural brown, green, and beige tones'
-    };
-    if (colorPaletteLabels[colorPalette]) {
-      advancedSettings.push(`Color: ${colorPaletteLabels[colorPalette]}`);
-    }
-  }
-  
-  // Lighting
-  if (lighting !== 'natural') {
-    const lightingLabels: Record<string, string> = {
-      studio: 'Professional studio lighting with softboxes, controlled shadows',
-      dramatic: 'Dramatic Rembrandt lighting with high contrast, chiaroscuro effect',
-      soft: 'Soft diffused lighting with minimal shadows, flattering',
-      backlit: 'Backlighting creating rim light and subtle lens flare, halo effect',
-      golden_hour: 'Golden hour lighting with warm orange tones, magical atmosphere'
-    };
-    if (lightingLabels[lighting]) {
-      advancedSettings.push(`Lighting: ${lightingLabels[lighting]}`);
-    }
-  } else {
-    advancedSettings.push('Lighting: Natural daylight, soft shadows, balanced exposure');
-  }
-  
-  // Composition
-  if (composition !== 'auto') {
-    const compositionLabels: Record<string, string> = {
-      rule_of_thirds: 'Rule of thirds composition',
-      centered: 'Centered and symmetrical composition',
-      leading_lines: 'Leading lines guiding the eye',
-      frame_within_frame: 'Frame within frame composition',
-      symmetrical: 'Symmetrical and balanced composition'
-    };
-    if (compositionLabels[composition]) {
-      advancedSettings.push(`Composition: ${compositionLabels[composition]}`);
-    }
-  }
-  
-  // Camera Angle
-  if (cameraAngle !== 'eye_level') {
-    const cameraLabels: Record<string, string> = {
-      bird_eye: 'Bird eye view (aerial, from above)',
-      low_angle: 'Low angle looking up (heroic, powerful)',
-      dutch_angle: 'Dutch angle (tilted, dynamic)',
-      over_shoulder: 'Over the shoulder shot',
-      close_up: 'Close-up detailed shot'
-    };
-    if (cameraLabels[cameraAngle]) {
-      advancedSettings.push(`Camera: ${cameraLabels[cameraAngle]}`);
-    }
-  }
-  
-  // Mood
-  if (mood !== 'auto') {
-    const moodLabels: Record<string, string> = {
-      energetic: 'Energetic and dynamic atmosphere',
-      calm: 'Calm and serene atmosphere',
-      mysterious: 'Mysterious and intriguing atmosphere',
-      joyful: 'Joyful and festive atmosphere',
-      melancholic: 'Melancholic and contemplative atmosphere',
-      powerful: 'Powerful and impactful atmosphere'
-    };
-    if (moodLabels[mood]) {
-      advancedSettings.push(`Mood: ${moodLabels[mood]}`);
-    }
-  }
-  
-  // Detail Level
-  advancedSettings.push(`Detail Level: ${detailLevel}/10`);
-  
-  if (advancedSettings.length > 0) {
-    promptSections.push(`[STYLE SETTINGS]
-${advancedSettings.join('\n')}`);
-  }
-
-  // =====================================
-  // [13] TEXT IN IMAGE
-  // =====================================
-  const includeText = formData.includeText ?? false;
-  const textContent = cleanInput(formData.textContent);
-  const textPosition = formData.textPosition || 'center';
-
-  if (!includeText) {
-    promptSections.push(`[NO TEXT]
-CRITICAL: Do NOT include ANY text, words, letters, numbers, symbols, or written characters visible in the image.
-The image must be purely visual, without any overlaid text elements.`);
-  } else if (textContent?.trim()) {
-    const positionLabels: Record<string, string> = {
-      'top': 'at the top of the image',
-      'center': 'centered in the image',
-      'bottom': 'at the bottom of the image',
-      'top-left': 'in the top-left corner',
-      'top-right': 'in the top-right corner',
-      'bottom-left': 'in the bottom-left corner',
-      'bottom-right': 'in the bottom-right corner'
-    };
-    promptSections.push(`[TEXT OVERLAY]
-Include the following text ${positionLabels[textPosition] || 'centered'}: "${textContent}"
-The text must be:
-- Legible and clearly visible
-- With appropriate typography
-- With adequate contrast against the background
-- In Portuguese (pt-BR), correctly spelled`);
-  }
-
-  // =====================================
-  // [14] NEGATIVE PROMPT
-  // =====================================
-  const finalNegativePrompt = [
-    styleSettings.negativePrompt,
-    negativePrompt
-  ].filter(Boolean).join(', ');
-  
-  promptSections.push(`[AVOID]
-${finalNegativePrompt}`);
-
-  return promptSections.join('\n\n');
-}
