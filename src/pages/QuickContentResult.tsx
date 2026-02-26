@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, Zap, ArrowLeft, Coins, Building2, Palette, User, Share2 } from "lucide-react";
+import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, Redo2, Zap, ArrowLeft, Coins, Building2, Palette, User, Share2, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,7 @@ export default function QuickContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageHistory, setImageHistory] = useState<string[]>([]);
+  const [imageHistoryIndex, setImageHistoryIndex] = useState(-1);
 
   const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform } = location.state || {};
 
@@ -37,7 +38,8 @@ export default function QuickContentResult() {
       navigate("/quick-content");
     } else {
       setCurrentImageUrl(imageUrl);
-      setImageHistory([imageUrl]); // Initialize history with original image
+      setImageHistory([imageUrl]);
+      setImageHistoryIndex(0);
 
       // Limpar históricos antigos (>7 dias) automaticamente
       const cleanupOldHistories = () => {
@@ -90,7 +92,8 @@ export default function QuickContentResult() {
           const history = JSON.parse(savedHistory);
           if (Array.isArray(history) && history.length > 0) {
             setImageHistory(history);
-            setCurrentImageUrl(history[history.length - 1]); // Set to most recent
+            setImageHistoryIndex(history.length - 1);
+            setCurrentImageUrl(history[history.length - 1]);
           }
         } catch (error) {
           console.error("Error loading image history:", error);
@@ -218,22 +221,16 @@ export default function QuickContentResult() {
   };
 
   const handleRevert = () => {
-    if (imageHistory.length <= 1) {
+    if (imageHistoryIndex <= 0) {
       toast.error("Não há revisões para reverter");
       return;
     }
 
-    const newHistory = [...imageHistory];
-    newHistory.pop(); // Remove current image
-    const previousImage = newHistory[newHistory.length - 1];
+    const newIndex = imageHistoryIndex - 1;
+    const previousImage = imageHistory[newIndex];
 
-    setImageHistory(newHistory);
+    setImageHistoryIndex(newIndex);
     setCurrentImageUrl(previousImage);
-
-    // Update localStorage - keep totalRevisions unchanged
-    const contentId = `quick_content_${actionId || Date.now()}`;
-    const historyKey = `image_history_${contentId}`;
-    localStorage.setItem(historyKey, JSON.stringify(newHistory));
 
     // Update action in database if it exists
     if (actionId) {
@@ -253,7 +250,39 @@ export default function QuickContentResult() {
         });
     }
 
-    toast.success("Revisão revertida com sucesso!");
+    toast.success("Versão anterior restaurada!");
+  };
+
+  const handleRedo = () => {
+    if (imageHistoryIndex >= imageHistory.length - 1) {
+      toast.error("Não há versão posterior");
+      return;
+    }
+
+    const newIndex = imageHistoryIndex + 1;
+    const nextImage = imageHistory[newIndex];
+
+    setImageHistoryIndex(newIndex);
+    setCurrentImageUrl(nextImage);
+
+    if (actionId) {
+      supabase
+        .from("actions")
+        .update({
+          result: {
+            imageUrl: nextImage,
+            description,
+            prompt,
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", actionId)
+        .then(({ error }) => {
+          if (error) console.error("Error updating action:", error);
+        });
+    }
+
+    toast.success("Versão posterior restaurada!");
   };
 
   const handleSubmitReview = async () => {
@@ -306,9 +335,10 @@ export default function QuickContentResult() {
         ? data.editedImageUrl 
         : `${data.editedImageUrl}?t=${Date.now()}`;
 
-      // Add to history (limite de 5 URLs para economizar espaço)
-      const newHistory = [...imageHistory, imageUrlWithTimestamp].slice(-5);
+      // Add to history - truncate forward history and limit to 10
+      const newHistory = [...imageHistory.slice(0, imageHistoryIndex + 1), imageUrlWithTimestamp].slice(-10);
       setImageHistory(newHistory);
+      setImageHistoryIndex(newHistory.length - 1);
       setCurrentImageUrl(imageUrlWithTimestamp);
 
       // Update revision count and history in localStorage
@@ -497,17 +527,29 @@ export default function QuickContentResult() {
               </Badge>
             </Button>
 
-            {totalRevisions > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRevert}
-                disabled={imageHistory.length <= 1}
-                className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all disabled:opacity-50"
-              >
-                <Undo2 className="h-4 w-4 mr-1.5" />
-                <span className="text-xs">Reverter</span>
-              </Button>
+            {imageHistory.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRevert}
+                  disabled={imageHistoryIndex <= 0}
+                  className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all disabled:opacity-50"
+                >
+                  <Undo2 className="h-4 w-4 mr-1.5" />
+                  <span className="text-xs">Anterior</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRedo}
+                  disabled={imageHistoryIndex >= imageHistory.length - 1}
+                  className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all disabled:opacity-50"
+                >
+                  <Redo2 className="h-4 w-4 mr-1.5" />
+                  <span className="text-xs">Próxima</span>
+                </Button>
+              </>
             )}
 
             <Button
@@ -544,17 +586,32 @@ export default function QuickContentResult() {
               </Badge>
             </Button>
 
-            {totalRevisions > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRevert}
-                disabled={imageHistory.length <= 1}
-                className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale disabled:opacity-50"
-              >
-                <Undo2 className="h-4 w-4 mr-2" />
-                Reverter
-              </Button>
+            {imageHistory.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRevert}
+                  disabled={imageHistoryIndex <= 0}
+                  className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale disabled:opacity-50"
+                >
+                  <Undo2 className="h-4 w-4 mr-2" />
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRedo}
+                  disabled={imageHistoryIndex >= imageHistory.length - 1}
+                  className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale disabled:opacity-50"
+                >
+                  <Redo2 className="h-4 w-4 mr-2" />
+                  Próxima
+                </Button>
+                <span className="text-xs text-muted-foreground self-center">
+                  Versão {imageHistoryIndex + 1}/{imageHistory.length}
+                </span>
+              </>
             )}
 
             <Button
@@ -596,6 +653,14 @@ export default function QuickContentResult() {
                 className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[70vh] rounded-xl overflow-hidden bg-muted/30 cursor-pointer group"
                 onClick={() => setIsImageDialogOpen(true)}
               >
+                {isReviewing && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      <span className="text-sm font-medium text-muted-foreground">Editando imagem...</span>
+                    </div>
+                  </div>
+                )}
                 <img
                   src={currentImageUrl}
                   alt="Conteúdo gerado"

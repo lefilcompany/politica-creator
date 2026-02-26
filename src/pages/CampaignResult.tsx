@@ -12,7 +12,7 @@ import {
 import {
   FileText, Target, Megaphone, ImageIcon, Copy, Check,
   Sparkles, Loader2, ChevronLeft, Coins, ArrowRight,
-  Download, Pencil,
+  Download, Pencil, Undo2, Redo2,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import createBanner from "@/assets/create-banner.jpg";
@@ -74,9 +74,12 @@ function CopyButton({ text }: { text: string }) {
 function GenerateImageButton({ briefing }: { briefing: string }) {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageHistory, setImageHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [editPrompt, setEditPrompt] = useState("");
   const [editLoading, setEditLoading] = useState(false);
+
+  const currentImageUrl = historyIndex >= 0 ? imageHistory[historyIndex] : null;
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -93,7 +96,8 @@ function GenerateImageButton({ briefing }: { briefing: string }) {
       });
       if (error) throw error;
       if (data?.imageUrl) {
-        setImageUrl(data.imageUrl);
+        setImageHistory([data.imageUrl]);
+        setHistoryIndex(0);
         toast.success("Imagem gerada!");
       } else if (data?.error) {
         toast.error(data.error);
@@ -106,9 +110,9 @@ function GenerateImageButton({ briefing }: { briefing: string }) {
   };
 
   const handleDownload = async () => {
-    if (!imageUrl) return;
+    if (!currentImageUrl) return;
     try {
-      const response = await fetch(imageUrl);
+      const response = await fetch(currentImageUrl);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -125,18 +129,21 @@ function GenerateImageButton({ briefing }: { briefing: string }) {
   };
 
   const handleEdit = async () => {
-    if (!editPrompt.trim() || !imageUrl) return;
+    if (!editPrompt.trim() || !currentImageUrl) return;
     setEditLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("edit-image", {
         body: {
           reviewPrompt: editPrompt,
-          imageUrl: imageUrl,
+          imageUrl: currentImageUrl,
         },
       });
       if (error) throw error;
       if (data?.editedImageUrl) {
-        setImageUrl(data.editedImageUrl);
+        // Truncate forward history and add new version
+        const newHistory = [...imageHistory.slice(0, historyIndex + 1), data.editedImageUrl];
+        setImageHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
         setEditPrompt("");
         setEditing(false);
         toast.success("Imagem editada com sucesso!");
@@ -150,19 +157,53 @@ function GenerateImageButton({ briefing }: { briefing: string }) {
     }
   };
 
-  if (imageUrl) {
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < imageHistory.length - 1;
+
+  const handleUndo = () => {
+    if (canUndo) setHistoryIndex(historyIndex - 1);
+  };
+
+  const handleRedo = () => {
+    if (canRedo) setHistoryIndex(historyIndex + 1);
+  };
+
+  if (currentImageUrl) {
     return (
       <div className="mt-3 space-y-3">
-        <div className="rounded-xl overflow-hidden border">
-          <img src={imageUrl} alt="Imagem gerada" className="w-full h-auto" />
+        <div className="rounded-xl overflow-hidden border relative">
+          {editLoading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="text-xs font-medium text-muted-foreground">Editando imagem...</span>
+              </div>
+            </div>
+          )}
+          <img src={currentImageUrl} alt="Imagem gerada" className="w-full h-auto" />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={handleDownload} className="gap-1.5 text-xs">
             <Download className="h-3 w-3" /> Baixar
           </Button>
           <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="gap-1.5 text-xs">
             <Pencil className="h-3 w-3" /> Editar
           </Button>
+          {imageHistory.length > 1 && (
+            <>
+              <Button variant="outline" size="sm" onClick={handleUndo} disabled={!canUndo} className="gap-1.5 text-xs">
+                <Undo2 className="h-3 w-3" /> Anterior
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleRedo} disabled={!canRedo} className="gap-1.5 text-xs">
+                <Redo2 className="h-3 w-3" /> Próxima
+              </Button>
+            </>
+          )}
+          {imageHistory.length > 1 && (
+            <span className="text-[10px] text-muted-foreground self-center ml-auto">
+              Versão {historyIndex + 1} de {imageHistory.length}
+            </span>
+          )}
         </div>
         {editing && (
           <div className="space-y-2 bg-muted/30 rounded-lg p-3">
