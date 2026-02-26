@@ -471,64 +471,62 @@ export function DashboardProfileModal({ open, onClose }: Props) {
           <DialogDescription className="text-sm text-muted-foreground">Informações adicionais para personalizar a IA</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 overflow-y-auto space-y-8 pr-1">
-            {/* Fase */}
-            {formSteps[0]}
-
-            <div className="border-t border-border/30" />
-
-            {/* Biografia */}
-            {formSteps[1]}
-
-            <div className="border-t border-border/30" />
-
-            {/* Tom de voz */}
-            {formSteps[2]}
-
-            <div className="border-t border-border/30" />
-
-            {/* Linhas vermelhas */}
-            {formSteps[3]}
-
-            <div className="border-t border-border/30" />
-
-            {/* Evidências */}
-            {formSteps[4]}
-
-          </div>
-
-          {/* Teses - shown after save, outside scroll */}
-          {showTheses && (
-            <>
-              <div className="border-t border-border/30 my-2" />
+        {showTheses ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col flex-1 min-h-0"
+          >
+            <div className="flex-1 overflow-y-auto">
               {thesesStep}
-            </>
-          )}
+            </div>
+            <div className="flex justify-end pt-4 border-t border-border/50 shrink-0">
+              <Button onClick={handleFinish} className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                Começar a criar
+              </Button>
+            </div>
+          </motion.div>
+        ) : (
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 overflow-y-auto space-y-8 pr-1">
+              {/* Fase */}
+              {formSteps[0]}
 
-          {/* Actions - fixed at bottom */}
-          <div className="flex items-center justify-between pt-4 border-t border-border/50 shrink-0">
-            {showTheses ? (
-              <>
-                <span />
-                <Button onClick={handleFinish} className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Começar a criar
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
-                  Pular
-                </Button>
-                <Button onClick={handleSubmit} disabled={isSubmitting || isUploading || !data.mandate_stage || data.biography.trim().length <= 10 || !data.tone_of_voice} className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  {isSubmitting ? 'Salvando...' : 'Concluir'}
-                </Button>
-              </>
-            )}
+              <div className="border-t border-border/30" />
+
+              {/* Biografia */}
+              {formSteps[1]}
+
+              <div className="border-t border-border/30" />
+
+              {/* Tom de voz */}
+              {formSteps[2]}
+
+              <div className="border-t border-border/30" />
+
+              {/* Linhas vermelhas */}
+              {formSteps[3]}
+
+              <div className="border-t border-border/30" />
+
+              {/* Evidências */}
+              {formSteps[4]}
+            </div>
+
+            {/* Actions - fixed at bottom */}
+            <div className="flex items-center justify-between pt-4 border-t border-border/50 shrink-0">
+              <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
+                Pular
+              </Button>
+              <Button onClick={handleSubmit} disabled={isSubmitting || isUploading || !data.mandate_stage || data.biography.trim().length <= 10 || !data.tone_of_voice} className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                {isSubmitting ? 'Salvando...' : 'Concluir'}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
