@@ -258,29 +258,25 @@ serve(async (req) => {
     console.log('   - Aspect Ratio:', aspectRatio || 'não especificado');
     console.log('   - Ajuste solicitado:', reviewPrompt.substring(0, 100) + '...');
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!GEMINI_API_KEY) {
-      console.error('❌ GEMINI_API_KEY não configurada');
+    if (!LOVABLE_API_KEY) {
+      console.error('❌ LOVABLE_API_KEY não configurada');
       return new Response(
         JSON.stringify({ error: 'API key não configurada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('🤖 Chamando Gemini API para edição de imagem...');
+    console.log('🤖 Chamando Lovable AI Gateway para edição de imagem...');
 
-    // Verificar se é base64 ou URL e converter adequadamente
-    let imageBase64: string;
-    let imageMime = 'image/png';
+    // Preparar imagem como data URL para o gateway
+    let imageDataUrl: string;
     
     if (imageUrl.startsWith('data:')) {
-      // Já é base64
-      imageBase64 = imageUrl.split(',')[1];
-      imageMime = imageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
+      imageDataUrl = imageUrl;
       console.log('📷 Imagem recebida como base64');
     } else {
-      // É uma URL, precisa baixar e converter
       console.log('📷 Baixando imagem da URL:', imageUrl);
       const imageResponse = await fetch(imageUrl);
       
@@ -289,59 +285,44 @@ serve(async (req) => {
       }
       
       const imageBuffer = await imageResponse.arrayBuffer();
-      
-      // Converter ArrayBuffer para base64 usando chunks para evitar stack overflow
       const bytes = new Uint8Array(imageBuffer);
       let binary = '';
-      const chunkSize = 8192; // Process in chunks to avoid stack overflow
+      const chunkSize = 8192;
       
       for (let i = 0; i < bytes.length; i += chunkSize) {
         const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
         binary += String.fromCharCode(...chunk);
       }
       
-      imageBase64 = btoa(binary);
-      
-      // Detectar mime type da resposta
-      const contentType = imageResponse.headers.get('content-type');
-      if (contentType) {
-        imageMime = contentType;
-      }
-      console.log('✅ Imagem convertida para base64, tipo:', imageMime);
+      const contentType = imageResponse.headers.get('content-type') || 'image/png';
+      imageDataUrl = `data:${contentType};base64,${btoa(binary)}`;
+      console.log('✅ Imagem convertida para base64, tipo:', contentType);
     }
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
-        'x-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: detailedPrompt },
-            { 
-              inlineData: { 
-                mimeType: imageMime, 
-                data: imageBase64 
-              } 
-            }
+        model: 'google/gemini-2.5-flash-image',
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: detailedPrompt },
+            { type: 'image_url', image_url: { url: imageDataUrl } }
           ]
         }],
-        generationConfig: {
-          temperature: 0.7,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 8192,
-        }
+        modalities: ['image', 'text']
       })
     });
 
-    console.log('📡 Status da resposta Gemini API:', response.status);
+    console.log('📡 Status da resposta Gateway:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erro na API Gemini:', errorText);
+      console.error('❌ Erro no Gateway:', errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -356,56 +337,25 @@ serve(async (req) => {
     const aiData = await response.json();
     console.log('✅ Resposta da AI recebida');
 
-    // Verificar se a resposta tem conteúdo válido
-    if (!aiData.candidates || aiData.candidates.length === 0) {
-      console.error('❌ Resposta da API sem candidates');
-      console.error('📊 Resposta completa:', JSON.stringify(aiData, null, 2));
-      throw new Error('Resposta inválida da API - sem candidates');
+    // Extrair imagem da resposta do gateway (message.images[])
+    const message = aiData.choices?.[0]?.message;
+    let editedImageDataUrl: string | null = null;
+
+    if (message?.images?.length > 0) {
+      editedImageDataUrl = message.images[0].image_url?.url;
+      console.log('✅ Image extracted from message.images[]');
     }
-
-    // Log do primeiro candidate para debugging
-    const firstCandidate = aiData.candidates[0];
-    console.log('📋 Candidate status:', {
-      hasContent: !!firstCandidate?.content,
-      hasParts: !!firstCandidate?.content?.parts,
-      partsCount: firstCandidate?.content?.parts?.length || 0,
-      finishReason: firstCandidate?.finishReason
-    });
-
-    // Extrair imagem da resposta do Gemini
-    const geminiImageData = aiData.candidates?.[0]?.content?.parts?.find(
-      (part: any) => part.inlineData
-    )?.inlineData;
     
-    if (!geminiImageData) {
+    if (!editedImageDataUrl) {
       console.error('❌ Imagem editada não foi retornada pela API');
-      console.error('📊 Dados recebidos:', JSON.stringify(aiData, null, 2));
+      console.error('📊 Keys:', JSON.stringify(Object.keys(aiData), null, 2));
       throw new Error('A IA não conseguiu processar sua solicitação. Tente reformular o pedido de edição de forma mais específica.');
-    }
-
-    const editedImageBase64 = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
-    
-    // Validar se a imagem mudou (comparar tamanhos como proxy simples)
-    const originalSize = imageBase64.length;
-    const editedSize = geminiImageData.data.length;
-    const sizeDifference = Math.abs(originalSize - editedSize) / originalSize;
-    
-    console.log('📏 Comparação de tamanhos:', {
-      originalSize,
-      editedSize,
-      differencePercent: (sizeDifference * 100).toFixed(2) + '%'
-    });
-    
-    // Se a diferença for muito pequena (< 0.5%), pode ser que não houve mudança real
-    if (sizeDifference < 0.005) {
-      console.warn('⚠️ AVISO: A imagem editada parece muito similar à original. Diferença: ' + (sizeDifference * 100).toFixed(3) + '%');
-      console.warn('📝 Prompt usado:', detailedPrompt.substring(0, 500));
     }
 
     console.log('📤 Fazendo upload da imagem editada para Storage...');
 
     // Extract base64 data from data URL
-    const base64Data = editedImageBase64.split(',')[1] || editedImageBase64;
+    const base64Data = editedImageDataUrl.split(',')[1] || editedImageDataUrl;
     
     // Convert base64 to Uint8Array
     const binaryString = atob(base64Data);
