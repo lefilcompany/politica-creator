@@ -12,7 +12,7 @@ export const CREDIT_COSTS = {
   FAKE_NEWS_RESPOND: 3,
   FACT_CHECK: 1,
   COLLECT_SIGNALS: 1,
-  CAMPAIGN_PACKAGE: 15,
+  CAMPAIGN_PACKAGE: 50,
 } as const;
 
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
