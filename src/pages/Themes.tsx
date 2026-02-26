@@ -123,20 +123,9 @@ export default function Themes() {
       toast.error('Carregando dados do usuário...');
       return;
     }
-    const freeThemesUsed = team?.free_themes_used || 0;
-    const isFree = freeThemesUsed < 3;
-    if (!isFree && (user.credits || 0) < 1) {
-      toast.error('Créditos insuficientes. Criar um tema custa 1 crédito (os 3 primeiros são gratuitos).');
-      return;
-    }
     setThemeToEdit(null);
-    setIsConfirmDialogOpen(true);
-  }, [user, team]);
-
-  const handleConfirmCreate = useCallback(() => {
-    setIsConfirmDialogOpen(false);
     setIsDialogOpen(true);
-  }, []);
+  }, [user, team]);
 
   const handleSaveTheme = useCallback(
     async (formData: ThemeFormData): Promise<StrategicTheme> => {
@@ -231,40 +220,9 @@ export default function Themes() {
 
           setThemes(prev => [...prev, summary]);
 
-          const freeThemesUsed = team?.free_themes_used || 0;
-          const isFree = freeThemesUsed < 3;
+          // No credit cost for creating themes
 
-          if (isFree && user.teamId) {
-            await supabase
-              .from('teams')
-              .update({ free_themes_used: freeThemesUsed + 1 } as any)
-              .eq('id', user.teamId);
-            await refreshTeamData();
-          } else if (!isFree) {
-            const currentCredits = user.credits || 0;
-            await supabase
-              .from('profiles')
-              .update({ credits: currentCredits - 1 })
-              .eq('id', user.id);
-            await supabase
-              .from('credit_history')
-              .insert({
-                team_id: user.teamId || null,
-                user_id: user.id,
-                action_type: 'CREATE_THEME',
-                credits_used: 1,
-                credits_before: currentCredits,
-                credits_after: currentCredits - 1,
-                description: `Criação do tema: ${formData.title}`,
-                metadata: { theme_id: saved.id, theme_title: formData.title }
-              });
-            await refreshUserCredits();
-          }
-
-          toast.success(isFree 
-            ? `Tema criado com sucesso! (${3 - freeThemesUsed - 1} temas gratuitos restantes)` 
-            : 'Tema criado com sucesso!'
-          );
+          toast.success('Pauta criada com sucesso!');
 
           setIsDialogOpen(false);
           setThemeToEdit(null);
@@ -279,7 +237,7 @@ export default function Themes() {
     [themeToEdit, user, team, refreshTeamData, refreshUserCredits]
   );
 
-  const isButtonDisabled = !user || (user.credits || 0) < 1;
+  const isButtonDisabled = !user;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -317,19 +275,16 @@ export default function Themes() {
                   </PopoverTrigger>
                   <PopoverContent className="w-80 text-sm" side="bottom" align="start">
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-foreground">O que são Temas Estratégicos?</h4>
+                      <h4 className="font-semibold text-foreground">O que são Pautas da Agenda?</h4>
                       <p className="text-muted-foreground">
-                        Temas estratégicos são diretrizes de conteúdo que definem o tom, estilo e objetivos das suas publicações.
+                        Pautas são as diretrizes de conteúdo que definem o tom, estilo e objetivos das suas publicações políticas.
                       </p>
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                        <li>Crie um tema vinculado a uma marca existente</li>
+                        <li>Crie uma pauta vinculada a uma identidade existente</li>
                         <li>Defina público-alvo, tom de voz e objetivos</li>
-                        <li>Use o tema ao criar conteúdos para manter a estratégia alinhada</li>
+                        <li>Use a pauta ao criar conteúdos para manter a estratégia alinhada</li>
                       </ul>
-                      <p className="text-xs text-muted-foreground/70 mt-2">
-                        Os 3 primeiros temas são gratuitos. Depois, cada novo tema custa 1 crédito.
-                      </p>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -345,14 +300,10 @@ export default function Themes() {
             onClick={() => handleOpenDialog()}
             disabled={isButtonDisabled}
             className="rounded-lg bg-gradient-to-r from-primary to-secondary px-5 py-3 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+            title={!user ? 'Carregando...' : undefined}
           >
             <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-            Novo tema
-            <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
-              <Coins className="h-3 w-3" />
-              1
-            </span>
+            Nova pauta
           </Button>
         </div>
 
@@ -396,16 +347,6 @@ export default function Themes() {
         brands={brandSummaries}
       />
 
-      <CreditConfirmationDialog
-        isOpen={isConfirmDialogOpen}
-        onOpenChange={setIsConfirmDialogOpen}
-        onConfirm={handleConfirmCreate}
-        currentBalance={user?.credits || 0}
-        cost={1}
-        resourceType="tema estratégico"
-        isFreeResource={(team?.free_themes_used || 0) < 3}
-        freeResourcesRemaining={3 - (team?.free_themes_used || 0)}
-      />
 
       <TourSelector 
         tours={[

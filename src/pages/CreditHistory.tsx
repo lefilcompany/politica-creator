@@ -23,9 +23,9 @@ export default function CreditHistory() {
       TEXT_REVIEW: "Revisão de Texto",
       CONTENT_PLAN: "Planejamento de Conteúdo",
       VIDEO_GENERATION: "Geração de Vídeo",
-      CREATE_BRAND: "Criar Marca",
-      CREATE_PERSONA: "Criar Persona",
-      CREATE_THEME: "Criar Tema",
+      CREATE_BRAND: "Criar Identidade",
+      CREATE_PERSONA: "Criar Perfil de Eleitor",
+      CREATE_THEME: "Criar Pauta",
       COUPON_REDEEM: "Cupom Resgatado",
       PLAN_UPGRADE: "Upgrade de Plano",
     };

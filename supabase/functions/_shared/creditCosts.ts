@@ -8,9 +8,6 @@ export const CREDIT_COSTS = {
   TEXT_REVIEW: 2,           // Revisão de copy/texto
   CONTENT_PLAN: 3,          // Planejamento de conteúdo
   VIDEO_GENERATION: 20,     // Geração de vídeo
-  CREATE_BRAND: 1,          // Criar marca (após 3 gratuitas)
-  CREATE_PERSONA: 1,        // Criar persona (após 3 gratuitas)
-  CREATE_THEME: 1,          // Criar tema (após 3 gratuitos)
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {

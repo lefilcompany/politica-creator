@@ -74,20 +74,9 @@ export default function MarcasPage() {
       toast.error('Carregando dados do usuário...');
       return;
     }
-    const freeBrandsUsed = team?.free_brands_used || 0;
-    const isFree = freeBrandsUsed < 3;
-    if (!isFree && (user.credits || 0) < 1) {
-      toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito (as 3 primeiras são gratuitas).');
-      return;
-    }
     setBrandToEdit(null);
-    setIsConfirmDialogOpen(true);
-  }, [user, team, allBrands.length, t]);
-
-  const handleConfirmCreate = useCallback(() => {
-    setIsConfirmDialogOpen(false);
     setIsDialogOpen(true);
-  }, []);
+  }, [user, team, allBrands.length, t]);
 
   const handleSelectBrand = useCallback((brand: BrandSummary, viewMode?: string) => {
     navigate(`/brands/${brand.id}`, { state: { viewMode: viewMode || 'grid' } });
@@ -136,9 +125,6 @@ export default function MarcasPage() {
         
         toast.success(t.brands.updateSuccess, { id: toastId });
       } else {
-        const freeBrandsUsed = team?.free_brands_used || 0;
-        const isFree = freeBrandsUsed < 3;
-
         const { data, error } = await supabase
           .from('brands')
           .insert({
@@ -172,38 +158,7 @@ export default function MarcasPage() {
 
         queryClient.invalidateQueries({ queryKey: ['brands'] });
         
-        if (isFree && user.teamId) {
-          await supabase
-            .from('teams')
-            .update({ free_brands_used: freeBrandsUsed + 1 } as any)
-            .eq('id', user.teamId);
-          await refreshTeamData();
-        } else if (!isFree) {
-          const currentCredits = user.credits || 0;
-          await supabase
-            .from('profiles')
-            .update({ credits: currentCredits - 1 })
-            .eq('id', user.id);
-          await supabase
-            .from('credit_history')
-            .insert({
-              team_id: user.teamId || null,
-              user_id: user.id,
-              action_type: 'CREATE_BRAND',
-              credits_used: 1,
-              credits_before: currentCredits,
-              credits_after: currentCredits - 1,
-              description: `Criação da marca: ${formData.name}`,
-              metadata: { brand_id: data.id, brand_name: formData.name }
-            });
-          await refreshUserCredits();
-        }
-        
-        toast.success(isFree 
-          ? `${t.brands.createSuccess} (${3 - freeBrandsUsed - 1} marcas gratuitas restantes)` 
-          : t.brands.createSuccess, 
-          { id: toastId }
-        );
+        toast.success(t.brands.createSuccess, { id: toastId });
       }
       
       setIsDialogOpen(false);
@@ -215,7 +170,7 @@ export default function MarcasPage() {
     }
   }, [brandToEdit, user, t]);
 
-  const isButtonDisabled = !user || (user.credits || 0) < 1;
+  const isButtonDisabled = !user;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -253,19 +208,16 @@ export default function MarcasPage() {
                   </PopoverTrigger>
                   <PopoverContent className="w-80 text-sm" side="bottom" align="start">
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-foreground">O que são Marcas?</h4>
+                      <h4 className="font-semibold text-foreground">O que são Identidades?</h4>
                       <p className="text-muted-foreground">
-                        Marcas são os perfis das empresas ou projetos para os quais você cria conteúdo. Cada marca contém informações como valores, metas, público-alvo e identidade visual.
+                        Identidades são os perfis políticos para os quais você cria conteúdo. Cada identidade contém informações como valores, bandeiras, público-alvo e identidade visual.
                       </p>
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                        <li>Crie uma marca com os dados do seu cliente ou projeto</li>
-                        <li>Adicione personas e temas estratégicos à marca</li>
-                        <li>Use a marca ao criar conteúdos para manter consistência</li>
+                        <li>Crie uma identidade com os dados do mandato ou campanha</li>
+                        <li>Adicione perfis de eleitor e pautas da agenda</li>
+                        <li>Use a identidade ao criar conteúdos para manter consistência</li>
                       </ul>
-                      <p className="text-xs text-muted-foreground/70 mt-2">
-                        As 3 primeiras marcas são gratuitas. Depois, cada nova marca custa 1 crédito.
-                      </p>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -281,14 +233,10 @@ export default function MarcasPage() {
             onClick={() => handleOpenDialog()} 
             disabled={isButtonDisabled}
             className="rounded-lg bg-gradient-to-r from-primary to-secondary px-5 py-3 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+            title={!user ? 'Carregando...' : undefined}
           >
             <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
             {t.brands.newBrand}
-            <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
-              <Coins className="h-3 w-3" />
-              1
-            </span>
           </Button>
         </div>
 
@@ -333,16 +281,6 @@ export default function MarcasPage() {
         brandToEdit={brandToEdit}
       />
 
-      <CreditConfirmationDialog
-        isOpen={isConfirmDialogOpen}
-        onOpenChange={setIsConfirmDialogOpen}
-        onConfirm={handleConfirmCreate}
-        currentBalance={user?.credits || 0}
-        cost={1}
-        resourceType="marca"
-        isFreeResource={(team?.free_brands_used || 0) < 3}
-        freeResourcesRemaining={3 - (team?.free_brands_used || 0)}
-      />
     </div>
   );
 }

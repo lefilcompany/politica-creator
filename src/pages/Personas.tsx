@@ -122,20 +122,9 @@ export default function PersonasPage() {
       toast.error('Carregando dados do usuário...');
       return;
     }
-    const freePersonasUsed = team?.free_personas_used || 0;
-    const isFree = freePersonasUsed < 3;
-    if (!isFree && (user.credits || 0) < 1) {
-      toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito (as 3 primeiras são gratuitas).');
-      return;
-    }
     setPersonaToEdit(null);
-    setIsConfirmDialogOpen(true);
-  }, [user, team]);
-
-  const handleConfirmCreate = useCallback(() => {
-    setIsConfirmDialogOpen(false);
     setIsDialogOpen(true);
-  }, []);
+  }, [user, team]);
 
   const handleSavePersona = useCallback(async (formData: PersonaFormData) => {
     if (!user?.id) {
@@ -210,41 +199,7 @@ export default function PersonasPage() {
         
         setPersonas(prev => [...prev, newSummary]);
 
-        const freePersonasUsed = team?.free_personas_used || 0;
-        const isFree = freePersonasUsed < 3;
-
-        if (isFree && user.teamId) {
-          await supabase
-            .from('teams')
-            .update({ free_personas_used: freePersonasUsed + 1 } as any)
-            .eq('id', user.teamId);
-          await refreshTeamData();
-        } else if (!isFree) {
-          const currentCredits = user.credits || 0;
-          await supabase
-            .from('profiles')
-            .update({ credits: currentCredits - 1 })
-            .eq('id', user.id);
-          await supabase
-            .from('credit_history')
-            .insert({
-              team_id: user.teamId || null,
-              user_id: user.id,
-              action_type: 'CREATE_PERSONA',
-              credits_used: 1,
-              credits_before: currentCredits,
-              credits_after: currentCredits - 1,
-              description: `Criação da persona: ${formData.name}`,
-              metadata: { persona_id: data.id, persona_name: formData.name }
-            });
-          await refreshUserCredits();
-        }
-        
-        toast.success(isFree 
-          ? `Persona criada com sucesso! (${3 - freePersonasUsed - 1} personas gratuitas restantes)` 
-          : 'Persona criada com sucesso!', 
-          { id: toastId }
-        );
+        toast.success('Perfil de eleitor criado com sucesso!', { id: toastId });
       }
       
       setIsDialogOpen(false);
@@ -256,7 +211,7 @@ export default function PersonasPage() {
     }
   }, [personaToEdit, user, team, refreshTeamData, refreshUserCredits]);
 
-  const isButtonDisabled = !user || (user.credits || 0) < 1;
+  const isButtonDisabled = !user;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -294,19 +249,16 @@ export default function PersonasPage() {
                   </PopoverTrigger>
                   <PopoverContent className="w-80 text-sm" side="bottom" align="start">
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-foreground">O que são Personas?</h4>
+                      <h4 className="font-semibold text-foreground">O que são Perfis de Eleitor?</h4>
                       <p className="text-muted-foreground">
-                        Personas são representações do seu público-alvo ideal. Elas ajudam a direcionar o conteúdo para as pessoas certas, com a linguagem e tom adequados.
+                        Perfis de eleitor são representações do seu público-alvo. Eles ajudam a direcionar o conteúdo para as pessoas certas, com a linguagem e tom adequados.
                       </p>
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                        <li>Crie uma persona vinculada a uma marca existente</li>
-                        <li>Defina idade, interesses, desafios e objetivos</li>
-                        <li>Use a persona ao criar conteúdos para personalizar a comunicação</li>
+                        <li>Crie um perfil vinculado a uma identidade existente</li>
+                        <li>Defina faixa etária, valores, dores e expectativas</li>
+                        <li>Use o perfil ao criar conteúdos para personalizar a comunicação</li>
                       </ul>
-                      <p className="text-xs text-muted-foreground/70 mt-2">
-                        As 3 primeiras personas são gratuitas. Depois, cada nova persona custa 1 crédito.
-                      </p>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -322,14 +274,10 @@ export default function PersonasPage() {
             onClick={() => handleOpenDialog()} 
             disabled={isButtonDisabled}
             className="rounded-lg bg-gradient-to-r from-primary to-secondary px-5 py-3 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+            title={!user ? 'Carregando...' : undefined}
           >
             <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-            Nova persona
-            <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
-              <Coins className="h-3 w-3" />
-              1
-            </span>
+            Novo perfil de eleitor
           </Button>
         </div>
 
@@ -373,16 +321,6 @@ export default function PersonasPage() {
         brands={brandSummaries}
       />
 
-      <CreditConfirmationDialog
-        isOpen={isConfirmDialogOpen}
-        onOpenChange={setIsConfirmDialogOpen}
-        onConfirm={handleConfirmCreate}
-        currentBalance={user?.credits || 0}
-        cost={1}
-        resourceType="persona"
-        isFreeResource={(team?.free_personas_used || 0) < 3}
-        freeResourcesRemaining={3 - (team?.free_personas_used || 0)}
-      />
     </div>
   );
 }
