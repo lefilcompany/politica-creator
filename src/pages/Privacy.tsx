@@ -1,4 +1,4 @@
-import { Shield, Info, Database, Scale, Target, Brain, Share2, Cookie, UserCheck, Clock, Lock, RefreshCw, Mail } from "lucide-react";
+import { Shield, Info, Database, Scale, Target, Brain, Share2, Cookie, UserCheck, Clock, Lock, RefreshCw, Mail, AlertTriangle, Gavel, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -12,10 +12,10 @@ const privacySections = [
     content: (
       <>
         <p className="text-muted-foreground leading-relaxed">
-          Esta Política de Privacidade tem como objetivo explicar, de forma clara e transparente, como coletamos, utilizamos, armazenamos e protegemos os dados dos usuários de nossa plataforma. Nosso compromisso é assegurar <strong>segurança, ética digital e conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 – LGPD)</strong> e demais legislações aplicáveis.
+          Esta Política de Privacidade tem como objetivo explicar, de forma clara e transparente, como coletamos, utilizamos, armazenamos e protegemos os dados dos usuários de nossa plataforma. Nosso compromisso é assegurar <strong>segurança, ética digital e conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 – LGPD)</strong>, a legislação eleitoral brasileira e demais legislações aplicáveis.
         </p>
         <p className="text-muted-foreground leading-relaxed mt-3">
-          Ao utilizar a plataforma, o usuário concorda com os termos descritos nesta Política.
+          Ao utilizar a plataforma, o usuário concorda com os termos descritos nesta Política e <strong>assume integral responsabilidade pelo uso e publicação de qualquer conteúdo gerado</strong> por meio das ferramentas disponibilizadas.
         </p>
       </>
     ),
@@ -31,6 +31,7 @@ const privacySections = [
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Dados Pessoais:</strong> informações que permitem identificar uma pessoa física (ex.: nome, CPF, e-mail).</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Dados Sensíveis:</strong> dados que revelam origem racial/étnica, convicção religiosa, opinião política, saúde, biometria, entre outros definidos pela LGPD.</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Tratamento de Dados:</strong> qualquer operação realizada com dados pessoais, como coleta, uso, armazenamento e compartilhamento.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Conteúdo Gerado por IA:</strong> qualquer texto, imagem, vídeo ou material produzido com auxílio de inteligência artificial disponível na plataforma.</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Parceiros/Fornecedores:</strong> empresas que prestam serviços necessários para a operação da plataforma.</span></li>
         </ul>
       </>
@@ -63,7 +64,7 @@ const privacySections = [
         <ul className="space-y-2 text-muted-foreground">
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Execução de contrato:</strong> para oferecer os serviços contratados.</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Consentimento:</strong> quando o usuário autoriza o uso de dados para fins específicos, como marketing.</span></li>
-          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Obrigação legal/regulatória:</strong> cumprimento de normas aplicáveis.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Obrigação legal/regulatória:</strong> cumprimento de normas aplicáveis, incluindo legislação eleitoral.</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span><strong>Legítimo interesse:</strong> quando o uso dos dados é necessário para aprimorar serviços, respeitando sempre os direitos do usuário.</span></li>
         </ul>
       </>
@@ -96,7 +97,7 @@ const privacySections = [
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Recomendar conteúdos e produtos personalizados.</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Apoiar atendimento e suporte via chatbots e análise preditiva.</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Gerar insights estratégicos a partir de dados agregados e anônimos.</span></li>
-          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Auxiliar na criação de materiais digitais (ex.: posts, imagens e vídeos).</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Auxiliar na criação de materiais digitais (ex.: posts, legendas, imagens e vídeos).</span></li>
         </ul>
         <p className="text-muted-foreground leading-relaxed mt-4 mb-3 font-semibold">Compromissos sobre IA:</p>
         <ul className="space-y-2 text-muted-foreground">
@@ -109,8 +110,83 @@ const privacySections = [
     ),
   },
   {
+    icon: AlertTriangle,
+    title: "7. Responsabilidade do Usuário pelo Conteúdo Gerado",
+    content: (
+      <>
+        <p className="text-muted-foreground leading-relaxed mb-3">
+          <strong>O usuário é o único e exclusivo responsável por todo o conteúdo gerado, editado, publicado ou distribuído</strong> por meio da plataforma, incluindo, mas não se limitando a textos, legendas, imagens, vídeos e planejamentos de conteúdo criados com auxílio de inteligência artificial.
+        </p>
+        <p className="text-muted-foreground leading-relaxed mb-3 font-semibold">O usuário reconhece e concorda que:</p>
+        <ul className="space-y-2 text-muted-foreground">
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>A plataforma é uma <strong>ferramenta de apoio à criação de conteúdo</strong>. O conteúdo gerado por IA é uma sugestão e deve ser revisado, aprovado e adaptado pelo usuário antes de qualquer uso ou publicação.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>A plataforma <strong>não se responsabiliza por danos, perdas, sanções administrativas, eleitorais ou judiciais</strong> decorrentes do uso indevido do conteúdo gerado.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>O usuário deve <strong>verificar a veracidade</strong> de todas as informações contidas no conteúdo antes de publicá-lo, especialmente no contexto eleitoral.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Quando utilizar conteúdo gerado por IA em propaganda eleitoral, o usuário é obrigado a <strong>indicar de forma explícita que o conteúdo foi produzido com auxílio de inteligência artificial</strong>, conforme determina a legislação eleitoral vigente.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>O usuário é responsável por garantir que o conteúdo <strong>não viole direitos autorais, de imagem, de propriedade intelectual</strong> ou quaisquer outros direitos de terceiros.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>A plataforma <strong>não garante a precisão, completude ou adequação</strong> do conteúdo gerado por IA para fins específicos, cabendo ao usuário a decisão final sobre seu uso.</span></li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    icon: Gavel,
+    title: "8. Regras Eleitorais e Uso de IA — Diretrizes do TSE",
+    content: (
+      <>
+        <p className="text-muted-foreground leading-relaxed mb-4">
+          Com base na <strong>Resolução TSE nº 23.610/2019</strong> (alterada para as eleições de 2024 e mantida para 2026), o Tribunal Superior Eleitoral estabelece regras claras sobre o uso de inteligência artificial em propaganda eleitoral. O usuário deve observar rigorosamente essas normas ao utilizar a plataforma para fins eleitorais.
+        </p>
+
+        <div className="bg-green-50 dark:bg-green-950/20 border border-green-200/50 dark:border-green-800/50 rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <span className="font-semibold text-green-800 dark:text-green-300">O que o TSE PERMITE</span>
+          </div>
+          <ul className="space-y-2 text-muted-foreground">
+            <li className="flex gap-2"><span className="text-green-600 mt-1">✓</span><span>Uso de IA para criar conteúdos de propaganda eleitoral, <strong>desde que haja aviso explícito</strong> de que o material foi gerado ou manipulado por inteligência artificial.</span></li>
+            <li className="flex gap-2"><span className="text-green-600 mt-1">✓</span><span>Criação de textos, legendas, artes e planejamentos de campanha com auxílio de IA, com a devida rotulação.</span></li>
+            <li className="flex gap-2"><span className="text-green-600 mt-1">✓</span><span>Uso de chatbots para atendimento ao eleitor, <strong>desde que não simulem diálogo com o candidato</strong> ou qualquer pessoa real.</span></li>
+            <li className="flex gap-2"><span className="text-green-600 mt-1">✓</span><span>Produção de materiais gráficos e visuais com IA para redes sociais, com identificação clara da tecnologia utilizada.</span></li>
+          </ul>
+        </div>
+
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-800/50 rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <span className="font-semibold text-red-800 dark:text-red-300">O que o TSE PROÍBE</span>
+          </div>
+          <ul className="space-y-2 text-muted-foreground">
+            <li className="flex gap-2"><span className="text-red-600 mt-1">✗</span><span><strong>Deepfakes:</strong> criação ou utilização de conteúdo em áudio ou vídeo digitalmente manipulado para simular que uma pessoa disse ou fez algo que não disse ou fez. Pena: <strong>cassação do registro ou mandato</strong>.</span></li>
+            <li className="flex gap-2"><span className="text-red-600 mt-1">✗</span><span><strong>Conteúdos falsos ou descontextualizados:</strong> fabricar ou manipular conteúdo para difundir fatos notoriamente inverídicos com potencial de causar danos ao equilíbrio do pleito.</span></li>
+            <li className="flex gap-2"><span className="text-red-600 mt-1">✗</span><span><strong>Simulação de diálogo com candidatos:</strong> uso de robôs (bots) que simulem ser o próprio candidato ou qualquer pessoa real em interações com eleitores.</span></li>
+            <li className="flex gap-2"><span className="text-red-600 mt-1">✗</span><span><strong>Propaganda sem rotulação:</strong> utilizar IA na propaganda eleitoral sem informar explicitamente ao público que o conteúdo foi gerado por inteligência artificial.</span></li>
+            <li className="flex gap-2"><span className="text-red-600 mt-1">✗</span><span><strong>Discurso de ódio e conteúdo antidemocrático:</strong> criação de conteúdos racistas, homofóbicos, nazistas, fascistas ou antidemocráticos, com ou sem IA.</span></li>
+          </ul>
+        </div>
+
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/50 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <span className="font-semibold text-amber-800 dark:text-amber-300">Consequências do descumprimento</span>
+          </div>
+          <ul className="space-y-2 text-muted-foreground">
+            <li className="flex gap-2"><span className="text-amber-600 mt-1">⚠</span><span>Cassação do registro de candidatura ou do mandato eletivo.</span></li>
+            <li className="flex gap-2"><span className="text-amber-600 mt-1">⚠</span><span>Responsabilização civil, administrativa e criminal conforme o Código Eleitoral.</span></li>
+            <li className="flex gap-2"><span className="text-amber-600 mt-1">⚠</span><span>Remoção imediata do conteúdo por determinação da Justiça Eleitoral.</span></li>
+            <li className="flex gap-2"><span className="text-amber-600 mt-1">⚠</span><span>Responsabilização solidária de provedores e plataformas que não removam conteúdos ilegais.</span></li>
+          </ul>
+        </div>
+
+        <p className="text-muted-foreground leading-relaxed mt-4 text-sm">
+          <strong>Referência legal:</strong> Resolução TSE nº 23.610/2019, com alterações aprovadas em fevereiro de 2024 (arts. 9º-B, 9º-C e 9º-E). Regras mantidas para as eleições de 2026.
+        </p>
+      </>
+    ),
+  },
+  {
     icon: Share2,
-    title: "7. Compartilhamento e Transferência de Dados",
+    title: "9. Compartilhamento e Transferência de Dados",
     content: (
       <>
         <p className="text-muted-foreground leading-relaxed mb-3">
@@ -119,7 +195,7 @@ const privacySections = [
         <ul className="space-y-2 text-muted-foreground">
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>LeFil Company, responsável pela tecnologia da plataforma em questão, para apoio em marketing, inteligência artificial e suporte à plataforma.</span></li>
           <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Fornecedores e parceiros tecnológicos, estritamente necessários para a operação.</span></li>
-          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Autoridades competentes, quando exigido por lei.</span></li>
+          <li className="flex gap-2"><span className="text-primary mt-1">•</span><span>Autoridades competentes, quando exigido por lei, incluindo a Justiça Eleitoral.</span></li>
         </ul>
         <p className="text-muted-foreground leading-relaxed mt-3">
           Caso seja necessário transferir dados para fora do Brasil, garantimos que isso será feito em conformidade com a LGPD e com as regras da legislação do país, adotando salvaguardas adequadas de proteção.
@@ -129,7 +205,7 @@ const privacySections = [
   },
   {
     icon: Cookie,
-    title: "8. Cookies e Tecnologias de Rastreamento",
+    title: "10. Cookies e Tecnologias de Rastreamento",
     content: (
       <p className="text-muted-foreground leading-relaxed">
         Utilizamos cookies e ferramentas de monitoramento para melhorar a experiência de navegação. O usuário pode gerenciar suas preferências de cookies diretamente no navegador, podendo desativar rastreamentos não essenciais.
@@ -138,7 +214,7 @@ const privacySections = [
   },
   {
     icon: UserCheck,
-    title: "9. Direitos dos Usuários",
+    title: "11. Direitos dos Usuários",
     content: (
       <>
         <p className="text-muted-foreground leading-relaxed mb-3">Em conformidade com a LGPD, o usuário pode:</p>
@@ -157,7 +233,7 @@ const privacySections = [
   },
   {
     icon: Clock,
-    title: "10. Prazo de Armazenamento",
+    title: "12. Prazo de Armazenamento",
     content: (
       <p className="text-muted-foreground leading-relaxed">
         Os dados são armazenados pelo tempo necessário para cumprimento das finalidades descritas nesta Política, durante o contrato com a plataforma ou conforme obrigações legais. Após esse período, os dados poderão ser anonimizados ou excluídos de forma segura.
@@ -166,7 +242,7 @@ const privacySections = [
   },
   {
     icon: Lock,
-    title: "11. Segurança da Informação",
+    title: "13. Segurança da Informação",
     content: (
       <>
         <p className="text-muted-foreground leading-relaxed mb-3">Adotamos medidas técnicas e administrativas de segurança, incluindo:</p>
@@ -181,16 +257,16 @@ const privacySections = [
   },
   {
     icon: RefreshCw,
-    title: "12. Alterações na Política",
+    title: "14. Alterações na Política",
     content: (
       <p className="text-muted-foreground leading-relaxed">
-        Podemos atualizar esta Política periodicamente. Em caso de alterações relevantes, os usuários serão notificados por meio da plataforma ou e-mail.
+        Podemos atualizar esta Política periodicamente, especialmente para refletir mudanças na legislação eleitoral e regulamentações do TSE. Em caso de alterações relevantes, os usuários serão notificados por meio da plataforma ou e-mail.
       </p>
     ),
   },
   {
     icon: Mail,
-    title: "13. Canal de Atendimento",
+    title: "15. Canal de Atendimento",
     content: (
       <>
         <p className="text-muted-foreground leading-relaxed">
@@ -283,7 +359,7 @@ const Privacy = () => {
         {/* Footer */}
         <div className="mt-10 text-center text-sm text-muted-foreground border-t border-border pt-6">
           <p>© 2025 Creator. Todos os direitos reservados.</p>
-          <p className="mt-2">Última atualização: Janeiro de 2025</p>
+          <p className="mt-2">Última atualização: Fevereiro de 2026</p>
         </div>
       </div>
     </div>
