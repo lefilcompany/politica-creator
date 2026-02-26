@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -335,11 +336,11 @@ serve(async (req) => {
     }
 
     // Get user's profile (team_id is optional now)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('team_id, credits')
-      .eq('id', user.id)
-      .single();
+    const [profileResult, politicalProfile] = await Promise.all([
+      supabase.from('profiles').select('team_id, credits').eq('id', user.id).single(),
+      fetchPoliticalProfile(supabase, user.id)
+    ]);
+    const { data: profile, error: profileError } = profileResult;
 
     if (profileError) {
       console.error('❌ [CAPTION] Profile error:', profileError);
@@ -399,7 +400,8 @@ serve(async (req) => {
       );
     }
 
-    const prompt = buildCaptionPrompt(formData);
+    const politicalContext = buildPoliticalContext(politicalProfile);
+    const prompt = buildCaptionPrompt(formData) + politicalContext;
 
     console.log("🔄 Chamando OpenAI API...");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {

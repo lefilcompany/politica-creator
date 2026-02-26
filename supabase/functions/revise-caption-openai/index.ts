@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,6 +51,9 @@ serve(async (req) => {
     const body = await req.json();
     const { prompt, originalTitle, originalBody, originalHashtags, brand, theme, brandId, teamId, userId } = body;
 
+    // Fetch political profile
+    const politicalProfile = await fetchPoliticalProfile(supabase, user.id);
+
     // Validate required fields
     if (!prompt || !originalTitle || !originalBody || !originalHashtags || !brandId) {
       return new Response(
@@ -70,6 +74,7 @@ serve(async (req) => {
       );
     }
 
+    const politicalContext = buildPoliticalContext(politicalProfile);
     const textPrompt = `
 # Tarefa: Refinar um post de mídia social.
 ## Contexto Original:
@@ -78,7 +83,7 @@ serve(async (req) => {
 - **Título Original**: ${originalTitle}
 - **Legenda Original**: ${originalBody}
 - **Hashtags Originais**: ${originalHashtags.join(', ')}
-
+${politicalContext}
 ## Instrução de Ajuste do Usuário:
 "${prompt}"
 

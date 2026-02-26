@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,11 +43,11 @@ serve(async (req) => {
     const authenticatedUserId = user.id;
 
     // Fetch user's profile (team_id is optional now)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('team_id, credits')
-      .eq('id', authenticatedUserId)
-      .single();
+    const [profileResult, politicalProfile] = await Promise.all([
+      supabase.from('profiles').select('team_id, credits').eq('id', authenticatedUserId).single(),
+      fetchPoliticalProfile(supabase, authenticatedUserId)
+    ]);
+    const { data: profile, error: profileError } = profileResult;
 
     if (profileError) {
       return new Response(
@@ -101,7 +102,8 @@ serve(async (req) => {
 Analise textos que serão inseridos em imagens de posts (frases, mensagens, citações, títulos, CTAs, etc.) de forma profunda, considerando clareza, impacto visual, legibilidade, adequação ao espaço da imagem, tom de voz e efetividade da mensagem.
 Forneça análise estruturada, educacional e acionável com score de qualidade, pontos positivos, sugestões específicas e versões otimizadas do texto.`;
 
-    const contextPrompt = `${brandName ? `Marca: ${brandName}\n` : ''}${themeName ? `Tema Estratégico: ${themeName}\n` : ''}
+    const politicalContext = buildPoliticalContext(politicalProfile);
+    const contextPrompt = `${brandName ? `Marca: ${brandName}\n` : ''}${themeName ? `Tema Estratégico: ${themeName}\n` : ''}${politicalContext}
 Contexto da imagem e ajustes desejados: ${prompt}
 
 TEXTO QUE SERÁ INSERIDO NA IMAGEM:
