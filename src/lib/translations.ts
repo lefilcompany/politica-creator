@@ -34,7 +34,7 @@ export const translations = {
       themes: "Pauta Estratégica",
       personas: "Personas",
       quickContent: "Nota Rápida",
-      history: "Arquivo",
+      history: "Histórico",
       createContent: "Criar Conteúdo",
       reviewContent: "Revisar Material",
       planContent: "Planejar Campanha",
