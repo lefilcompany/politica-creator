@@ -31,7 +31,7 @@ export const translations = {
     sidebar: {
       home: "Painel",
       brands: "Identidade",
-      themes: "Agenda",
+      themes: "Pauta Estratégica",
       personas: "Audiência",
       quickContent: "Nota Rápida",
       history: "Arquivo",
