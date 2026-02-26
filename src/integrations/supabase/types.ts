@@ -567,6 +567,7 @@ export type Database = {
           political_party: string | null
           political_role: string | null
           profile_detail_completed: boolean | null
+          recommended_theses: Json | null
           red_lines: string | null
           state: string | null
           stripe_customer_id: string | null
@@ -618,6 +619,7 @@ export type Database = {
           political_party?: string | null
           political_role?: string | null
           profile_detail_completed?: boolean | null
+          recommended_theses?: Json | null
           red_lines?: string | null
           state?: string | null
           stripe_customer_id?: string | null
@@ -669,6 +671,7 @@ export type Database = {
           political_party?: string | null
           political_role?: string | null
           profile_detail_completed?: boolean | null
+          recommended_theses?: Json | null
           red_lines?: string | null
           state?: string | null
           stripe_customer_id?: string | null
