@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
-import { fetchNewsArticles, formatArticlesForPrompt } from '../_shared/newsapi.ts';
+import { fetchNewsMultiQuery, formatArticlesForPrompt } from '../_shared/newsapi.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,9 +61,13 @@ serve(async (req) => {
     const nameForSearch = politicianName || politicalProfile?.political_role || 'político';
     const partyForSearch = party || politicalProfile?.political_party || '';
 
-    // ---- BUSCA REAL via NewsAPI (últimas 24h) ----
-    const searchQuery = `${keywords.trim()} ${nameForSearch} ${partyForSearch}`.trim();
-    const articles = await fetchNewsArticles(searchQuery, { pageSize: 15 });
+    // ---- BUSCA REAL via NewsAPI (últimos 7 dias, multi-query) ----
+    const queries = [
+      `${keywords.trim()} ${nameForSearch}`,
+      `${keywords.trim()} ${partyForSearch}`,
+      keywords.trim(),
+    ].filter(q => q.trim().length > 3);
+    const articles = await fetchNewsMultiQuery(queries, { pageSize: 10, days: 7 });
     const newsContext = formatArticlesForPrompt(articles);
 
     const today = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -81,7 +85,7 @@ Você é um analista especializado em comunicação política e combate à desin
 - Partido: ${partyForSearch}
 - Termos de busca: ${keywords.trim()}
 
-## NOTÍCIAS REAIS ENCONTRADAS (últimas 24 horas via NewsAPI):
+## NOTÍCIAS REAIS ENCONTRADAS (últimos 7 dias via NewsAPI):
 ${newsContext}
 
 ## TAREFA
