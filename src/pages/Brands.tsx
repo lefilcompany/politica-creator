@@ -223,7 +223,7 @@ export default function MarcasPage() {
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
-          items={[{ label: 'Marcas' }]}
+          items={[{ label: 'Identidade' }]}
         />
         <img 
           src={brandsBanner} 

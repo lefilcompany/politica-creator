@@ -287,7 +287,7 @@ export default function Themes() {
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
-          items={[{ label: 'Temas Estratégicos' }]}
+          items={[{ label: 'Agenda' }]}
         />
         <img 
           src={themesBanner} 
@@ -308,7 +308,7 @@ export default function Themes() {
             </div>
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
-                Seus Temas Estratégicos
+                Sua Agenda
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground transition-colors">
