@@ -465,8 +465,8 @@ export function DashboardProfileModal({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !showTheses) handleSkip(); else if (!v) onClose(); }}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="text-lg font-bold">Complete seu perfil político</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">Informações adicionais para personalizar a IA</DialogDescription>
         </DialogHeader>
@@ -476,9 +476,12 @@ export function DashboardProfileModal({ open, onClose }: Props) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
+            className="flex flex-col flex-1 overflow-hidden"
           >
-            {thesesStep}
-            <div className="flex justify-end pt-4 border-t border-border/50 mt-4">
+            <div className="flex-1 overflow-y-auto">
+              {thesesStep}
+            </div>
+            <div className="flex justify-end pt-4 border-t border-border/50 shrink-0">
               <Button onClick={handleFinish} className="gap-2">
                 <Sparkles className="w-4 h-4" />
                 Começar a criar
@@ -486,32 +489,34 @@ export function DashboardProfileModal({ open, onClose }: Props) {
             </div>
           </motion.div>
         ) : (
-          <div className="space-y-8">
-            {/* Fase */}
-            {formSteps[0]}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex-1 overflow-y-auto space-y-8 pr-1">
+              {/* Fase */}
+              {formSteps[0]}
 
-            <div className="border-t border-border/30" />
+              <div className="border-t border-border/30" />
 
-            {/* Biografia */}
-            {formSteps[1]}
+              {/* Biografia */}
+              {formSteps[1]}
 
-            <div className="border-t border-border/30" />
+              <div className="border-t border-border/30" />
 
-            {/* Tom de voz */}
-            {formSteps[2]}
+              {/* Tom de voz */}
+              {formSteps[2]}
 
-            <div className="border-t border-border/30" />
+              <div className="border-t border-border/30" />
 
-            {/* Linhas vermelhas */}
-            {formSteps[3]}
+              {/* Linhas vermelhas */}
+              {formSteps[3]}
 
-            <div className="border-t border-border/30" />
+              <div className="border-t border-border/30" />
 
-            {/* Evidências */}
-            {formSteps[4]}
+              {/* Evidências */}
+              {formSteps[4]}
+            </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-border/50">
+            {/* Actions - always visible */}
+            <div className="flex items-center justify-between pt-4 border-t border-border/50 shrink-0">
               <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
                 Pular
               </Button>
