@@ -214,7 +214,7 @@ const Dashboard = () => {
       <DashboardBanner userName={user.name} />
 
       {/* Political Profile Banner */}
-      <PoliticalProfileBanner />
+      <PoliticalProfileBanner onEdit={() => setShowProfileModal(true)} />
 
       {/* Quick Actions */}
       <div id="dashboard-quick-actions">

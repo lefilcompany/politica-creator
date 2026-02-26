@@ -2,7 +2,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { User, Building2, MapPin, Target, Share2, ArrowRight, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +32,11 @@ const LEVEL_LABELS: Record<string, string> = {
   federal: "Federal",
 };
 
-export const PoliticalProfileBanner = () => {
+interface PoliticalProfileBannerProps {
+  onEdit?: () => void;
+}
+
+export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) => {
   const { user } = useAuth();
 
   const { data: profile, isLoading } = useQuery({
@@ -77,11 +80,9 @@ export const PoliticalProfileBanner = () => {
                 Preencha suas informações para personalizar a experiência e gerar conteúdos mais relevantes.
               </p>
             </div>
-            <Button asChild className="shrink-0">
-              <Link to="/onboarding">
-                Preencher agora
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+            <Button className="shrink-0" onClick={onEdit}>
+              Preencher agora
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardContent>
         </Card>
@@ -102,12 +103,12 @@ export const PoliticalProfileBanner = () => {
           <div className="flex items-center gap-2 mb-3">
             <User className="h-4 w-4 text-primary" />
             <h3 className="font-semibold text-sm text-foreground">Seu Perfil Político</h3>
-            <Link
-              to="/onboarding"
+            <button
+              onClick={onEdit}
               className="ml-auto text-xs text-primary hover:underline flex items-center gap-1"
             >
               Editar <ArrowRight className="h-3 w-3" />
-            </Link>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
