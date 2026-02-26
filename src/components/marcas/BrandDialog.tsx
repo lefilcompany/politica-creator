@@ -234,26 +234,12 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
     try {
       // Validar todos os campos obrigatórios antes de salvar
       const requiredFields = [
-        { field: 'name', label: 'Nome da marca' },
-        { field: 'responsible', label: 'Responsável da marca' },
-        { field: 'segment', label: 'Segmento' },
-        { field: 'values', label: 'Valores' },
-        { field: 'goals', label: 'Metas de negócio' },
-        { field: 'successMetrics', label: 'Indicadores de sucesso' },
-        { field: 'references', label: 'Conteúdos de referência' },
-        { field: 'promise', label: 'Promessa única' },
-        { field: 'restrictions', label: 'Restrições' },
-        { field: 'moodboard', label: 'Moodboard' },
-        { field: 'logo', label: 'Logo da marca' }
+        { field: 'name', label: 'Nome da identidade' },
+        { field: 'responsible', label: 'Responsável' },
+        { field: 'segment', label: 'Esfera de atuação' },
       ];
 
       const missingFields = requiredFields.filter(({ field }) => {
-        if (field === 'moodboard') {
-          return !formData.moodboard;
-        }
-        if (field === 'logo') {
-          return !formData.logo;
-        }
         return !formData[field as keyof BrandFormData]?.toString().trim();
       });
 
@@ -273,19 +259,13 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
   };
 
   const isFormValid = () => {
-    const requiredFields = [
-      'name', 'responsible', 'segment', 'values', 'goals',
-      'successMetrics', 'references', 'promise', 'restrictions'
-    ];
+    const requiredFields = ['name', 'responsible', 'segment'];
 
     const allTextFieldsValid = requiredFields.every(field =>
       formData[field as keyof BrandFormData]?.toString().trim() !== ''
     );
 
-    const moodboardValid = formData.moodboard !== null;
-    const logoValid = formData.logo !== null;
-
-    return allTextFieldsValid && moodboardValid && logoValid;
+    return allTextFieldsValid;
   };
 
   // Função para lidar com o fechamento do diálogo
@@ -333,7 +313,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="values">{t.brands.values} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="values">{t.brands.values}</Label>
                 <Textarea
                   id="values"
                   value={formData.values}
@@ -342,7 +322,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="goals">{t.brands.goals} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="goals">{t.brands.goals}</Label>
                 <Textarea
                   id="goals"
                   value={formData.goals}
@@ -351,7 +331,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="successMetrics">{t.brands.successMetrics} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="successMetrics">{t.brands.successMetrics}</Label>
                 <Textarea
                   id="successMetrics"
                   value={formData.successMetrics}
@@ -364,7 +344,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 <Textarea id="specialDates" value={formData.specialDates} onChange={handleInputChange} placeholder={t.brands.placeholders.specialDates} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="promise">{t.brands.promise} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="promise">{t.brands.promise}</Label>
                 <Textarea
                   id="promise"
                   value={formData.promise}
@@ -377,7 +357,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 <Textarea id="milestones" value={formData.milestones} onChange={handleInputChange} placeholder={t.brands.placeholders.milestones} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="restrictions">{t.brands.restrictions} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="restrictions">{t.brands.restrictions}</Label>
                 <Textarea
                   id="restrictions"
                   value={formData.restrictions}

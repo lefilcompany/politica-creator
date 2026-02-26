@@ -203,22 +203,16 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
   const isFormValid = () => {
     const requiredFields = [
       { field: 'title', label: 'Título' },
-      { field: 'brandId', label: 'Marca' },
-      { field: 'objectives', label: 'Objetivos' },
-      { field: 'contentFormat', label: 'Formato dos Conteúdos' },
-      { field: 'expectedAction', label: 'Ação esperada' }
+      { field: 'brandId', label: 'Identidade' },
     ];
 
     const missingFields = requiredFields.filter(({ field }) => 
       !formData[field as keyof typeof formData]?.toString().trim()
     );
 
-    if (missingFields.length > 0 || toneList.length === 0) {
+    if (missingFields.length > 0) {
       const fieldsList = missingFields.map(({ label }) => label).join(', ');
-      const message = `Os seguintes campos são obrigatórios: ${fieldsList}${
-        toneList.length === 0 ? (fieldsList ? ', Tom de Voz' : 'Tom de Voz') : ''
-      }`;
-      toast.error(message);
+      toast.error(`Os seguintes campos são obrigatórios: ${fieldsList}`);
       return false;
     }
 
@@ -287,7 +281,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="toneOfVoice">Tom de Voz <span className="text-red-500">*</span> (escolha um ou mais)</Label>
+                <Label htmlFor="toneOfVoice">Tom de Voz (escolha um ou mais)</Label>
                 <div className="relative">
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <select
@@ -333,7 +327,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="objectives">Objetivos da pauta <span className="text-red-500">*</span></Label>
+                <Label htmlFor="objectives">Objetivos da pauta</Label>
                 <Textarea 
                   id="objectives" 
                   value={formData.objectives} 
@@ -416,7 +410,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contentFormat">Formatos de comunicação <span className="text-red-500">*</span></Label>
+                <Label htmlFor="contentFormat">Formatos de comunicação</Label>
                 <Textarea 
                   id="contentFormat" 
                   value={formData.contentFormat} 
@@ -434,7 +428,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expectedAction">Resultado esperado após publicação <span className="text-red-500">*</span></Label>
+                <Label htmlFor="expectedAction">Resultado esperado após publicação</Label>
                 <Textarea 
                   id="expectedAction" 
                   value={formData.expectedAction} 
