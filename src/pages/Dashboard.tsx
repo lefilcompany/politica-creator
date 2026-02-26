@@ -18,7 +18,7 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
 import { DashboardProfileModal } from "@/components/dashboard/DashboardProfileModal";
-import { ThesesBanner } from "@/components/dashboard/ThesesBanner";
+
 import { PoliticalProfileBanner } from "@/components/dashboard/PoliticalProfileBanner";
 
 const Dashboard = () => {
@@ -221,8 +221,6 @@ const Dashboard = () => {
         <DashboardQuickActions />
       </div>
 
-      {/* Theses Banner */}
-      <ThesesBanner />
 
       {/* Stats */}
 
