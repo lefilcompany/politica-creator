@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, BookOpen, Coins, Briefcase } from "lucide-react";
+import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, BookOpen, Coins, Briefcase, Shield } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -179,6 +179,7 @@ export function AppSidebar() {
     { id: "nav-brands", href: "/brands", icon: Landmark, label: t.sidebar.brands },
     { id: "nav-themes", href: "/themes", icon: BookOpen, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
+    { id: "nav-defense", href: "/defense", icon: Shield, label: t.sidebar.defense || "Defesa Digital" },
     { id: "nav-history", href: "/history", icon: Archive, label: t.sidebar.history },
     { id: "nav-team", href: "/team", icon: Briefcase, label: t.sidebar.team },
   ];

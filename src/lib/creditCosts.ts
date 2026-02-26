@@ -8,6 +8,9 @@ export const CREDIT_COSTS = {
   TEXT_REVIEW: 2,
   CONTENT_PLAN: 3,
   VIDEO_GENERATION: 20,
+  FAKE_NEWS_MONITOR: 2,
+  FAKE_NEWS_RESPOND: 3,
+  FACT_CHECK: 1,
 } as const;
 
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
@@ -21,6 +24,9 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     TEXT_REVIEW: "Revisão de texto",
     CONTENT_PLAN: "Planejamento de conteúdo",
     VIDEO_GENERATION: "Geração de vídeo",
+    FAKE_NEWS_MONITOR: "Monitor de fake news",
+    FAKE_NEWS_RESPOND: "Resposta a fake news",
+    FACT_CHECK: "Verificação de conteúdo",
   };
   return labels[action];
 };
