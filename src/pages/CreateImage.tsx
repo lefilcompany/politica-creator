@@ -17,7 +17,9 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -35,7 +37,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
-import { buildRequestPayload, type PromptFormFields } from "@/lib/buildImagePrompt";
+import { buildRequestPayload, buildImagePromptString, type PromptFormFields } from "@/lib/buildImagePrompt";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
@@ -134,6 +136,8 @@ export default function CreateImage() {
   const [platformGuidelines, setPlatformGuidelines] = useState<string[]>([]);
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [promptPreview, setPromptPreview] = useState("");
 
   // React Query for brands, themes, personas
   const teamId = user?.teamId;
@@ -539,7 +543,8 @@ export default function CreateImage() {
     return missing.length === 0;
   };
 
-  const handleGenerateContent = async () => {
+  // Step 1: Show confirmation modal with prompt preview
+  const handleRequestGeneration = () => {
     if (!user) return toast.error("Usuário não encontrado.");
     
     const availableCredits = user?.credits || 0;
@@ -550,6 +555,50 @@ export default function CreateImage() {
       return toast.error(
         "Por favor, preencha todos os campos obrigatórios (*)."
       );
+
+    const selectedBrand = brands.find(b => b.id === formData.brand);
+    const selectedTheme = themes.find(t => t.id === formData.theme);
+    const selectedPersona = personas.find(p => p.id === formData.persona);
+
+    const promptFields: PromptFormFields = {
+      brandId: formData.brand,
+      brandName: selectedBrand?.name || formData.brand,
+      themeId: formData.theme,
+      themeName: selectedTheme?.title || formData.theme,
+      personaId: formData.persona,
+      personaName: selectedPersona?.name || formData.persona,
+      objective: formData.objective,
+      description: formData.description,
+      platform: formData.platform,
+      contentType,
+      tones: formData.tone,
+      additionalInfo: formData.additionalInfo,
+      vibeStyle: formData.vibeStyle || formData.visualStyle || 'professional',
+      fontStyle: formData.fontStyle || 'modern',
+      politicalTone: formData.politicalTone || 'institucional',
+      includeText: formData.imageIncludeText || false,
+      textContent: formData.imageTextContent?.trim() || '',
+      textPosition: formData.imageTextPosition || 'center',
+      negativePrompt: formData.negativePrompt,
+      colorPalette: formData.colorPalette,
+      lighting: formData.lighting,
+      composition: formData.composition,
+      cameraAngle: formData.cameraAngle,
+      detailLevel: formData.detailLevel,
+      mood: formData.mood,
+      brandImagesCount: brandImages.length,
+      userImagesCount: referenceFiles.length,
+    };
+
+    const preview = buildImagePromptString(promptFields);
+    setPromptPreview(preview);
+    setShowConfirmModal(true);
+  };
+
+  // Step 2: Actually generate after user confirms
+  const handleGenerateContent = async () => {
+    setShowConfirmModal(false);
+    if (!user) return toast.error("Usuário não encontrado.");
 
     setLoading(true);
     setGenerationStep(GenerationStep.GENERATING_IMAGE);
@@ -1550,7 +1599,7 @@ export default function CreateImage() {
           <div className="flex justify-end pb-6">
             <Button
               id="generate-button"
-              onClick={handleGenerateContent}
+              onClick={handleRequestGeneration}
               disabled={loading || !isFormValid}
               size="lg"
               className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2"
@@ -1574,6 +1623,62 @@ export default function CreateImage() {
           </div>
         </div>
       </main>
+
+      {/* Confirmation Modal — Prompt Preview */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="max-w-2xl max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Revisar Briefing antes de gerar
+            </DialogTitle>
+            <DialogDescription>
+              Este é o briefing consolidado que será enviado para a IA. Revise e confirme para iniciar a geração.
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="max-h-[50vh] rounded-md border bg-muted/30 p-4">
+            <div className="space-y-3 text-sm font-mono whitespace-pre-wrap">
+              {promptPreview.split('###').filter(Boolean).map((section, idx) => {
+                const [title, ...content] = section.trim().split('\n');
+                return (
+                  <div key={idx} className="space-y-1">
+                    <h4 className="font-bold text-primary text-xs uppercase tracking-wider">
+                      {title}
+                    </h4>
+                    <p className="text-foreground/80 text-xs leading-relaxed">
+                      {content.join('\n')}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Coins className="h-3.5 w-3.5" />
+            <span>Custo: <strong>{CREDIT_COSTS.COMPLETE_IMAGE} créditos</strong></span>
+            <span className="mx-1">•</span>
+            <span>{referenceFiles.length} imagem(ns) de referência</span>
+            {brandImages.length > 0 && (
+              <>
+                <span className="mx-1">+</span>
+                <span>{brandImages.length} da identidade</span>
+              </>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
+              Voltar e editar
+            </Button>
+            <Button onClick={handleGenerateContent} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Confirmar e Gerar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
