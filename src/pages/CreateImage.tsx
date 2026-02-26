@@ -56,6 +56,8 @@ interface FormData {
   additionalInfo: string;
   contentType: 'organic' | 'ads';
   visualStyle: string;
+  vibeStyle: string;
+  fontStyle: string;
   negativePrompt?: string;
   colorPalette?: string;
   lighting?: string;
@@ -95,7 +97,9 @@ export default function CreateImage() {
     tone: [],
     additionalInfo: "",
     contentType: "organic",
-    visualStyle: "realistic",
+    visualStyle: "professional",
+    vibeStyle: "professional",
+    fontStyle: "modern",
     negativePrompt: "",
     colorPalette: "auto",
     lighting: "natural",
@@ -618,14 +622,19 @@ export default function CreateImage() {
 
       const requestData = {
         brand: selectedBrand?.name || formData.brand,
+        brandId: formData.brand,
         theme: selectedTheme?.title || formData.theme,
+        themeId: formData.theme,
         persona: selectedPersona?.name || formData.persona,
+        personaId: formData.persona,
         objective: formData.objective,
         description: formData.description,
         tone: formData.tone,
         platform: formData.platform,
         contentType: contentType,
-        visualStyle: formData.visualStyle || 'realistic',
+        visualStyle: formData.vibeStyle || formData.visualStyle || 'professional',
+        vibeStyle: formData.vibeStyle || 'professional',
+        fontStyle: formData.fontStyle || 'modern',
         additionalInfo: formData.additionalInfo,
         preserveImages: finalBrandImages,
         styleReferenceImages: finalUserImages,
@@ -805,7 +814,7 @@ export default function CreateImage() {
       
       toast.success("✅ Conteúdo gerado com sucesso!", {
         id: toastId,
-        description: "Imagem e legenda criados com Gemini 2.5 🚀",
+        description: "Imagem e legenda criados com Gemini 3 Pro 🚀",
         duration: 1500,
       });
       
@@ -1216,29 +1225,27 @@ export default function CreateImage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="visualStyle" className="text-sm font-bold text-foreground">
-                      Estilo Visual
+                      Vibe Visual
                     </Label>
                     <NativeSelect
-                      value={formData.visualStyle || 'realistic'}
-                      onValueChange={(value) => handleSelectChange("visualStyle" as keyof Omit<FormData, "tone">, value)}
+                      value={formData.vibeStyle || 'professional'}
+                      onValueChange={(value) => {
+                        setFormData(prev => ({ ...prev, vibeStyle: value, visualStyle: value }));
+                      }}
                       options={[
-                        { value: 'realistic', label: 'Fotorealístico' },
-                        { value: 'animated', label: 'Animado 3D (Pixar/Disney)' },
-                        { value: 'cartoon', label: 'Cartoon' },
-                        { value: 'anime', label: 'Anime/Mangá' },
-                        { value: 'watercolor', label: 'Aquarela' },
-                        { value: 'oil_painting', label: 'Pintura a Óleo' },
-                        { value: 'digital_art', label: 'Arte Digital' },
-                        { value: 'sketch', label: 'Desenho/Sketch' },
-                        { value: 'minimalist', label: 'Minimalista' },
-                        { value: 'vintage', label: 'Vintage/Retrô' }
+                        { value: 'minimalist', label: '✨ Minimalista' },
+                        { value: 'pop_neon', label: '🌈 Pop/Neon' },
+                        { value: 'professional', label: '💼 Profissional' },
+                        { value: 'cinematic', label: '🎬 Cinematográfico' },
+                        { value: '3d_modern', label: '🧊 3D Moderno' },
+                        { value: 'illustration', label: '🎨 Ilustração' },
                       ]}
-                      placeholder="Selecione um estilo"
+                      placeholder="Selecione uma vibe"
                       triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                     />
                     <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                       <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span>O estilo visual define a aparência da imagem gerada</span>
+                      <span>Define a estética e atmosfera visual da imagem</span>
                     </p>
                   </div>
 
@@ -1292,6 +1299,35 @@ export default function CreateImage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Tipografia (condicional ao texto na imagem) */}
+            {formData.imageIncludeText && (
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardContent className="p-4 md:p-5">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-bold text-foreground">
+                      Estilo de Tipografia
+                    </Label>
+                    <NativeSelect
+                      value={formData.fontStyle || 'modern'}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, fontStyle: value }))}
+                      options={[
+                        { value: 'elegant', label: '✒️ Elegante — Serifa clássica, refinada' },
+                        { value: 'modern', label: '🔤 Moderna — Sans-serif limpa, geométrica' },
+                        { value: 'fun', label: '🎉 Divertida — Script casual ou display arrojada' },
+                        { value: 'impactful', label: '💥 Impactante — Bold condensada, display forte' },
+                      ]}
+                      placeholder="Selecione tipografia"
+                      triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                    />
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>Define o estilo da fonte do texto na imagem</span>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 4. Tom de Voz */}
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
