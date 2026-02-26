@@ -12,7 +12,9 @@ import {
 import {
   FileText, Target, Megaphone, ImageIcon, Copy, Check,
   Sparkles, Loader2, ChevronLeft, Coins, ArrowRight,
+  Download, Pencil,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import createBanner from "@/assets/create-banner.jpg";
 
 interface MicroNarrativa {
@@ -71,7 +73,10 @@ function CopyButton({ text }: { text: string }) {
 
 function GenerateImageButton({ briefing }: { briefing: string }) {
   const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [editPrompt, setEditPrompt] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -100,10 +105,89 @@ function GenerateImageButton({ briefing }: { briefing: string }) {
     }
   };
 
+  const handleDownload = async () => {
+    if (!imageUrl) return;
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `imagem-campanha-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Download iniciado!");
+    } catch {
+      toast.error("Erro ao baixar imagem");
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editPrompt.trim() || !imageUrl) return;
+    setEditLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("edit-image", {
+        body: {
+          reviewPrompt: editPrompt,
+          imageUrl: imageUrl,
+        },
+      });
+      if (error) throw error;
+      if (data?.editedImageUrl) {
+        setImageUrl(data.editedImageUrl);
+        setEditPrompt("");
+        setEditing(false);
+        toast.success("Imagem editada com sucesso!");
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao editar imagem");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   if (imageUrl) {
     return (
-      <div className="mt-3 rounded-xl overflow-hidden border">
-        <img src={imageUrl} alt="Imagem gerada" className="w-full h-auto" />
+      <div className="mt-3 space-y-3">
+        <div className="rounded-xl overflow-hidden border">
+          <img src={imageUrl} alt="Imagem gerada" className="w-full h-auto" />
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleDownload} className="gap-1.5 text-xs">
+            <Download className="h-3 w-3" /> Baixar
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="gap-1.5 text-xs">
+            <Pencil className="h-3 w-3" /> Editar
+          </Button>
+        </div>
+        {editing && (
+          <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+            <Textarea
+              placeholder="Descreva o que deseja alterar na imagem..."
+              value={editPrompt}
+              onChange={(e) => setEditPrompt(e.target.value)}
+              className="text-xs min-h-[60px] resize-none"
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={handleEdit}
+                disabled={editLoading || !editPrompt.trim()}
+                className="gap-1.5 text-xs"
+              >
+                {editLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                {editLoading ? "Editando..." : "Aplicar Edição"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setEditing(false)} className="text-xs">
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
