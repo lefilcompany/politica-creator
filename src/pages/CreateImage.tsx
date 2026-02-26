@@ -58,6 +58,7 @@ interface FormData {
   visualStyle: string;
   vibeStyle: string;
   fontStyle: string;
+  politicalTone: string;
   negativePrompt?: string;
   colorPalette?: string;
   lighting?: string;
@@ -71,6 +72,13 @@ interface FormData {
   imageTextContent?: string;
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
+
+const POLITICAL_TONE_OPTIONS = [
+  { value: 'combativo', label: '⚔️ Combativo / Responder Ataque', description: 'Gera urgência e força. Contraste alto, cores intensas.' },
+  { value: 'didatico', label: '📊 Didático / Prestação de Contas', description: 'Layout limpo, infográficos, compreensão de dados.' },
+  { value: 'emocional', label: '💛 Emocional / Mobilização', description: 'Iluminação quente, foco em pessoas e expressões.' },
+  { value: 'institucional', label: '🏛️ Institucional / Governo', description: 'Minimalista, simétrico, estabilidade e ordem.' },
+] as const;
 
 const toneOptions = [
   "inspirador",
@@ -100,6 +108,7 @@ export default function CreateImage() {
     visualStyle: "professional",
     vibeStyle: "professional",
     fontStyle: "modern",
+    politicalTone: "institucional",
     negativePrompt: "",
     colorPalette: "auto",
     lighting: "natural",
@@ -635,6 +644,7 @@ export default function CreateImage() {
         visualStyle: formData.vibeStyle || formData.visualStyle || 'professional',
         vibeStyle: formData.vibeStyle || 'professional',
         fontStyle: formData.fontStyle || 'modern',
+        politicalTone: formData.politicalTone || 'institucional',
         additionalInfo: formData.additionalInfo,
         preserveImages: finalBrandImages,
         styleReferenceImages: finalUserImages,
@@ -1219,9 +1229,44 @@ export default function CreateImage() {
               </Card>
             )}
 
-            {/* 3. Estilo Visual */}
+            {/* 3. Tom/Objetivo Político + Estilo Visual */}
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardContent className="p-4 md:p-5">
+              <CardContent className="p-4 md:p-5 space-y-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-6 w-1 bg-primary rounded-full" />
+                  <h3 className="text-sm font-bold text-foreground">Diretrizes Estratégicas</h3>
+                </div>
+
+                {/* Tom/Objetivo Político */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-foreground">
+                    Tom / Objetivo <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {POLITICAL_TONE_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, politicalTone: option.value }))}
+                        className={`text-left p-3 rounded-xl border-2 transition-all ${
+                          formData.politicalTone === option.value
+                            ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
+                            : 'border-border/50 bg-background/50 hover:border-border/70'
+                        }`}
+                      >
+                        <span className="text-sm font-semibold text-foreground">{option.label}</span>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{option.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>Define automaticamente contraste, iluminação e composição da imagem</span>
+                  </p>
+                </div>
+
+                <Separator className="my-2" />
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="visualStyle" className="text-sm font-bold text-foreground">
@@ -1245,7 +1290,7 @@ export default function CreateImage() {
                     />
                     <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                       <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span>Define a estética e atmosfera visual da imagem</span>
+                      <span>Define a estética e atmosfera visual</span>
                     </p>
                   </div>
 
