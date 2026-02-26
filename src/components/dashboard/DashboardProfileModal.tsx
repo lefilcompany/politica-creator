@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle, Upload, X, File } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle, Upload, X, File, BookOpen, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const MANDATE_STAGES = [
@@ -38,12 +38,27 @@ interface ProfileDetailData {
   evidence_history: string;
 }
 
-const TOTAL_STEPS = 5;
+interface RecommendedThesis {
+  number: number;
+  title: string;
+  group: string;
+  relevance: string;
+}
+
+const FORM_STEPS = 5;
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
+
+const GROUP_LABELS: Record<string, string> = {
+  A: 'Poder e Governança',
+  B: 'Dinâmica Política',
+  C: 'Narrativa e Autenticidade',
+  D: 'Cidadania Expandida',
+  E: 'Complexidade e Ética',
+};
 
 export function DashboardProfileModal({ open, onClose }: Props) {
   const { user, reloadUserData } = useAuth();
@@ -51,6 +66,9 @@ export function DashboardProfileModal({ open, onClose }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
+  const [showTheses, setShowTheses] = useState(false);
+  const [isLoadingTheses, setIsLoadingTheses] = useState(false);
+  const [recommendedTheses, setRecommendedTheses] = useState<RecommendedThesis[]>([]);
   const [data, setData] = useState<ProfileDetailData>({
     mandate_stage: '',
     biography: '',
@@ -59,7 +77,8 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     evidence_history: '',
   });
 
-  const progress = ((step + 1) / TOTAL_STEPS) * 100;
+  const totalSteps = showTheses ? FORM_STEPS + 1 : FORM_STEPS;
+  const progress = ((step + 1) / totalSteps) * 100;
 
   const canProceed = () => {
     switch (step) {
@@ -124,6 +143,30 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
+  const fetchRecommendedTheses = async () => {
+    setIsLoadingTheses(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('No session');
+
+      const response = await supabase.functions.invoke('recommend-theses', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+      if (result?.theses && Array.isArray(result.theses)) {
+        setRecommendedTheses(result.theses.slice(0, 5));
+      }
+    } catch (error) {
+      console.error('Error fetching theses:', error);
+      toast.error('Não foi possível carregar as teses recomendadas');
+    } finally {
+      setIsLoadingTheses(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user?.id) return;
     setIsSubmitting(true);
@@ -144,7 +187,11 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       if (error) throw error;
       await reloadUserData();
       toast.success('Perfil detalhado salvo com sucesso!');
-      onClose();
+      
+      // Move to theses step and start loading
+      setShowTheses(true);
+      setStep(FORM_STEPS);
+      fetchRecommendedTheses();
     } catch (error) {
       console.error('Error saving profile details:', error);
       toast.error('Erro ao salvar. Tente novamente.');
@@ -170,9 +217,64 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     }
   };
 
-  const stepIcons = [Briefcase, UserCircle, Mic, ShieldAlert, FileText];
+  const handleFinish = () => {
+    onClose();
+  };
 
-  const steps = [
+  const stepIcons = [Briefcase, UserCircle, Mic, ShieldAlert, FileText, ...(showTheses ? [BookOpen] : [])];
+
+  const thesesStep = (
+    <div key="s-theses" className="space-y-5">
+      <div className="text-center space-y-1">
+        <h3 className="text-lg font-bold text-foreground">Suas 5 Teses Fundamentais</h3>
+        <p className="text-sm text-muted-foreground">
+          Baseadas no seu perfil e no livro <em>"A Próxima Democracia"</em>
+        </p>
+      </div>
+
+      {isLoadingTheses ? (
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-sm text-muted-foreground">Analisando seu perfil político...</p>
+          <p className="text-xs text-muted-foreground">A IA está selecionando as teses mais relevantes para você</p>
+        </div>
+      ) : recommendedTheses.length > 0 ? (
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+          {recommendedTheses.map((thesis, i) => (
+            <motion.div
+              key={thesis.number}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.15 }}
+              className="p-4 rounded-lg border border-border bg-muted/30 space-y-2"
+            >
+              <div className="flex items-start gap-2">
+                <span className="shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                  {thesis.number}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold text-foreground leading-tight">{thesis.title}</h4>
+                  <Badge variant="outline" className="mt-1 text-xs">
+                    Grupo {thesis.group} — {GROUP_LABELS[thesis.group] || thesis.group}
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed pl-9">{thesis.relevance}</p>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-sm text-muted-foreground">Não foi possível carregar as recomendações.</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={fetchRecommendedTheses}>
+            Tentar novamente
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  const formSteps = [
     // Step 0: Fase
     <div key="s0" className="space-y-5">
       <div className="text-center space-y-1">
@@ -324,8 +426,11 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     </div>,
   ];
 
+  const allSteps = showTheses ? [...formSteps, thesesStep] : formSteps;
+  const displayedIcons = showTheses ? stepIcons : stepIcons.slice(0, FORM_STEPS);
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) handleSkip(); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v && !showTheses) handleSkip(); else if (!v) onClose(); }}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="sr-only">Complete seu perfil político</DialogTitle>
@@ -334,7 +439,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
 
         {/* Step indicators */}
         <div className="flex items-center justify-center gap-2 mb-1">
-          {stepIcons.map((Icon, i) => (
+          {displayedIcons.map((Icon, i) => (
             <div
               key={i}
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-all
@@ -351,7 +456,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
         </div>
         <Progress value={progress} className="h-1.5" />
         <p className="text-xs text-muted-foreground text-center">
-          Passo {step + 1} de {TOTAL_STEPS}
+          Passo {step + 1} de {totalSteps}
         </p>
 
         {/* Content */}
@@ -364,14 +469,16 @@ export function DashboardProfileModal({ open, onClose }: Props) {
             transition={{ duration: 0.2 }}
             className="min-h-[250px] py-2"
           >
-            {steps[step]}
+            {allSteps[step]}
           </motion.div>
         </AnimatePresence>
 
         {/* Navigation */}
         <div className="flex items-center justify-between pt-3 border-t border-border/50">
           <div>
-            {step > 0 ? (
+            {showTheses ? (
+              <span />
+            ) : step > 0 ? (
               <Button variant="ghost" onClick={() => setStep(s => s - 1)} className="text-muted-foreground">
                 <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
               </Button>
@@ -382,7 +489,12 @@ export function DashboardProfileModal({ open, onClose }: Props) {
             )}
           </div>
 
-          {step < TOTAL_STEPS - 1 ? (
+          {showTheses ? (
+            <Button onClick={handleFinish} className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              Começar a criar
+            </Button>
+          ) : step < FORM_STEPS - 1 ? (
             <Button onClick={() => setStep(s => s + 1)} disabled={!canProceed()}>
               Próximo <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
