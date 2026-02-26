@@ -64,8 +64,9 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
   });
 
   const toneOptions = [
-    'inspirador', 'motivacional', 'profissional', 'casual', 'elegante',
-    'moderno', 'tradicional', 'divertido', 'sério', 'informal', 'confiável'
+    'didático', 'combativo', 'conciliador', 'técnico',
+    'inspirador', 'popular', 'institucional', 'empático',
+    'mobilizador', 'propositivo', 'denúncia'
   ];
 
   useEffect(() => {
@@ -239,9 +240,9 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle>{themeToEdit ? 'Editar Tema Estratégico' : 'Criar Novo Tema Estratégico'}</DialogTitle>
+              <DialogTitle>{themeToEdit ? 'Editar Pauta da Agenda' : 'Nova Pauta da Agenda'}</DialogTitle>
               <DialogDescription>
-                {themeToEdit ? 'Altere as informações do seu tema.' : 'Preencha os campos abaixo para adicionar um novo tema.'}
+                {themeToEdit ? 'Altere as informações da pauta.' : 'Preencha os campos abaixo para adicionar uma nova pauta à sua agenda estratégica.'}
               </DialogDescription>
             </div>
             {!themeToEdit && hasDraft() && (
@@ -258,7 +259,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
             {/* Coluna 1 */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="brandId">Marca <span className="text-red-500">*</span></Label>
+                <Label htmlFor="brandId">Identidade <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <select
@@ -271,7 +272,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                     autoComplete="off"
                   >
                     <option value="" disabled>
-                      {brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca para criar o tema"}
+                      {brands.length === 0 ? "Nenhuma identidade cadastrada" : "Selecione a identidade política"}
                     </option>
                     {brands.map(brand => (
                       <option key={brand.id} value={brand.id}>{brand.name}</option>
@@ -281,7 +282,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 {brands.length === 0 && (
                   <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Cadastre uma marca antes de criar temas estratégicos</span>
+                    <span>Cadastre uma identidade antes de criar pautas</span>
                   </p>
                 )}
               </div>
@@ -297,7 +298,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                     data-1p-ignore="true"
                     autoComplete="off"
                   >
-                    <option value="" disabled>Escolha como sua marca deve se comunicar</option>
+                    <option value="" disabled>Escolha o tom da comunicação desta pauta</option>
                     {toneOptions.map(option => (
                       <option key={option} value={option} disabled={toneList.includes(option)}>
                         {option.charAt(0).toUpperCase() + option.slice(1)}
@@ -322,40 +323,40 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="targetAudience">Universo-Alvo</Label>
+                <Label htmlFor="targetAudience">Público-alvo da pauta</Label>
                 <Textarea
                   id="targetAudience"
                   value={formData.targetAudience}
                   onChange={handleInputChange}
-                  placeholder="Descreva o público-alvo considerando: idade, gênero, interesses, comportamentos e características relevantes"
+                  placeholder="Descreva o público que deseja alcançar com esta pauta: perfil demográfico, eleitoral, territorial"
                   className="min-h-[80px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="objectives">Objetivos <span className="text-red-500">*</span></Label>
+                <Label htmlFor="objectives">Objetivos da pauta <span className="text-red-500">*</span></Label>
                 <Textarea 
                   id="objectives" 
                   value={formData.objectives} 
                   onChange={handleInputChange} 
-                  placeholder="Liste os objetivos específicos e mensuráveis que deseja alcançar com este tema estratégico" 
+                  placeholder="O que deseja alcançar com esta pauta? (informar, mobilizar, responder crise, propor solução, atrair audiência)" 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="macroThemes">Quais macro-temas ou categorias sustentam a promessa de valor da marca?</Label>
+                <Label htmlFor="macroThemes">Eixos temáticos</Label>
                 <Textarea 
                   id="macroThemes" 
                   value={formData.macroThemes} 
                   onChange={handleInputChange} 
-                  placeholder="Liste os principais temas que representam os valores da marca. Ex: inovação, sustentabilidade, bem-estar" 
+                  placeholder="Temas macro que sustentam esta pauta (ex: saúde pública, segurança, educação, meio ambiente, economia)" 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="platforms">Quais as plataformas atuais e desejadas?</Label>
+                <Label htmlFor="platforms">Plataformas de divulgação</Label>
                 <Textarea 
                   id="platforms" 
                   value={formData.platforms} 
                   onChange={handleInputChange} 
-                  placeholder="Liste todas as redes sociais onde sua marca está ou planeja estar. Ex: Instagram, YouTube, LinkedIn" 
+                  placeholder="Onde divulgar (Instagram, YouTube, WhatsApp, imprensa, plenário, eventos)" 
                 />
               </div>
             </div>
@@ -363,12 +364,12 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
             {/* Coluna 2 */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Título <span className="text-red-500">*</span></Label>
+                <Label htmlFor="title">Título da pauta <span className="text-red-500">*</span></Label>
                 <Input 
                   id="title" 
                   value={formData.title} 
                   onChange={handleInputChange} 
-                  placeholder="Nome descritivo que identifique facilmente este tema estratégico" 
+                  placeholder="Nome da pauta (ex: Saúde pública no interior, Primeiro emprego para jovens)" 
                 />
               </div>
               <div className="space-y-2 pt-1">
@@ -405,50 +406,50 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 </div>
               </div>  
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description">Contexto e descrição</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="Descreva o propósito do tema e como ele se alinha aos objetivos da marca"
+                  placeholder="Descreva o contexto político desta pauta: por que é relevante agora, qual problema resolve, como se conecta ao mandato"
                   className="min-h-[80px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contentFormat">Formato dos Conteúdos <span className="text-red-500">*</span></Label>
+                <Label htmlFor="contentFormat">Formatos de comunicação <span className="text-red-500">*</span></Label>
                 <Textarea 
                   id="contentFormat" 
                   value={formData.contentFormat} 
                   onChange={handleInputChange} 
-                  placeholder="Indique os tipos de conteúdo que serão criados. Ex: carrossel, vídeos curtos, reels, stories" 
+                  placeholder="Tipos de conteúdo a produzir (cards, vídeos curtos, discursos, notas oficiais, threads)" 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bestFormats">Quais formatos funcionam melhor até agora?</Label>
+                <Label htmlFor="bestFormats">Quais formatos funcionam melhor com seu público?</Label>
                 <Textarea 
                   id="bestFormats" 
                   value={formData.bestFormats} 
                   onChange={handleInputChange} 
-                  placeholder="Liste os formatos que geram mais engajamento. Ex: reels com tutoriais, carrossel educativo" 
+                  placeholder="Formatos com mais engajamento (vídeos curtos, cards com dados, stories com bastidores, lives)" 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expectedAction">Qual ação você espera após cada peça de conteúdo publicada? <span className="text-red-500">*</span></Label>
+                <Label htmlFor="expectedAction">Resultado esperado após publicação <span className="text-red-500">*</span></Label>
                 <Textarea 
                   id="expectedAction" 
                   value={formData.expectedAction} 
                   onChange={handleInputChange} 
-                  placeholder="Descreva as ações que deseja que seu público tome. Ex: visitar site, entrar em contato, compartilhar, comprar" 
+                  placeholder="O que o público deve fazer? (compartilhar, engajar, assinar petição, comparecer a evento, votar)" 
                 />
               </div>
             </div>
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="additionalInfo">Informações Adicionais</Label>
+              <Label htmlFor="additionalInfo">Informações complementares</Label>
               <Textarea
                 id="additionalInfo"
                 value={formData.additionalInfo}
                 onChange={handleInputChange}
-                placeholder="Adicione outras informações relevantes como referências, dicas ou restrições importantes para este tema"
+                placeholder="Fatos recentes, dados de pesquisa, sinais do cenário político, links de referência ou qualquer contexto adicional"
               />
             </div>
           </div>

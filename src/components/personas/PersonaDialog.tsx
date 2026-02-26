@@ -18,19 +18,19 @@ import { useDraftForm } from '@/hooks/useDraftForm';
 import { toast } from 'sonner';
 
 const personaSchema = z.object({
-  brandId: z.string().min(1, 'Selecione uma marca'),
+  brandId: z.string().min(1, 'Selecione uma identidade'),
   name: z.string().min(1, 'Nome é obrigatório'),
   gender: z.string().min(1, 'Gênero é obrigatório'),
-  age: z.string().min(1, 'Idade é obrigatória'),
+  age: z.string().min(1, 'Faixa etária é obrigatória'),
   location: z.string().min(1, 'Localização é obrigatória'),
-  professionalContext: z.string().min(1, 'Contexto profissional é obrigatório'),
-  beliefsAndInterests: z.string().min(1, 'Crenças e interesses são obrigatórios'),
-  contentConsumptionRoutine: z.string().min(1, 'Rotina de consumo de conteúdo é obrigatória'),
-  mainGoal: z.string().min(1, 'Principal objetivo é obrigatório'),
-  challenges: z.string().min(1, 'Desafios são obrigatórios'),
-  preferredToneOfVoice: z.string().min(1, 'Tom de voz preferido é obrigatório'),
-  purchaseJourneyStage: z.string().min(1, 'Estágio da jornada de compra é obrigatório'),
-  interestTriggers: z.string().min(1, 'Gatilhos de interesse são obrigatórios'),
+  professionalContext: z.string().min(1, 'Perfil socioeconômico é obrigatório'),
+  beliefsAndInterests: z.string().min(1, 'Valores e preocupações são obrigatórios'),
+  contentConsumptionRoutine: z.string().min(1, 'Hábitos de informação são obrigatórios'),
+  mainGoal: z.string().min(1, 'Expectativa é obrigatória'),
+  challenges: z.string().min(1, 'Dores e frustrações são obrigatórias'),
+  preferredToneOfVoice: z.string().min(1, 'Linguagem preferida é obrigatória'),
+  purchaseJourneyStage: z.string().min(1, 'Nível de engajamento é obrigatório'),
+  interestTriggers: z.string().min(1, 'Gatilhos de mobilização são obrigatórios'),
 });
 
 type PersonaFormData = z.infer<typeof personaSchema>;
@@ -127,7 +127,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>
-              {personaToEdit ? 'Editar Persona' : 'Nova Persona'}
+              {personaToEdit ? 'Editar Perfil de Eleitor' : 'Novo Perfil de Eleitor'}
             </DialogTitle>
             {!personaToEdit && hasDraft() && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
@@ -149,7 +149,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="brandId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Marca *</FormLabel>
+                     <FormLabel>Identidade *</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -163,7 +163,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                           autoComplete="off"
                         >
                           <option value="" disabled>
-                            {brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione uma marca"}
+                            {brands.length === 0 ? "Nenhuma identidade cadastrada" : "Selecione uma identidade"}
                           </option>
                           {brands.map((brand) => (
                             <option key={brand.id} value={brand.id}>
@@ -177,7 +177,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                     {brands.length === 0 && (
                       <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>Cadastre uma marca antes de criar personas</span>
+                        <span>Cadastre uma identidade antes de criar perfis de eleitor</span>
                       </p>
                     )}
                   </FormItem>
@@ -189,9 +189,9 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome da Persona *</FormLabel>
+                    <FormLabel>Nome do perfil *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Maria Silva" {...field} />
+                      <Input placeholder="Ex: Maria, mãe de família do interior" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -233,9 +233,9 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="age"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Idade *</FormLabel>
+                    <FormLabel>Faixa etária *</FormLabel>
                     <FormControl>
-                      <Input placeholder="25 anos" {...field} />
+                      <Input placeholder="Ex: 30-45 anos" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -247,9 +247,9 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Localização *</FormLabel>
+                    <FormLabel>Território *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: São Paulo, SP" {...field} />
+                      <Input placeholder="Ex: Periferia de Manaus, AM" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -261,9 +261,9 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="professionalContext"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contexto Profissional *</FormLabel>
+                    <FormLabel>Perfil socioeconômico *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Gerente de Marketing" {...field} />
+                      <Input placeholder="Ex: Trabalhador informal, classe C, ensino médio completo" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -278,10 +278,10 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="mainGoal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Principal Objetivo *</FormLabel>
+                    <FormLabel>O que espera do político *</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Qual é o principal objetivo desta persona?"
+                        placeholder="O que este eleitor deseja de um representante? (mais segurança, emprego, saúde, transparência)"
                         className="min-h-[100px]"
                         {...field}
                       />
@@ -296,10 +296,10 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="challenges"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Desafios *</FormLabel>
+                    <FormLabel>Dores e frustrações *</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Quais são os principais desafios desta persona?"
+                        placeholder="Problemas do dia a dia, insatisfações com o poder público, medos e angústias"
                         className="min-h-[100px]"
                         {...field}
                       />
@@ -315,10 +315,10 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
               name="beliefsAndInterests"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Crenças e Interesses *</FormLabel>
+                  <FormLabel>Valores e preocupações *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Descreva as crenças, valores e interesses desta persona..."
+                      placeholder="No que acredita, o que valoriza, temas que o mobilizam (família, religião, trabalho, meio ambiente)"
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -333,10 +333,10 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
               name="contentConsumptionRoutine"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Rotina de Consumo de Conteúdo *</FormLabel>
+                  <FormLabel>Como consome informação *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Como e quando esta persona consome conteúdo?"
+                      placeholder="Onde se informa? (WhatsApp, TV, rádio, Instagram, YouTube, igreja, vizinhos)"
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -352,7 +352,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="preferredToneOfVoice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tom de Voz Preferido *</FormLabel>
+                    <FormLabel>Linguagem que ressoa *</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -364,13 +364,13 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                           data-1p-ignore="true"
                           autoComplete="off"
                         >
-                          <option value="" disabled>Selecione o tom preferido</option>
-                          <option value="Profissional">Profissional</option>
-                          <option value="Casual">Casual</option>
-                          <option value="Amigável">Amigável</option>
-                          <option value="Inspirador">Inspirador</option>
-                          <option value="Direto">Direto</option>
-                          <option value="Educativo">Educativo</option>
+                          <option value="" disabled>Selecione a linguagem</option>
+                          <option value="Popular e direta">Popular e direta</option>
+                          <option value="Técnica e formal">Técnica e formal</option>
+                          <option value="Emocional e inspiradora">Emocional e inspiradora</option>
+                          <option value="Didática e explicativa">Didática e explicativa</option>
+                          <option value="Combativa e firme">Combativa e firme</option>
+                          <option value="Acolhedora e empática">Acolhedora e empática</option>
                         </select>
                       </div>
                     </FormControl>
@@ -384,7 +384,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="purchaseJourneyStage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estágio da Jornada de Compra *</FormLabel>
+                    <FormLabel>Nível de engajamento político *</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -396,12 +396,12 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                           data-1p-ignore="true"
                           autoComplete="off"
                         >
-                          <option value="" disabled>Selecione o estágio</option>
-                          <option value="Consciência">Consciência</option>
-                          <option value="Consideração">Consideração</option>
-                          <option value="Decisão">Decisão</option>
-                          <option value="Pós-compra">Pós-compra</option>
-                          <option value="Advocacia">Advocacia</option>
+                          <option value="" disabled>Selecione o nível</option>
+                          <option value="Desconhece o político">Desconhece o político</option>
+                          <option value="Sabe quem é, mas não acompanha">Sabe quem é, mas não acompanha</option>
+                          <option value="Acompanha e simpatiza">Acompanha e simpatiza</option>
+                          <option value="Apoiador ativo">Apoiador ativo</option>
+                          <option value="Militante engajado">Militante engajado</option>
                         </select>
                       </div>
                     </FormControl>
@@ -416,10 +416,10 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
               name="interestTriggers"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gatilhos de Interesse *</FormLabel>
+                  <FormLabel>O que mobiliza este eleitor *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Quais são os gatilhos que despertam o interesse desta persona?"
+                      placeholder="O que faz esta pessoa agir? (indignação com corrupção, promessa de mudança, identificação pessoal, resultados concretos)"
                       className="min-h-[100px]"
                       {...field}
                     />
