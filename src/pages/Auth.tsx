@@ -558,7 +558,7 @@ const Auth = () => {
 
       {/* Validação de senha */}
       <div 
-        className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2.5 rounded-xl border border-green-200/50 dark:border-green-800/50 transition-all duration-300 ${
+        className={`md:col-span-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2.5 rounded-xl border border-green-200/50 dark:border-green-800/50 transition-all duration-300 ${
           formData.password ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden p-0 border-0'
         }`}
         aria-hidden={!formData.password}
@@ -852,7 +852,7 @@ const Auth = () => {
         </Button>
 
         {/* Container centralizado */}
-        <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full max-w-lg">
+        <div className={`flex flex-col items-center gap-6 sm:gap-8 z-10 w-full ${isLoginMode ? 'max-w-lg' : 'max-w-3xl'}`}>
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
