@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -76,6 +76,31 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     red_lines: '',
     evidence_history: '',
   });
+
+  // Load existing profile data when modal opens
+  useEffect(() => {
+    if (!open || !user?.id) return;
+    const load = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('mandate_stage, biography, tone_of_voice, red_lines, evidence_history, evidence_documents')
+        .eq('id', user.id)
+        .single();
+      if (profile) {
+        setData({
+          mandate_stage: profile.mandate_stage || '',
+          biography: profile.biography || '',
+          tone_of_voice: profile.tone_of_voice || '',
+          red_lines: profile.red_lines || '',
+          evidence_history: profile.evidence_history || '',
+        });
+        if (profile.evidence_documents && Array.isArray(profile.evidence_documents)) {
+          setUploadedDocs(profile.evidence_documents as unknown as UploadedDoc[]);
+        }
+      }
+    };
+    load();
+  }, [open, user?.id]);
 
   const totalSteps = showTheses ? FORM_STEPS + 1 : FORM_STEPS;
   const progress = ((step + 1) / totalSteps) * 100;
