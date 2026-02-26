@@ -250,10 +250,122 @@ IMPORTANTE: O score deve refletir a REALIDADE. Não infle o score. Se não há f
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let result = { score: 0, verdict: 'critico', alerts: [], overallSuggestion: '', sources: [], verificationSummary: '' };
+    let result: any = { score: 0, verdict: 'critico', alerts: [], overallSuggestion: '', sources: [], verificationSummary: '' };
 
     if (toolCall?.function?.arguments) {
       result = JSON.parse(toolCall.function.arguments);
+    }
+
+    // ---- Step 4: Auto-verification pass — validate the AI's own response ----
+    const validationPrompt = `Você é um auditor de qualidade de fact-checking. Analise a resposta gerada por outro verificador e CORRIJA erros.
+
+## CONTEÚDO ORIGINAL VERIFICADO:
+"${content.trim().substring(0, 1500)}"
+
+## NOTÍCIAS REAIS DISPONÍVEIS:
+${newsContext}
+
+## RESPOSTA DO VERIFICADOR:
+Score: ${result.score}/100 — Veredicto: ${result.verdict}
+Alertas: ${JSON.stringify(result.alerts, null, 2)}
+Fontes citadas: ${JSON.stringify(result.sources, null, 2)}
+Resumo: ${result.verificationSummary || ''}
+
+## SUA TAREFA DE AUDITORIA:
+1. **Verifique cada fonte citada** — a fonte existe nas notícias reais fornecidas? Se não, REMOVA ou marque como "não verificável"
+2. **Verifique datas** — as datas citadas nos alertas batem com as datas reais das notícias? Corrija discrepâncias
+3. **Verifique coerência lógica** — se um alerta diz "confirmado" mas a notícia citada não confirma o dado específico, rebaixe para "sem_fonte"
+4. **Verifique o score** — está coerente com a quantidade de alertas negativos? Ajuste se necessário:
+   - Muitos "sem_fonte" + nenhum "confirmado" → score máximo 50
+   - Maioria "confirmado" com fontes reais → score pode ser 80+
+   - Dados que contradizem fontes → score máximo 40
+5. **Verifique URLs** — remova URLs inventadas (que não aparecem nas notícias reais fornecidas)
+6. **NÃO adicione informações novas** — apenas corrija o que já existe
+
+Retorne a versão CORRIGIDA.`;
+
+    try {
+      const validationResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [{ role: "user", content: validationPrompt }],
+          tools: [{
+            type: "function",
+            function: {
+              name: "validated_fact_check",
+              description: "Return the validated and corrected fact-check results",
+              parameters: {
+                type: "object",
+                properties: {
+                  score: { type: "number" },
+                  verdict: { type: "string", enum: ["excelente", "bom", "atencao", "critico"] },
+                  alerts: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        type: { type: "string", enum: ["imprecisao", "sem_fonte", "exagero", "risco_imagem", "desinformacao", "confirmado"] },
+                        severity: { type: "string", enum: ["alta", "media", "baixa"] },
+                        text: { type: "string" },
+                        explanation: { type: "string" },
+                        suggestion: { type: "string" },
+                        source: { type: "string" },
+                        sourceUrl: { type: "string" },
+                        sourceDate: { type: "string" },
+                      },
+                      required: ["type", "severity", "text", "explanation", "suggestion"],
+                      additionalProperties: false,
+                    },
+                  },
+                  overallSuggestion: { type: "string" },
+                  sources: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        url: { type: "string" },
+                        title: { type: "string" },
+                        date: { type: "string" },
+                      },
+                      required: ["name", "title"],
+                      additionalProperties: false,
+                    },
+                  },
+                  verificationSummary: { type: "string" },
+                  corrections: { type: "string", description: "Resumo das correções feitas na auditoria" },
+                },
+                required: ["score", "verdict", "alerts", "overallSuggestion", "sources", "verificationSummary"],
+                additionalProperties: false,
+              },
+            },
+          }],
+          tool_choice: { type: "function", function: { name: "validated_fact_check" } },
+        }),
+      });
+
+      if (validationResponse.ok) {
+        const valData = await validationResponse.json();
+        const valToolCall = valData.choices?.[0]?.message?.tool_calls?.[0];
+        if (valToolCall?.function?.arguments) {
+          const validated = JSON.parse(valToolCall.function.arguments);
+          console.log('Validation corrections:', validated.corrections || 'none');
+          // Replace result with validated version (keep corrections info)
+          const corrections = validated.corrections;
+          delete validated.corrections;
+          result = { ...validated, auditApplied: true, auditCorrections: corrections || null };
+        }
+      } else {
+        console.warn('Validation pass failed, using original result');
+        await validationResponse.text();
+      }
+    } catch (valError) {
+      console.warn('Validation pass error, using original result:', valError);
     }
 
     // Deduct credits

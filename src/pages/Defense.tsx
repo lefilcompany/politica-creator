@@ -58,6 +58,8 @@ interface FactCheckResult {
   articlesFound?: number;
   verificationSummary?: string;
   searchQueries?: string[];
+  auditApplied?: boolean;
+  auditCorrections?: string | null;
 }
 
 const classificationLabels: Record<string, { label: string; color: string }> = {
@@ -417,6 +419,16 @@ export default function Defense() {
                   {factCheckResult.verificationSummary && (
                     <div className="mt-4 p-3 bg-muted/50 rounded-lg border">
                       <p className="text-sm text-foreground"><strong>Resumo da verificação:</strong> {factCheckResult.verificationSummary}</p>
+                      {factCheckResult.auditApplied && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs border-green-600 text-green-700 bg-green-50">
+                            <CheckCircle2 className="h-3 w-3 mr-1" /> Auditoria aplicada
+                          </Badge>
+                          {factCheckResult.auditCorrections && (
+                            <span className="text-xs text-muted-foreground">{factCheckResult.auditCorrections}</span>
+                          )}
+                        </div>
+                      )}
                       {factCheckResult.articlesFound !== undefined && (
                         <p className="text-xs text-muted-foreground mt-1">
                           {factCheckResult.articlesFound} notícias pesquisadas nos últimos 7 dias
