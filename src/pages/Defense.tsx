@@ -56,6 +56,8 @@ interface FactCheckResult {
   overallSuggestion: string;
   sources?: FactCheckSource[];
   articlesFound?: number;
+  verificationSummary?: string;
+  searchQueries?: string[];
 }
 
 const classificationLabels: Record<string, { label: string; color: string }> = {
@@ -412,6 +414,19 @@ export default function Defense() {
                       <p className="text-sm text-muted-foreground">{factCheckResult.overallSuggestion}</p>
                     </div>
                   </div>
+                  {factCheckResult.verificationSummary && (
+                    <div className="mt-4 p-3 bg-muted/50 rounded-lg border">
+                      <p className="text-sm text-foreground"><strong>Resumo da verificação:</strong> {factCheckResult.verificationSummary}</p>
+                      {factCheckResult.articlesFound !== undefined && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {factCheckResult.articlesFound} notícias pesquisadas nos últimos 7 dias
+                          {factCheckResult.searchQueries && factCheckResult.searchQueries.length > 0 && (
+                            <> · Termos: {factCheckResult.searchQueries.join(', ')}</>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

@@ -13,7 +13,7 @@ export interface NewsArticle {
 
 export async function fetchNewsArticles(
   keywords: string,
-  options: { language?: string; pageSize?: number; sortBy?: string } = {},
+  options: { language?: string; pageSize?: number; sortBy?: string; days?: number } = {},
 ): Promise<NewsArticle[]> {
   const NEWSAPI_KEY = Deno.env.get('NEWSAPI_KEY');
   if (!NEWSAPI_KEY) {
@@ -21,10 +21,10 @@ export async function fetchNewsArticles(
     return [];
   }
 
-  const { language = 'pt', pageSize = 10, sortBy = 'publishedAt' } = options;
+  const { language = 'pt', pageSize = 10, sortBy = 'relevancy', days = 7 } = options;
 
-  // Last 24h
-  const from = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  // Configurable time window (default 7 days)
+  const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
   const params = new URLSearchParams({
     q: keywords,
@@ -57,14 +57,44 @@ export async function fetchNewsArticles(
   }
 }
 
+/**
+ * Perform multiple searches with different query strategies to maximize coverage.
+ * Returns deduplicated articles.
+ */
+export async function fetchNewsMultiQuery(
+  queries: string[],
+  options: { language?: string; pageSize?: number; days?: number } = {},
+): Promise<NewsArticle[]> {
+  const seen = new Set<string>();
+  const allArticles: NewsArticle[] = [];
+
+  for (const query of queries) {
+    if (!query || query.trim().length < 3) continue;
+    const articles = await fetchNewsArticles(query.trim(), {
+      ...options,
+      pageSize: options.pageSize || 10,
+      sortBy: 'relevancy',
+    });
+    for (const a of articles) {
+      const key = a.url || a.title;
+      if (!seen.has(key)) {
+        seen.add(key);
+        allArticles.push(a);
+      }
+    }
+  }
+
+  return allArticles;
+}
+
 /** Format articles into a text block the AI can digest */
 export function formatArticlesForPrompt(articles: NewsArticle[]): string {
-  if (articles.length === 0) return '(Nenhuma notícia recente encontrada via NewsAPI)';
+  if (articles.length === 0) return '(Nenhuma notícia recente encontrada via NewsAPI nos últimos 7 dias)';
 
   return articles
     .map(
       (a, i) =>
-        `[${i + 1}] "${a.title}" — ${a.source} (${new Date(a.publishedAt).toLocaleDateString('pt-BR')})${a.description ? `\n    ${a.description}` : ''}`,
+        `[${i + 1}] "${a.title}" — ${a.source} (${new Date(a.publishedAt).toLocaleDateString('pt-BR')})\n    URL: ${a.url}${a.description ? `\n    ${a.description}` : ''}`,
     )
-    .join('\n');
+    .join('\n\n');
 }
