@@ -1,88 +1,148 @@
 
 
-# Combate a Fake News -- 3 Funcionalidades
+# Reestruturação da Criação de Conteúdo - Prompt Premium + Gemini 3 Pro
 
 ## Visao Geral
 
-Adicionar uma nova seção "Defesa Digital" na plataforma com 3 ferramentas:
-
-1. **Monitor de Fake News** -- Pesquisa na web por menções falsas/negativas sobre o politico
-2. **Gerador de Respostas** -- Dado um texto ou link de fake news, a IA gera um desmentido com tom adequado
-3. **Verificador de Conteudo** -- Antes de publicar, analisa se o conteudo proprio contem imprecisoes
+Reestruturar o pipeline de geração de imagem para usar um prompt estruturado de "Diretor de Arte Digital", integrando dados completos de identidade, pauta estrategica, audiencia e perfil politico. Migrar para o modelo `google/gemini-3-pro-image-preview` via Lovable AI Gateway e adicionar um passo intermediario de "enriquecimento de prompt" com Gemini Flash.
 
 ---
 
-## 1. Nova pagina: Defesa Digital (`/defense`)
+## Parte 1: Edge Function `generate-image` - Pipeline de 2 Etapas
 
-Uma pagina com 3 abas (tabs):
-- **Monitorar** -- formulario para buscar fake news na web
-- **Responder** -- colar texto/link de fake news e gerar resposta
-- **Verificar** -- colar texto proprio para checagem de veracidade
+### Etapa A: Enriquecimento de Prompt (Gemini Flash)
 
-Adicionar item no sidebar com icone Shield: "Defesa Digital"
+Antes de gerar a imagem, usar `google/gemini-3-flash-preview` via Lovable AI Gateway para transformar a descricao simples do usuario numa `scene_description` rica e visual.
 
----
+- Input: descricao bruta do usuario + dados do banco (marca, pauta, persona, perfil politico)
+- Output: descricao cinematografica detalhada (iluminacao, composicao, atmosfera, detalhes visuais)
+- Chamada via `https://ai.gateway.lovable.dev/v1/chat/completions` com `LOVABLE_API_KEY`
 
-## 2. Edge Function: `fake-news-monitor`
+### Etapa B: Geracao de Imagem (Gemini 3 Pro Image Preview)
 
-- Recebe: nome do politico, partido, termos-chave
-- Usa Lovable AI (gemini-3-flash-preview) para:
-  - Gerar queries de busca relevantes
-  - Analisar resultados e classificar como "potencial fake news", "ataque infundado", "critica legitima"
-- Retorna lista classificada com resumo e nivel de urgencia
-- Custo: 2 creditos por busca
+Substituir a chamada direta ao Gemini API (`generativelanguage.googleapis.com`) pela Lovable AI Gateway usando o modelo `google/gemini-3-pro-image-preview`.
 
----
+- Usar `modalities: ["image", "text"]` conforme documentacao
+- Manter retry logic (3 tentativas)
+- Upload do resultado para storage
 
-## 3. Edge Function: `fake-news-respond`
+### Novo `buildDetailedPrompt` - Template Dinamico
 
-- Recebe: texto da fake news (ou link com conteudo colado pelo usuario), dados da identidade politica
-- Usa Lovable AI para gerar:
-  - Desmentido formal (para nota oficial)
-  - Resposta para redes sociais (tom adequado ao perfil)
-  - Pontos-chave para argumentacao
-- Inclui contexto do perfil politico (biografia, tom de voz, bandeiras) para personalizar
-- Custo: 3 creditos
-- Retorna JSON com as 3 versoes
+Reestruturar o prompt builder para seguir o template de "Diretor de Arte Digital":
 
----
+1. **CONTEXTO DO UTILIZADOR E MARCA** - Preencher com dados completos da marca (segmento, valores, keywords, paleta de cores hex), perfil politico (cargo, partido, areas de foco), e pauta estrategica (titulo, objetivos, macro-temas)
+2. **CONTEUDO E COMPOSICAO DO POST** - Headline text (se incluir texto), CTA text, scene_description (enriquecida pelo Flash), visual_style
+3. **INSTRUCOES DE DESIGN** - Fidelidade tipografica, legibilidade, contraste, design inteligente baseado no tom de voz
+4. **REFERENCIAS VISUAIS** - Imagens da marca como `style_reference`, imagens do usuario como referencia adicional
 
-## 4. Edge Function: `fact-check-content`
+### Buscar Dados Completos no Backend
 
-- Recebe: texto do conteudo a ser publicado
-- Usa Lovable AI para analisar:
-  - Afirmacoes que podem ser verificadas
-  - Dados/estatisticas sem fonte
-  - Exageros ou generalizacoes perigosas
-  - Linguagem que pode ser interpretada como desinformacao
-- Retorna: score de confiabilidade (0-100), lista de alertas, sugestoes de melhoria
-- Custo: 1 credito
+Atualmente o backend recebe apenas nomes (strings). Mudar para buscar dados completos diretamente das tabelas:
+
+- `brands`: `segment, values, keywords, color_palette, brand_color, goals, promise`
+- `strategic_themes`: `tone_of_voice, platforms, target_audience, objectives, macro_themes, description, objective_type, color_palette, hashtags`
+- `personas`: `age, gender, location, professional_context, preferred_tone_of_voice, challenges, main_goal, beliefs_and_interests`
+- `profiles` (perfil politico): ja buscado via `fetchPoliticalProfile`
 
 ---
 
-## 5. Atualizacoes no Frontend
+## Parte 2: Customizacoes no Frontend (CreateImage.tsx)
 
-### Sidebar
-- Novo item "Defesa Digital" com icone Shield entre "Planejar Conteudo" e "Historico"
+### Menus de "Vibe" e Tipografia
 
-### Pagina `/defense`
-- Banner tematico
-- 3 abas com formularios simples
-- Aba Monitorar: campo de termos + botao buscar, resultados em cards coloridos por urgencia
-- Aba Responder: textarea para colar fake news + selecao de identidade, resultado com 3 versoes copiáveis
-- Aba Verificar: textarea para colar conteudo, resultado com score visual + lista de alertas
+Adicionar dois novos seletores ao formulario:
 
-### Custos de Creditos
-- Adicionar `FAKE_NEWS_MONITOR: 2`, `FAKE_NEWS_RESPOND: 3`, `FACT_CHECK: 1` em `creditCosts.ts`
+**Menu de Vibe (Visual Style)** - substituir o seletor existente com opcoes mapeadas:
+- Minimalista -> "Fotografia flat lay, fundo limpo, espaco negativo amplo"
+- Pop/Neon -> "Cores saturadas, iluminacao neon, contraste forte"
+- Profissional -> "Fotografia corporativa, profundidade de campo rasa, tons neutros"
+- Cinematografico -> "Fotografia cinematografica 4K, grading de filme"
+- 3D Moderno -> "3D render minimalista, iluminacao studio"
+- Ilustracao -> "Ilustracao vetorial moderna, cores vibrantes"
+
+**Menu de Tipografia** (quando texto na imagem estiver ativado):
+- Elegante -> "serifa classica, refinada"
+- Moderna -> "sans-serif limpa, geometrica"
+- Divertida -> "script casual ou display arrojada"
+- Impactante -> "bold condensada, display forte"
+
+### Enviar dados enriquecidos ao backend
+
+O frontend ja envia `brandId`, `themeId`, `personaId`. O backend que sera responsavel por buscar todos os dados completos diretamente do banco.
 
 ---
 
-## 6. Detalhes Tecnicos
+## Parte 3: Arquivos Modificados
 
-- **Modelo IA**: `google/gemini-3-flash-preview` via Lovable AI Gateway (rapido e eficiente)
-- **Autenticacao**: mesma do restante (Bearer token + verificacao de creditos)
-- **Perfil politico**: reutilizar `fetchPoliticalProfile` e `buildPoliticalContext` do shared
-- **Base de conhecimento**: injetar `KNOWLEDGE_BASE_CONTEXT` nos prompts para alinhar tom com principios da plataforma
-- **Rota**: `/defense` adicionada ao App.tsx dentro do DashboardLayout
-- **Nao precisa de novas tabelas** -- resultados sao exibidos em tempo real, sem persistencia (usuario pode salvar como acao se quiser no futuro)
+### `supabase/functions/generate-image/index.ts`
+- Adicionar Step 1: enriquecimento de prompt via Gemini Flash (Lovable AI Gateway)
+- Migrar Step 2: geracao de imagem para `google/gemini-3-pro-image-preview` via Lovable AI Gateway
+- Buscar dados completos de brand, theme e persona diretamente do banco
+- Reescrever `buildDetailedPrompt()` com template de "Diretor de Arte Digital"
+- Incluir instrucoes de fidelidade tipografica e design inteligente
+- Tratar imagens de referencia como `style_reference` no prompt
+
+### `src/pages/CreateImage.tsx`
+- Atualizar opcoes de `visualStyle` com as novas "Vibes" (Minimalista, Pop/Neon, Profissional, Cinematografico, 3D, Ilustracao)
+- Adicionar seletor de tipografia (condicional ao texto na imagem)
+- Enviar `fontStyle` e `vibeStyle` no request body ao backend
+
+### `supabase/functions/_shared/politicalProfile.ts`
+- Sem alteracoes (ja funciona corretamente)
+
+---
+
+## Detalhes Tecnicos
+
+### Chamada Lovable AI Gateway (Enriquecimento)
+```text
+POST https://ai.gateway.lovable.dev/v1/chat/completions
+Authorization: Bearer LOVABLE_API_KEY
+{
+  "model": "google/gemini-3-flash-preview",
+  "messages": [
+    { "role": "system", "content": "Voce e um diretor de arte..." },
+    { "role": "user", "content": "Transforme: [descricao bruta]" }
+  ]
+}
+```
+
+### Chamada Lovable AI Gateway (Imagem)
+```text
+POST https://ai.gateway.lovable.dev/v1/chat/completions
+Authorization: Bearer LOVABLE_API_KEY
+{
+  "model": "google/gemini-3-pro-image-preview",
+  "messages": [{ "role": "user", "content": [...parts...] }],
+  "modalities": ["image", "text"]
+}
+```
+
+### Fluxo Completo
+```text
+Usuario preenche formulario
+        |
+        v
+Frontend envia brandId, themeId, personaId + descricao + vibe + tipografia
+        |
+        v
+Backend busca dados completos (brand, theme, persona, perfil politico)
+        |
+        v
+Step 1: Gemini Flash enriquece a descricao -> scene_description rica
+        |
+        v
+Step 2: Monta prompt estruturado de "Diretor de Arte Digital"
+        |
+        v
+Step 3: Gemini 3 Pro Image Preview gera a imagem
+        |
+        v
+Upload para storage + salvar acao + deduzir creditos
+```
+
+### Tratamento de Erros
+- Rate limit (429) e payment required (402) da Lovable AI Gateway
+- Fallback: se enriquecimento falhar, usar descricao original
+- Retry 3x na geracao de imagem
 
