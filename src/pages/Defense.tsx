@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Search, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2 } from "lucide-react";
+import { Shield, Search, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink, Newspaper } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +37,16 @@ interface FactCheckAlert {
   text: string;
   explanation: string;
   suggestion: string;
+  source?: string;
+  sourceUrl?: string;
+  sourceDate?: string;
+}
+
+interface FactCheckSource {
+  name: string;
+  url?: string;
+  title: string;
+  date?: string;
 }
 
 interface FactCheckResult {
@@ -44,6 +54,8 @@ interface FactCheckResult {
   verdict: "excelente" | "bom" | "atencao" | "critico";
   alerts: FactCheckAlert[];
   overallSuggestion: string;
+  sources?: FactCheckSource[];
+  articlesFound?: number;
 }
 
 const classificationLabels: Record<string, { label: string; color: string }> = {
@@ -408,10 +420,12 @@ export default function Defense() {
                 <div className="space-y-3">
                   <h3 className="font-semibold">Alertas ({factCheckResult.alerts.length})</h3>
                   {factCheckResult.alerts.map((alert, i) => (
-                    <Card key={i} className={`border-l-4 ${urgencyColors[alert.severity]}`}>
+                    <Card key={i} className={`border-l-4 ${alert.type === 'confirmado' ? 'border-l-green-500' : urgencyColors[alert.severity]}`}>
                       <CardContent className="pt-4 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">{alert.type.replace('_', ' ')}</Badge>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant={alert.type === 'confirmado' ? 'default' : 'outline'} className={`text-xs ${alert.type === 'confirmado' ? 'bg-green-600' : ''}`}>
+                            {alert.type === 'confirmado' ? '✓ Confirmado' : alert.type.replace('_', ' ')}
+                          </Badge>
                           <Badge variant={alert.severity === "alta" ? "destructive" : "outline"} className="text-xs">
                             {alert.severity}
                           </Badge>
@@ -419,10 +433,58 @@ export default function Defense() {
                         <p className="text-sm italic text-muted-foreground">"{alert.text}"</p>
                         <p className="text-sm">{alert.explanation}</p>
                         <p className="text-sm text-primary"><strong>Sugestão:</strong> {alert.suggestion}</p>
+                        {alert.source && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1 border-t">
+                            <Newspaper className="h-3 w-3" />
+                            <span>Fonte: <strong>{alert.source}</strong></span>
+                            {alert.sourceDate && <span>({alert.sourceDate})</span>}
+                            {alert.sourceUrl && (
+                              <a href={alert.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                                Ver <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
+              )}
+
+              {/* Sources */}
+              {factCheckResult.sources && factCheckResult.sources.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Newspaper className="h-4 w-4 text-muted-foreground" />
+                      Fontes Consultadas ({factCheckResult.sources.length})
+                      {factCheckResult.articlesFound !== undefined && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          — {factCheckResult.articlesFound} notícias encontradas via NewsAPI
+                        </span>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      {factCheckResult.sources.map((source, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-muted-foreground font-mono text-xs mt-0.5">[{i + 1}]</span>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium">{source.name}</span>
+                            {source.date && <span className="text-muted-foreground text-xs ml-1">({source.date})</span>}
+                            <p className="text-muted-foreground text-xs truncate">{source.title}</p>
+                          </div>
+                          {source.url && (
+                            <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex-shrink-0">
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}
