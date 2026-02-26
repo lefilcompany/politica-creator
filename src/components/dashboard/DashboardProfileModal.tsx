@@ -440,80 +440,63 @@ export function DashboardProfileModal({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !showTheses) handleSkip(); else if (!v) onClose(); }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="sr-only">Complete seu perfil político</DialogTitle>
-          <DialogDescription className="sr-only">Informações adicionais para personalizar a IA</DialogDescription>
+          <DialogTitle className="text-lg font-bold">Complete seu perfil político</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">Informações adicionais para personalizar a IA</DialogDescription>
         </DialogHeader>
 
-        {/* Step indicators */}
-        <div className="flex items-center justify-center gap-2 mb-1">
-          {displayedIcons.map((Icon, i) => (
-            <div
-              key={i}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all
-                ${i === step
-                  ? 'bg-primary text-primary-foreground scale-110'
-                  : i < step
-                    ? 'bg-primary/20 text-primary'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-            >
-              {i < step ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-            </div>
-          ))}
-        </div>
-        <Progress value={progress} className="h-1.5" />
-        <p className="text-xs text-muted-foreground text-center">
-          Passo {step + 1} de {totalSteps}
-        </p>
-
-        {/* Content */}
-        <AnimatePresence mode="wait">
+        {showTheses ? (
           <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-            className="min-h-[250px] py-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            {allSteps[step]}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between pt-3 border-t border-border/50">
-          <div>
-            {showTheses ? (
-              <span />
-            ) : step > 0 ? (
-              <Button variant="ghost" onClick={() => setStep(s => s - 1)} className="text-muted-foreground">
-                <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
+            {thesesStep}
+            <div className="flex justify-end pt-4 border-t border-border/50 mt-4">
+              <Button onClick={handleFinish} className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                Começar a criar
               </Button>
-            ) : (
+            </div>
+          </motion.div>
+        ) : (
+          <div className="space-y-8">
+            {/* Fase */}
+            {formSteps[0]}
+
+            <div className="border-t border-border/30" />
+
+            {/* Biografia */}
+            {formSteps[1]}
+
+            <div className="border-t border-border/30" />
+
+            {/* Tom de voz */}
+            {formSteps[2]}
+
+            <div className="border-t border-border/30" />
+
+            {/* Linhas vermelhas */}
+            {formSteps[3]}
+
+            <div className="border-t border-border/30" />
+
+            {/* Evidências */}
+            {formSteps[4]}
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-border/50">
               <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
                 Pular
               </Button>
-            )}
+              <Button onClick={handleSubmit} disabled={isSubmitting || isUploading || !data.mandate_stage || data.biography.trim().length <= 10 || !data.tone_of_voice} className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                {isSubmitting ? 'Salvando...' : 'Concluir'}
+              </Button>
+            </div>
           </div>
-
-          {showTheses ? (
-            <Button onClick={handleFinish} className="gap-2">
-              <Sparkles className="w-4 h-4" />
-              Começar a criar
-            </Button>
-          ) : step < FORM_STEPS - 1 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canProceed()}>
-              Próximo <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : (
-            <Button onClick={handleSubmit} disabled={isSubmitting || isUploading} className="gap-2">
-              <Sparkles className="w-4 h-4" />
-              {isSubmitting ? 'Salvando...' : 'Concluir'}
-            </Button>
-          )}
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
