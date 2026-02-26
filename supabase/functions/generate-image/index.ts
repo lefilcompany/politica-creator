@@ -54,6 +54,44 @@ const FONT_STYLES: Record<string, string> = {
 };
 
 // =====================================
+// TONE/OBJECTIVE → VISUAL PARAMETERS MAP (Political)
+// =====================================
+const TONE_VISUAL_MAP: Record<string, { contrast: string; lighting: string; style: string; composition: string; focus: string; description: string }> = {
+  combativo: {
+    contrast: "High",
+    lighting: "Dramatic, low-key, strong shadows",
+    style: "Bold, impactful, high contrast",
+    composition: "Dynamic, asymmetric, tension-driven",
+    focus: "Power, urgency, strength",
+    description: "Gera urgência e força. Cores intensas, tipografia impactante, contrastes fortes."
+  },
+  didatico: {
+    contrast: "Medium",
+    lighting: "Even, clean, bright studio",
+    style: "Clean/Grid, Infographic elements",
+    composition: "Organized, grid-based, clear hierarchy",
+    focus: "Data comprehension, clarity, trust",
+    description: "Facilita a compreensão de dados. Layout limpo, elementos infográficos, tons neutros."
+  },
+  emocional: {
+    contrast: "Low-Medium",
+    lighting: "Warm/Golden Hour, soft natural light",
+    style: "Warm, human-centered, empathetic",
+    composition: "Close-ups, human focus, intimate framing",
+    focus: "People/Expressions, human connection",
+    description: "Gera conexão humana e empatia. Iluminação quente, foco em pessoas e expressões."
+  },
+  institucional: {
+    contrast: "Low",
+    lighting: "Clean, balanced, professional studio",
+    style: "Minimalist, formal, authoritative",
+    composition: "Symmetrical, centered, stable",
+    focus: "Order, stability, governance",
+    description: "Transmite estabilidade e ordem. Estilo minimalista, composição simétrica."
+  },
+};
+
+// =====================================
 // FETCH COMPLETE DATA FROM DB
 // =====================================
 async function fetchBrandData(supabase: any, brandId: string) {
@@ -94,13 +132,17 @@ async function enrichPromptWithFlash(
   brandData: any,
   themeData: any,
   personaData: any,
-  politicalContext: string
-): Promise<string> {
+  politicalContext: string,
+  politicalTone?: string,
+  politicalProfile?: any
+): Promise<{ enrichedDescription: string; briefingVisual: string; copywriting: string }> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   if (!LOVABLE_API_KEY) {
     console.warn('LOVABLE_API_KEY not found, skipping enrichment');
-    return rawDescription;
+    return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
   }
+
+  const toneParams = TONE_VISUAL_MAP[politicalTone || ''] || TONE_VISUAL_MAP['institucional'];
 
   const contextParts: string[] = [];
   if (brandData) {
@@ -112,24 +154,43 @@ async function enrichPromptWithFlash(
   if (personaData) {
     contextParts.push(`Audiência: ${personaData.name}, ${personaData.age || ''} anos, ${personaData.location || ''}, Contexto: ${personaData.professional_context || 'N/A'}`);
   }
+  if (politicalProfile) {
+    if (politicalProfile.political_role) contextParts.push(`Cargo: ${politicalProfile.political_role}`);
+    if (politicalProfile.political_level) contextParts.push(`Nível: ${politicalProfile.political_level}`);
+    if (politicalProfile.mandate_stage) contextParts.push(`Fase: ${politicalProfile.mandate_stage}`);
+  }
 
-  const systemPrompt = `Você é um diretor de arte digital especialista em criar descrições visuais cinematográficas para geração de imagens por IA.
+  const systemPrompt = `Você é um Consultor de Marketing Político e Diretor de Arte de Campanha de Alto Nível.
 
-Sua tarefa: Transformar uma descrição simples numa scene_description rica e visual, detalhando:
-- Iluminação (tipo, direção, temperatura de cor)
-- Composição (plano, ângulo, profundidade)
-- Atmosfera e mood (sensação emocional)
-- Detalhes visuais específicos (texturas, materiais, cores)
-- Elementos de cena (objetos, cenário, fundo)
+Sua tarefa: Receber uma descrição bruta e dados contextuais e produzir DOIS outputs:
 
-Contexto do projeto: ${contextParts.join(' | ')}
-${politicalContext ? `Contexto político: ${politicalContext.substring(0, 500)}` : ''}
+1. **BRIEFING VISUAL**: Uma scene_description rica e cinematográfica para geração de imagem por IA, detalhando:
+   - Iluminação: ${toneParams.lighting}
+   - Composição: ${toneParams.composition}
+   - Contraste: ${toneParams.contrast}
+   - Foco visual: ${toneParams.focus}
+   - Estilo: ${toneParams.style}
+   - Atmosfera e mood adequados ao tom "${politicalTone || 'institucional'}"
+   - Detalhes visuais específicos (texturas, materiais, cores)
+   - Elementos de cena regionais quando apropriado
+
+2. **COPYWRITING**: Uma sugestão de headline (max 10 palavras) e subtexto/CTA (max 15 palavras) para a peça.
+
+Contexto: ${contextParts.join(' | ')}
+${politicalContext ? `Perfil político: ${politicalContext.substring(0, 500)}` : ''}
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "briefing_visual": "descrição cinematográfica detalhada...",
+  "headline": "texto principal sugerido",
+  "subtexto": "CTA ou texto secundário"
+}
 
 REGRAS:
-- Responda APENAS com a descrição visual enriquecida, sem explicações
-- Máximo 300 palavras
+- Máximo 300 palavras no briefing_visual
 - Em português
-- Seja específico e visual, não genérico`;
+- Seja específico e visual, não genérico
+- Adapte a estética ao tom: ${toneParams.description}`;
 
   try {
     console.log('🎨 Step 1: Enriching prompt with Gemini Flash...');
@@ -143,7 +204,7 @@ REGRAS:
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Transforme esta descrição simples numa cena visual rica e cinematográfica:\n\n"${rawDescription}"` },
+          { role: 'user', content: `Transforme esta descrição em um Briefing Visual e Copywriting para campanha política:\n\n"${rawDescription}"` },
         ],
       }),
     });
@@ -153,19 +214,35 @@ REGRAS:
       console.error(`Flash enrichment failed with status ${status}`);
       if (status === 429) console.warn('Rate limited on enrichment, using original');
       if (status === 402) console.warn('Payment required on enrichment, using original');
-      return rawDescription;
+      return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
     }
 
     const data = await response.json();
     const enriched = data.choices?.[0]?.message?.content?.trim();
     if (enriched && enriched.length > 20) {
       console.log(`✅ Prompt enriched: ${enriched.length} chars`);
-      return enriched;
+      
+      // Try to parse as JSON
+      try {
+        const jsonMatch = enriched.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          return {
+            enrichedDescription: parsed.briefing_visual || rawDescription,
+            briefingVisual: parsed.briefing_visual || '',
+            copywriting: [parsed.headline, parsed.subtexto].filter(Boolean).join(' | '),
+          };
+        }
+      } catch (parseErr) {
+        console.warn('Could not parse enrichment as JSON, using raw text');
+      }
+      
+      return { enrichedDescription: enriched, briefingVisual: '', copywriting: '' };
     }
-    return rawDescription;
+    return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
   } catch (error) {
     console.error('Error enriching prompt:', error);
-    return rawDescription;
+    return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
   }
 }
 
@@ -180,6 +257,7 @@ function buildDirectorPrompt(params: {
   themeData: any;
   personaData: any;
   politicalContext: string;
+  politicalTone: string;
   vibeStyle: string;
   fontStyle: string;
   includeText: boolean;
@@ -192,11 +270,13 @@ function buildDirectorPrompt(params: {
   additionalInfo: string;
   preserveImagesCount: number;
   styleReferenceImagesCount: number;
+  copywritingSuggestion: string;
 }): string {
   const sections: string[] = [];
+  const toneParams = TONE_VISUAL_MAP[params.politicalTone] || TONE_VISUAL_MAP['institucional'];
 
   // === ROLE ===
-  sections.push(`Atue como um Diretor de Arte Digital e Designer de Social Media de Alta Costura. O seu objetivo é criar um post de rede social impecável, esteticamente perfeito e com design inteligente para o utilizador ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
+  sections.push(`Atue como um Consultor de Marketing Político e Designer de Campanha de Alto Nível. O seu objetivo é criar uma peça visual impecável para ${params.userName}, respeitando rigorosamente a identidade visual e as diretrizes estratégicas fornecidas abaixo.`);
 
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
@@ -255,6 +335,8 @@ function buildDirectorPrompt(params: {
   
   if (params.includeText && params.textContent?.trim()) {
     compositionLines.push(`- **Headline (Texto Principal na Imagem):** "${params.textContent}"`);
+  } else if (params.copywritingSuggestion) {
+    compositionLines.push(`- **Sugestão de Copywriting (gerada pelo LLM Refiner):** ${params.copywritingSuggestion}`);
   }
   
   compositionLines.push(`- **Descrição da Cena:** ${params.enrichedDescription}`);
@@ -262,10 +344,17 @@ function buildDirectorPrompt(params: {
   const vibeDesc = VIBE_STYLES[params.vibeStyle] || VIBE_STYLES['professional'] || params.vibeStyle;
   compositionLines.push(`- **Estilo Visual:** ${vibeDesc}`);
 
+  // === DIRETRIZES ESTRATÉGICAS (Tom Político) ===
+  compositionLines.push(`- **Tom/Objetivo Político:** ${params.politicalTone || 'institucional'}`);
+  compositionLines.push(`- **Contraste:** ${toneParams.contrast}`);
+  compositionLines.push(`- **Iluminação:** ${toneParams.lighting}`);
+  compositionLines.push(`- **Composição:** ${toneParams.composition}`);
+  compositionLines.push(`- **Foco Visual:** ${toneParams.focus}`);
+
   if (params.platform) compositionLines.push(`- **Plataforma:** ${params.platform}`);
   if (params.objective) compositionLines.push(`- **Objetivo:** ${params.objective}`);
   if (params.contentType === 'ads') {
-    compositionLines.push(`- **Tipo:** Conteúdo de ANÚNCIO PAGO - foco em conversão, CTA implícito, produto/serviço em destaque`);
+    compositionLines.push(`- **Tipo:** Conteúdo de ANÚNCIO PAGO - foco em conversão, CTA implícito`);
   } else {
     compositionLines.push(`- **Tipo:** Conteúdo ORGÂNICO - foco em engajamento, autenticidade, conexão com comunidade`);
   }
@@ -427,19 +516,22 @@ serve(async (req) => {
     });
 
     // =====================================
-    // STEP 1: ENRICH PROMPT WITH GEMINI FLASH
+    // STEP 1: ENRICH PROMPT WITH GEMINI FLASH (LLM Refiner)
     // =====================================
     const politicalContext = buildPoliticalContext(politicalProfile);
-    const enrichedDescription = await enrichPromptWithFlash(
+    const politicalTone = formData.politicalTone || 'institucional';
+    const { enrichedDescription, copywriting: copywritingSuggestion } = await enrichPromptWithFlash(
       formData.description,
       brandData,
       themeData,
       personaData,
-      politicalContext
+      politicalContext,
+      politicalTone,
+      politicalProfile
     );
 
     // =====================================
-    // STEP 2: BUILD STRUCTURED "DIRETOR DE ARTE" PROMPT
+    // STEP 2: BUILD STRUCTURED "CONSULTOR POLÍTICO" PROMPT
     // =====================================
     const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
     const preserveImages = formData.preserveImages || [];
@@ -453,6 +545,7 @@ serve(async (req) => {
       themeData,
       personaData,
       politicalContext,
+      politicalTone,
       vibeStyle: formData.vibeStyle || formData.visualStyle || 'professional',
       fontStyle: formData.fontStyle || 'modern',
       includeText: formData.includeText ?? false,
@@ -465,6 +558,7 @@ serve(async (req) => {
       additionalInfo: cleanInput(formData.additionalInfo),
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
+      copywritingSuggestion,
     });
 
     console.log('📝 Director prompt built:', enhancedPrompt.length, 'chars');
