@@ -928,7 +928,7 @@ const Auth = () => {
 
       {/* Modal de Política de Privacidade */}
       <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-lg w-full max-h-[calc(100vh-2rem)] p-0 flex flex-col overflow-hidden">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl w-full max-h-[calc(100vh-2rem)] p-0 flex flex-col overflow-hidden">
           <DialogHeader className="flex-shrink-0 bg-background border-b p-4 sm:p-6 pb-3 sm:pb-4">
             <DialogTitle className="text-base sm:text-lg font-bold leading-tight pr-8 text-foreground">
               Política de Privacidade – Uso de Dados e IA
