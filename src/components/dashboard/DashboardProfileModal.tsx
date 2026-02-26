@@ -157,7 +157,16 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       if (response.error) throw response.error;
       const result = response.data;
       if (result?.theses && Array.isArray(result.theses)) {
-        setRecommendedTheses(result.theses.slice(0, 5));
+        const theses = result.theses.slice(0, 5);
+        setRecommendedTheses(theses);
+        
+        // Persist theses to profile
+        if (user?.id && theses.length > 0) {
+          await supabase
+            .from('profiles')
+            .update({ recommended_theses: JSON.parse(JSON.stringify(theses)) } as any)
+            .eq('id', user.id);
+        }
       }
     } catch (error) {
       console.error('Error fetching theses:', error);
