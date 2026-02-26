@@ -12,9 +12,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Palette } from 'lucide-react';
+import { Edit, Trash2, Palette, Tag, AlertTriangle, CheckCircle2, HelpCircle } from 'lucide-react';
 import type { StrategicTheme } from '@/types/theme';
 import type { BrandSummary, ColorItem } from '@/types/brand';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ThemeDetailsProps {
@@ -169,6 +170,38 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
 
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         <div className="space-y-4 text-left">
+          {/* Tags */}
+          {theme.tags && theme.tags.length > 0 && (
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1.5"><Tag className="h-3.5 w-3.5" /> Tags</p>
+              <div className="flex flex-wrap gap-1.5">
+                {theme.tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                ))}
+              </div>
+              {theme.subtags && Object.keys(theme.subtags).length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  {Object.entries(theme.subtags).map(([tag, subs]) => (
+                    subs.length > 0 && (
+                      <div key={tag} className="ml-2">
+                        <span className="text-xs text-muted-foreground">{tag}:</span>
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {subs.map(s => (
+                            <Badge key={s} variant="outline" className="text-xs">{s}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {theme.objectiveType && (
+            <DetailField label="Objetivo da peça" value={
+              { informar: 'Informar', propor: 'Propor solução', responder_crise: 'Responder crise', mobilizar_base: 'Mobilizar base', atrair_indecisos: 'Atrair indecisos' }[theme.objectiveType] || theme.objectiveType
+            } />
+          )}
           <DetailField label="Descrição" value={theme.description} />
           <DetailField label="Tom de Voz" value={theme.toneOfVoice} />
           <ColorPaletteField colors={parsedColors} />
@@ -181,6 +214,23 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
           <DetailField label="Plataformas" value={theme.platforms} />
           <DetailField label="Hashtags" value={theme.hashtags} />
           <DetailField label="Informações Adicionais" value={theme.additionalInfo} />
+          {/* Signals */}
+          {theme.signals && theme.signals.length > 0 && (
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">Sinais coletados ({theme.signals.length})</p>
+              <div className="space-y-2">
+                {theme.signals.map((signal, idx) => (
+                  <div key={idx} className="p-2 bg-background rounded-md border border-border/30">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      {signal.status === 'verificado' ? <CheckCircle2 className="h-3 w-3 text-emerald-600" /> : signal.status === 'nao_verificado' ? <AlertTriangle className="h-3 w-3 text-red-500" /> : <HelpCircle className="h-3 w-3 text-amber-500" />}
+                      <span className="text-xs font-medium">{signal.title}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{signal.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <DetailField label="Data de Criação" value={formatDate(theme.createdAt)} />
           {wasUpdated && (
             <DetailField label="Última Atualização" value={formatDate(theme.updatedAt)} />

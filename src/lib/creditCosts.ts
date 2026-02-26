@@ -11,6 +11,7 @@ export const CREDIT_COSTS = {
   FAKE_NEWS_MONITOR: 2,
   FAKE_NEWS_RESPOND: 3,
   FACT_CHECK: 1,
+  COLLECT_SIGNALS: 1,
 } as const;
 
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
@@ -27,6 +28,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     FAKE_NEWS_MONITOR: "Monitor de fake news",
     FAKE_NEWS_RESPOND: "Resposta a fake news",
     FACT_CHECK: "Verificação de conteúdo",
+    COLLECT_SIGNALS: "Coleta de sinais",
   };
   return labels[action];
 };
