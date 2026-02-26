@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Zap, ImageIcon, Video, HelpCircle } from "lucide-react";
+import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
@@ -12,7 +12,7 @@ import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps"
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import createBanner from "@/assets/create-banner.jpg";
 
-type CreationType = "image" | "video";
+type CreationType = "image" | "video" | "campaign";
 
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
@@ -40,6 +40,7 @@ export default function ContentCreationSelector() {
       const routes: Record<CreationType, string> = {
         image: "/create/image",
         video: "/create/video",
+        campaign: "/create/campaign",
       };
       navigate(routes[creationType]);
     }
@@ -146,7 +147,7 @@ export default function ContentCreationSelector() {
           onValueChange={(value) => setCreationType(value as CreationType)}
           className="h-full"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full max-w-5xl mx-auto">
             {/* Criação de Imagem */}
             <label htmlFor="image" className="cursor-pointer h-full" onClick={() => setCreationType("image")}>
               <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
@@ -193,6 +194,32 @@ export default function ContentCreationSelector() {
                     <Video className="h-4 w-4 text-secondary" />
                     <span className="text-sm font-bold text-secondary">
                       {CREDIT_COSTS.VIDEO_GENERATION} créditos
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </label>
+
+            {/* Pacote de Campanha */}
+            <label htmlFor="campaign" className="cursor-pointer h-full" onClick={() => setCreationType("campaign")}>
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-accent/10 hover:border-accent/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                  <RadioGroupItem value="campaign" id="campaign" className="sr-only" />
+                  <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                    <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                      <Megaphone className="h-8 w-8 text-accent" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="font-semibold text-lg">Pacote de Campanha</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        10 narrativas, 2 propostas, 2 discursos e 3 anúncios
+                      </p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 border border-accent/30">
+                    <Megaphone className="h-4 w-4 text-accent" />
+                    <span className="text-sm font-bold text-accent">
+                      {CREDIT_COSTS.CAMPAIGN_PACKAGE} créditos
                     </span>
                   </div>
                 </CardContent>
