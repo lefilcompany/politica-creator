@@ -1,9 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { fetchNewsArticles, formatArticlesForPrompt } from '../_shared/newsapi.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 Deno.serve(async (req) => {
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { topic, tags, subtags, days = 7 } = await req.json();
+    const { topic, tags, subtags, days = 1 } = await req.json();
 
     if (!topic) {
       return new Response(JSON.stringify({ error: 'Tópico é obrigatório' }), {
@@ -50,15 +51,27 @@ Deno.serve(async (req) => {
     const tagsContext = tags?.length ? `Tags: ${tags.join(', ')}` : '';
     const subtagsContext = subtags?.length ? `Subtags: ${subtags.join(', ')}` : '';
 
+    // ---- BUSCA REAL via NewsAPI (últimas 24h) ----
+    const searchTerms = [topic, ...(tags || []), ...(subtags || [])].join(' ');
+    const articles = await fetchNewsArticles(searchTerms, { pageSize: 15 });
+    const newsContext = formatArticlesForPrompt(articles);
+
+    const today = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
     const prompt = `Você é um analista político especializado em monitoramento de sinais para comunicação institucional.
 
 ${politicalContext}
 
+Data de hoje: ${today}
+
 # TAREFA
-Analise o tema "${topic}" e gere uma lista de sinais recentes (últimos ${days} dias) que são relevantes para um político.
+Analise o tema "${topic}" com base nas NOTÍCIAS REAIS encontradas abaixo (últimas 24 horas via NewsAPI).
 
 ${tagsContext}
 ${subtagsContext}
+
+## NOTÍCIAS REAIS ENCONTRADAS:
+${newsContext}
 
 # CATEGORIAS DE SINAIS
 Classifique cada sinal em uma das categorias:
@@ -79,16 +92,19 @@ Responda APENAS com um JSON válido no formato:
       "category": "fato_confirmado|noticia_local|dado_publico|release_institucional|rumor|tendencia",
       "status": "verificado|nao_verificado|parcialmente_verificado",
       "relevance": "alta|media|baixa",
-      "source_hint": "Tipo provável de fonte (ex: Diário Oficial, Portal G1, IBGE)",
-      "date_hint": "Indicação temporal aproximada"
+      "source_hint": "Nome do veículo / fonte real",
+      "date_hint": "Data de publicação real"
     }
   ],
   "summary": "Resumo de 2-3 frases sobre o cenário atual do tema",
   "recommendation": "Recomendação estratégica de 1-2 frases para o político"
 }
 
-Gere entre 5 e 10 sinais relevantes, priorizando fatos confirmados e dados públicos.
-IMPORTANTE: Marque claramente rumores como "nao_verificado". Não invente fatos específicos com números — use linguagem indicativa quando necessário.`;
+IMPORTANTE:
+- Baseie-se SOMENTE nas notícias reais fornecidas acima.
+- Use os nomes de fontes e datas reais das notícias.
+- Marque claramente rumores como "nao_verificado".
+- Se não houver notícias relevantes, retorne lista vazia com resumo explicando.`;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -98,7 +114,7 @@ IMPORTANTE: Marque claramente rumores como "nao_verificado". Não invente fatos 
       });
     }
 
-    const aiResponse = await fetch('https://ai.lovable.dev/chat/completions', {
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -133,7 +149,7 @@ IMPORTANTE: Marque claramente rumores como "nao_verificado". Não invente fatos 
       result = { signals: [], summary: content, recommendation: '' };
     }
 
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({ ...result, articlesFound: articles.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
