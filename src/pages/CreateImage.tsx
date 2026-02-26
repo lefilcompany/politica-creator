@@ -131,7 +131,7 @@ export default function CreateImage() {
       if (!teamId) return [];
       const { data, error } = await supabase
         .from('brands')
-        .select('id, name, responsible, created_at, updated_at')
+        .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -139,8 +139,8 @@ export default function CreateImage() {
         id: brand.id,
         name: brand.name,
         responsible: brand.responsible,
-        brandColor: null,
-        avatarUrl: null,
+        brandColor: brand.brand_color,
+        avatarUrl: brand.avatar_url,
         createdAt: brand.created_at,
         updatedAt: brand.updated_at,
       })) as BrandSummary[];
@@ -150,12 +150,12 @@ export default function CreateImage() {
   });
 
   const { data: themes = [], isLoading: loadingThemes } = useQuery({
-    queryKey: ['themes', teamId],
+    queryKey: ['themes-full', teamId],
     queryFn: async () => {
       if (!teamId) return [];
       const { data, error } = await supabase
         .from('strategic_themes')
-        .select('id, brand_id, title, created_at')
+        .select('id, brand_id, title, tone_of_voice, platforms, target_audience, objectives, objective_type, created_at')
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -163,20 +163,25 @@ export default function CreateImage() {
         id: theme.id,
         brandId: theme.brand_id,
         title: theme.title,
+        toneOfVoice: theme.tone_of_voice,
+        platforms: theme.platforms,
+        targetAudience: theme.target_audience,
+        objectives: theme.objectives,
+        objectiveType: theme.objective_type,
         createdAt: theme.created_at,
-      })) as StrategicThemeSummary[];
+      }));
     },
     enabled: !!teamId,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: personas = [], isLoading: loadingPersonas } = useQuery({
-    queryKey: ['personas', teamId],
+    queryKey: ['personas-full', teamId],
     queryFn: async () => {
       if (!teamId) return [];
       const { data, error } = await supabase
         .from('personas')
-        .select('id, brand_id, name, created_at')
+        .select('id, brand_id, name, age, gender, location, professional_context, preferred_tone_of_voice, created_at')
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -184,8 +189,13 @@ export default function CreateImage() {
         id: persona.id,
         brandId: persona.brand_id,
         name: persona.name,
+        age: persona.age,
+        gender: persona.gender,
+        location: persona.location,
+        professionalContext: persona.professional_context,
+        preferredTone: persona.preferred_tone_of_voice,
         createdAt: persona.created_at,
-      })) as PersonaSummary[];
+      }));
     },
     enabled: !!teamId,
     staleTime: 1000 * 60 * 5,
@@ -248,6 +258,98 @@ export default function CreateImage() {
       
     }
   }, []);
+
+  // Auto-select brand if only one exists
+  useEffect(() => {
+    if (!isLoadingData && brands.length === 1 && !formData.brand) {
+      setFormData(prev => ({ ...prev, brand: brands[0].id }));
+    }
+  }, [isLoadingData, brands, formData.brand]);
+
+  // Auto-select theme/persona when brand changes and only one exists
+  useEffect(() => {
+    if (!formData.brand) return;
+    const brandThemes = themes.filter((t: any) => t.brandId === formData.brand);
+    const brandPersonas = personas.filter((p: any) => p.brandId === formData.brand);
+    
+    if (brandThemes.length === 1 && !formData.theme) {
+      setFormData(prev => ({ ...prev, theme: brandThemes[0].id }));
+    }
+    if (brandPersonas.length === 1 && !formData.persona) {
+      setFormData(prev => ({ ...prev, persona: brandPersonas[0].id }));
+    }
+  }, [formData.brand, themes, personas]);
+
+  // Auto-fill tone and platform from selected theme
+  useEffect(() => {
+    if (!formData.theme) return;
+    const selectedTheme = themes.find((t: any) => t.id === formData.theme);
+    if (!selectedTheme) return;
+    
+    // Auto-fill tone from theme if empty
+    if (formData.tone.length === 0 && (selectedTheme as any).toneOfVoice) {
+      const themeTones = (selectedTheme as any).toneOfVoice
+        .split(',')
+        .map((t: string) => t.trim().toLowerCase())
+        .filter((t: string) => toneOptions.includes(t))
+        .slice(0, 4);
+      if (themeTones.length > 0) {
+        setFormData(prev => ({ ...prev, tone: themeTones }));
+        toast.info("Tom de voz preenchido automaticamente", {
+          description: `Usando tom da pauta: ${themeTones.join(', ')}`,
+          duration: 3000,
+        });
+      }
+    }
+
+    // Auto-fill platform from theme if empty
+    if (!formData.platform && (selectedTheme as any).platforms) {
+      const platformMap: Record<string, string> = {
+        'instagram': 'Instagram',
+        'facebook': 'Facebook',
+        'tiktok': 'TikTok',
+        'twitter': 'Twitter/X',
+        'linkedin': 'LinkedIn',
+        'x': 'Twitter/X',
+      };
+      const themePlatforms = (selectedTheme as any).platforms.split(',').map((p: string) => p.trim().toLowerCase());
+      const matchedPlatform = themePlatforms.find((p: string) => platformMap[p]);
+      if (matchedPlatform && platformMap[matchedPlatform]) {
+        handleSelectChange('platform', platformMap[matchedPlatform]);
+        toast.info("Plataforma preenchida automaticamente", {
+          description: `Usando plataforma da pauta: ${platformMap[matchedPlatform]}`,
+          duration: 3000,
+        });
+      }
+    }
+  }, [formData.theme]);
+
+  // Auto-fill tone from user profile if no theme selected
+  useEffect(() => {
+    if (formData.tone.length === 0 && !formData.theme && user && (user as any).toneOfVoice) {
+      const profileTones = ((user as any).toneOfVoice as string)
+        .split(',')
+        .map((t: string) => t.trim().toLowerCase())
+        .filter((t: string) => toneOptions.includes(t))
+        .slice(0, 4);
+      if (profileTones.length > 0) {
+        setFormData(prev => ({ ...prev, tone: profileTones }));
+      }
+    }
+  }, [user, formData.theme]);
+
+  // Computed context summary
+  const contextSummary = useMemo(() => {
+    const selectedBrand = brands.find(b => b.id === formData.brand);
+    const selectedTheme = themes.find((t: any) => t.id === formData.theme);
+    const selectedPersona = personas.find((p: any) => p.id === formData.persona);
+    return {
+      brand: selectedBrand,
+      theme: selectedTheme,
+      persona: selectedPersona,
+      hasContext: !!(selectedBrand || selectedTheme || selectedPersona),
+    };
+  }, [formData.brand, formData.theme, formData.persona, brands, themes, personas]);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -936,21 +1038,71 @@ export default function CreateImage() {
               </CardContent>
             </Card>
 
-            {/* 2. Contexto Criativo */}
+            {/* 2. Contexto Estratégico */}
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardContent className="p-4 md:p-5">
+              <CardContent className="p-4 md:p-5 space-y-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-6 w-1 bg-primary rounded-full" />
+                  <h3 className="text-sm font-bold text-foreground">Contexto Estratégico</h3>
+                  {contextSummary.hasContext && (
+                    <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                      Auto-preenchido
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Context Summary */}
+                {contextSummary.hasContext && (
+                  <div className="bg-primary/5 border border-primary/15 rounded-xl p-3 space-y-2">
+                    {contextSummary.brand && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-semibold text-primary min-w-[80px]">Identidade:</span>
+                        <span className="text-foreground">{contextSummary.brand.name}</span>
+                      </div>
+                    )}
+                    {contextSummary.theme && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-semibold text-primary min-w-[80px]">Pauta:</span>
+                        <span className="text-foreground">{(contextSummary.theme as any).title}</span>
+                        {(contextSummary.theme as any).objectiveType && (
+                          <Badge variant="outline" className="text-[10px] py-0 h-4">{(contextSummary.theme as any).objectiveType}</Badge>
+                        )}
+                      </div>
+                    )}
+                    {contextSummary.persona && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-semibold text-primary min-w-[80px]">Audiência:</span>
+                        <span className="text-foreground">
+                          {(contextSummary.persona as any).name}
+                          {(contextSummary.persona as any).location && ` · ${(contextSummary.persona as any).location}`}
+                        </span>
+                      </div>
+                    )}
+                    {formData.tone.length > 0 && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-semibold text-primary min-w-[80px]">Tom:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {formData.tone.map(t => (
+                            <Badge key={t} variant="secondary" className="text-[10px] py-0 h-4 bg-primary/10 text-primary capitalize">{t}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Marca */}
+                  {/* Marca / Identidade */}
                   {isLoadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
                       <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                        Marca <span className="text-destructive">*</span>
+                        Identidade <span className="text-destructive">*</span>
                       </Label>
                       <NativeSelect
                         value={formData.brand}
                         onValueChange={(value) => handleSelectChange("brand", value)}
                         options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
+                        placeholder={brands.length === 0 ? "Nenhuma identidade cadastrada" : "Selecione a identidade"}
                         disabled={brands.length === 0}
                         triggerClassName={`h-10 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors ${
                           missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
@@ -958,58 +1110,46 @@ export default function CreateImage() {
                       />
                       {!isLoadingData && brands.length === 0 && (
                         <p className="text-xs text-muted-foreground">
-                          Cadastre uma marca antes.{" "}
+                          Cadastre uma identidade antes.{" "}
                           <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">
-                            Ir para Marcas
+                            Ir para Identidade
                           </button>
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        <span>A marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</span>
-                      </p>
                     </div>
                   )}
 
-                  {/* Persona */}
-                  {isLoadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="persona" className="text-sm font-bold text-foreground">
-                        Persona <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                      </Label>
-                      <NativeSelect
-                        value={formData.persona}
-                        onValueChange={(value) => handleSelectChange("persona", value)}
-                        options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
-                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona cadastrada" : "Selecione uma persona"}
-                        disabled={!formData.brand || filteredPersonas.length === 0}
-                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                      />
-                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        <span>A persona ajuda a IA a criar conteúdo direcionado ao seu público-alvo</span>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Tema Estratégico */}
+                  {/* Pauta Estratégica */}
                   {isLoadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
                       <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                        Tema Estratégico <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                        Pauta Estratégica <span className="text-muted-foreground font-normal text-xs">(preenche tom e plataforma)</span>
                       </Label>
                       <NativeSelect
                         value={formData.theme}
                         onValueChange={(value) => handleSelectChange("theme", value)}
-                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema disponível" : "Selecione um tema"}
+                        options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
+                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredThemes.length === 0 ? "Nenhuma pauta disponível" : "Selecione uma pauta"}
                         disabled={!formData.brand || filteredThemes.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
-                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        <span>O tema estratégico define tom de voz, público-alvo e objetivos da criação</span>
-                      </p>
+                    </div>
+                  )}
+
+                  {/* Audiência / Persona */}
+                  {isLoadingData ? <SelectSkeleton /> : (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="persona" className="text-sm font-bold text-foreground">
+                        Audiência <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                      </Label>
+                      <NativeSelect
+                        value={formData.persona}
+                        onValueChange={(value) => handleSelectChange("persona", value)}
+                        options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
+                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredPersonas.length === 0 ? "Nenhuma audiência cadastrada" : "Selecione uma audiência"}
+                        disabled={!formData.brand || filteredPersonas.length === 0}
+                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                      />
                     </div>
                   )}
 
@@ -1017,6 +1157,11 @@ export default function CreateImage() {
                   <div className="space-y-1.5">
                     <Label htmlFor="platform" className="text-sm font-bold text-foreground">
                       Plataforma <span className="text-destructive">*</span>
+                      {formData.platform && (
+                        <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4">
+                          {recommendedAspectRatio || 'auto'}
+                        </Badge>
+                      )}
                     </Label>
                     <NativeSelect
                       value={formData.platform}
@@ -1034,10 +1179,6 @@ export default function CreateImage() {
                         missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                       }`}
                     />
-                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span>Selecionar plataforma ajusta automaticamente a proporção ideal</span>
-                    </p>
                   </div>
                 </div>
               </CardContent>
