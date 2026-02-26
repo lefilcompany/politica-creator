@@ -21,7 +21,7 @@ export const DashboardLayout = () => {
         }>
           <Header />
           <main className="flex-1 overflow-x-hidden overflow-y-auto">
-            <div className="w-full h-full p-4 sm:p-6 lg:p-8 pb-12 sm:pb-16 lg:pb-20">
+            <div className="w-full h-full p-4 sm:p-6 lg:p-8 pb-24 sm:pb-28 lg:pb-32">
               <Outlet />
             </div>
           </main>
