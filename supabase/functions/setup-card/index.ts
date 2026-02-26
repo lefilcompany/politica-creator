@@ -27,7 +27,16 @@ serve(async (req) => {
       throw new Error("Usuário não autenticado");
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || "";
+    if (!stripeKey || stripeKey.includes("PLACEHOLDER") || !stripeKey.startsWith("sk_")) {
+      console.warn("STRIPE_SECRET_KEY não configurada corretamente, pulando setup-card");
+      return new Response(JSON.stringify({ skipped: true, message: "Stripe não configurado" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2025-08-27.basil",
     });
 
