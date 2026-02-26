@@ -20,17 +20,17 @@ import { toast } from 'sonner';
 const personaSchema = z.object({
   brandId: z.string().min(1, 'Selecione uma identidade'),
   name: z.string().min(1, 'Nome é obrigatório'),
-  gender: z.string().min(1, 'Gênero é obrigatório'),
-  age: z.string().min(1, 'Faixa etária é obrigatória'),
-  location: z.string().min(1, 'Localização é obrigatória'),
-  professionalContext: z.string().min(1, 'Perfil socioeconômico é obrigatório'),
-  beliefsAndInterests: z.string().min(1, 'Valores e preocupações são obrigatórios'),
-  contentConsumptionRoutine: z.string().min(1, 'Hábitos de informação são obrigatórios'),
-  mainGoal: z.string().min(1, 'Expectativa é obrigatória'),
-  challenges: z.string().min(1, 'Dores e frustrações são obrigatórias'),
-  preferredToneOfVoice: z.string().min(1, 'Linguagem preferida é obrigatória'),
-  purchaseJourneyStage: z.string().min(1, 'Nível de engajamento é obrigatório'),
-  interestTriggers: z.string().min(1, 'Gatilhos de mobilização são obrigatórios'),
+  gender: z.string().optional().default(''),
+  age: z.string().optional().default(''),
+  location: z.string().optional().default(''),
+  professionalContext: z.string().optional().default(''),
+  beliefsAndInterests: z.string().optional().default(''),
+  contentConsumptionRoutine: z.string().optional().default(''),
+  mainGoal: z.string().optional().default(''),
+  challenges: z.string().optional().default(''),
+  preferredToneOfVoice: z.string().optional().default(''),
+  purchaseJourneyStage: z.string().optional().default(''),
+  interestTriggers: z.string().optional().default(''),
 });
 
 type PersonaFormData = z.infer<typeof personaSchema>;
@@ -203,7 +203,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="gender"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Gênero *</FormLabel>
+                    <FormLabel>Gênero</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -233,7 +233,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="age"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Faixa etária *</FormLabel>
+                    <FormLabel>Faixa etária</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: 30-45 anos" {...field} />
                     </FormControl>
@@ -247,7 +247,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Território *</FormLabel>
+                    <FormLabel>Território</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: Periferia de Manaus, AM" {...field} />
                     </FormControl>
@@ -261,7 +261,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="professionalContext"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Perfil socioeconômico *</FormLabel>
+                    <FormLabel>Perfil socioeconômico</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: Trabalhador informal, classe C, ensino médio completo" {...field} />
                     </FormControl>
@@ -278,7 +278,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="mainGoal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>O que espera do político *</FormLabel>
+                    <FormLabel>O que espera do político</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="O que este eleitor deseja de um representante? (mais segurança, emprego, saúde, transparência)"
@@ -296,7 +296,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="challenges"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Dores e frustrações *</FormLabel>
+                    <FormLabel>Dores e frustrações</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Problemas do dia a dia, insatisfações com o poder público, medos e angústias"
@@ -315,7 +315,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
               name="beliefsAndInterests"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Valores e preocupações *</FormLabel>
+                  <FormLabel>Valores e preocupações</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="No que acredita, o que valoriza, temas que o mobilizam (família, religião, trabalho, meio ambiente)"
@@ -333,7 +333,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
               name="contentConsumptionRoutine"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Como consome informação *</FormLabel>
+                  <FormLabel>Como consome informação</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Onde se informa? (WhatsApp, TV, rádio, Instagram, YouTube, igreja, vizinhos)"
@@ -352,7 +352,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="preferredToneOfVoice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Linguagem que ressoa *</FormLabel>
+                    <FormLabel>Linguagem que ressoa</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -384,7 +384,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 name="purchaseJourneyStage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível de engajamento político *</FormLabel>
+                    <FormLabel>Nível de engajamento político</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -416,7 +416,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
               name="interestTriggers"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>O que mobiliza este eleitor *</FormLabel>
+                  <FormLabel>O que mobiliza este eleitor</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="O que faz esta pessoa agir? (indignação com corrupção, promessa de mudança, identificação pessoal, resultados concretos)"
