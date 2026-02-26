@@ -465,7 +465,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !showTheses) handleSkip(); else if (!v) onClose(); }}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden [&>div]:overflow-hidden [&>div]:flex [&>div]:flex-col [&>div]:flex-1 [&>div]:min-h-0">
         <DialogHeader className="shrink-0">
           <DialogTitle className="text-lg font-bold">Complete seu perfil político</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">Informações adicionais para personalizar a IA</DialogDescription>
@@ -476,7 +476,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col flex-1 overflow-hidden"
+            className="flex flex-col flex-1 min-h-0"
           >
             <div className="flex-1 overflow-y-auto">
               {thesesStep}
@@ -489,7 +489,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
             </div>
           </motion.div>
         ) : (
-          <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex flex-col flex-1 min-h-0">
             <div className="flex-1 overflow-y-auto space-y-8 pr-1">
               {/* Fase */}
               {formSteps[0]}
@@ -515,7 +515,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
               {formSteps[4]}
             </div>
 
-            {/* Actions - always visible */}
+            {/* Actions - fixed at bottom */}
             <div className="flex items-center justify-between pt-4 border-t border-border/50 shrink-0">
               <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
                 Pular
