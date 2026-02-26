@@ -22,6 +22,9 @@ interface MonitorResult {
   classification: "fake_news" | "ataque_infundado" | "critica_legitima" | "alerta";
   urgency: "alta" | "media" | "baixa";
   suggestedAction: string;
+  source?: string;
+  publishedAt?: string;
+  url?: string;
 }
 
 interface RespondResult {
@@ -254,6 +257,20 @@ export default function Defense() {
                     </div>
                     <p className="text-sm text-muted-foreground">{r.summary}</p>
                     <p className="text-sm"><strong>Ação sugerida:</strong> {r.suggestedAction}</p>
+                    {(r.source || r.url) && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-border mt-2">
+                        <Newspaper className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground">
+                          Fonte: <strong>{r.source || 'Não identificada'}</strong>
+                          {r.publishedAt && <> · {new Date(r.publishedAt).toLocaleDateString('pt-BR')}</>}
+                        </span>
+                        {r.url && (
+                          <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 ml-auto">
+                            Ver notícia <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
