@@ -496,14 +496,15 @@ export function DashboardProfileModal({ open, onClose }: Props) {
             {/* Evidências */}
             {formSteps[4]}
 
-            {/* Teses - shown after save */}
-            {showTheses && (
-              <>
-                <div className="border-t border-border/30" />
-                {thesesStep}
-              </>
-            )}
           </div>
+
+          {/* Teses - shown after save, outside scroll */}
+          {showTheses && (
+            <>
+              <div className="border-t border-border/30 my-2" />
+              {thesesStep}
+            </>
+          )}
 
           {/* Actions - fixed at bottom */}
           <div className="flex items-center justify-between pt-4 border-t border-border/50 shrink-0">
