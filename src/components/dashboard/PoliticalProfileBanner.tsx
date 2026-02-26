@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence } from "framer-motion";
 import { User, Building2, MapPin, Target, Share2, ArrowRight, Sparkles, Briefcase, Mic, ShieldAlert, FileText, BookOpen, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,6 +58,7 @@ interface PoliticalProfileBannerProps {
 export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) => {
   const { user } = useAuth();
   const [expandedThesis, setExpandedThesis] = useState<number | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["political-profile-banner-full", user?.id],
@@ -221,58 +223,67 @@ export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) 
             </div>
           )}
 
-          {/* Detailed profile section */}
+          {/* Detailed profile toggle */}
           {(profile.biography || profile.tone_of_voice || profile.red_lines || profile.evidence_history) && (
-            <div className="pt-2 border-t border-border/40 space-y-3">
-              {/* Biografia */}
-              {profile.biography && (
-                <div className="flex items-start gap-2.5">
-                  <User className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Biografia e trajetória</p>
-                    <p className="text-sm text-foreground leading-relaxed mt-0.5 line-clamp-3">
-                      {profile.biography}
-                    </p>
-                  </div>
-                </div>
-              )}
+            <div className="pt-2 border-t border-border/40">
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline transition-colors"
+              >
+                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${showDetails ? 'rotate-90' : ''}`} />
+                {showDetails ? 'Ocultar detalhes' : 'Ver detalhes do perfil'}
+              </button>
 
-              {/* Tom de voz */}
-              {profile.tone_of_voice && (
-                <div className="flex items-start gap-2.5">
-                  <Mic className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Tom de voz</p>
-                    <Badge variant="secondary" className="mt-0.5 text-xs">{profile.tone_of_voice}</Badge>
-                  </div>
-                </div>
-              )}
-
-              {/* Linhas vermelhas */}
-              {profile.red_lines && (
-                <div className="flex items-start gap-2.5">
-                  <ShieldAlert className="h-4 w-4 text-destructive/70 mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Linhas vermelhas</p>
-                    <p className="text-sm text-foreground leading-relaxed mt-0.5 line-clamp-2">
-                      {profile.red_lines}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Evidências */}
-              {profile.evidence_history && (
-                <div className="flex items-start gap-2.5">
-                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Evidências e histórico</p>
-                    <p className="text-sm text-foreground leading-relaxed mt-0.5 line-clamp-2">
-                      {profile.evidence_history}
-                    </p>
-                  </div>
-                </div>
-              )}
+              <AnimatePresence>
+                {showDetails && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-3 pt-3">
+                      {profile.biography && (
+                        <div className="flex items-start gap-2.5">
+                          <User className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground">Biografia e trajetória</p>
+                            <p className="text-sm text-foreground leading-relaxed mt-0.5">{profile.biography}</p>
+                          </div>
+                        </div>
+                      )}
+                      {profile.tone_of_voice && (
+                        <div className="flex items-start gap-2.5">
+                          <Mic className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground">Tom de voz</p>
+                            <Badge variant="secondary" className="mt-0.5 text-xs">{profile.tone_of_voice}</Badge>
+                          </div>
+                        </div>
+                      )}
+                      {profile.red_lines && (
+                        <div className="flex items-start gap-2.5">
+                          <ShieldAlert className="h-4 w-4 text-destructive/70 mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground">Linhas vermelhas</p>
+                            <p className="text-sm text-foreground leading-relaxed mt-0.5">{profile.red_lines}</p>
+                          </div>
+                        </div>
+                      )}
+                      {profile.evidence_history && (
+                        <div className="flex items-start gap-2.5">
+                          <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground">Evidências e histórico</p>
+                            <p className="text-sm text-foreground leading-relaxed mt-0.5">{profile.evidence_history}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
