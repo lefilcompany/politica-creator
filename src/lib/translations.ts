@@ -2,7 +2,7 @@ export const translations = {
   pt: {
     // Header
     search: {
-      placeholder: "Pesquisar partidos, pautas, eleitores...",
+      placeholder: "Pesquisar identidade, agenda, audiência...",
       searchContent: "Pesquisar Documentos",
       searching: "Pesquisando...",
       noResults: "Nenhum resultado encontrado",
@@ -30,9 +30,9 @@ export const translations = {
     // Sidebar
     sidebar: {
       home: "Painel",
-      brands: "Partidos",
-      themes: "Pautas",
-      personas: "Eleitores",
+      brands: "Identidade",
+      themes: "Agenda",
+      personas: "Audiência",
       quickContent: "Nota Rápida",
       history: "Arquivo",
       createContent: "Redigir Discurso",
@@ -52,8 +52,8 @@ export const translations = {
       creditsAvailable: "créditos disponíveis",
       myActions: "Meus Documentos",
       totalActions: "total de documentos redigidos",
-      brandsManaged: "Partidos Gerenciados",
-      totalBrands: "total de partidos ativos",
+      brandsManaged: "Identidades Gerenciadas",
+      totalBrands: "total de identidades ativas",
       viewPlans: "Ver planos e uso",
       quickActions: "Ações Rápidas",
       recentActivities: "Arquivo Recente",
@@ -66,8 +66,8 @@ export const translations = {
       createContentDesc: "Gerar novos textos e materiais",
       reviewContentAction: "Revisar Material",
       reviewContentDesc: "Receber análise inteligente",
-      managePersonas: "Gerenciar Eleitores",
-      managePersonasDesc: "Adicionar ou editar perfis de eleitores",
+      managePersonas: "Gerenciar Audiência",
+      managePersonasDesc: "Adicionar ou editar perfis de audiência",
     },
     
     // Login

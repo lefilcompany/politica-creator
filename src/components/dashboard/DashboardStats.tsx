@@ -27,7 +27,7 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       link: "/history",
     },
     {
-      label: "Partidos Ativos",
+      label: "Identidades Ativas",
       value: brandsCount,
       icon: Landmark,
       color: "text-accent",
@@ -35,7 +35,7 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       link: "/brands",
     },
     {
-      label: "Eleitores-Alvo",
+      label: "Audiência-Alvo",
       value: personasCount,
       icon: Users,
       color: "text-secondary",
@@ -43,7 +43,7 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       link: "/personas",
     },
     {
-      label: "Pautas Estratégicas",
+      label: "Agenda Estratégica",
       value: themesCount,
       icon: BookOpen,
       color: "text-success",

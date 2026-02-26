@@ -264,7 +264,7 @@ export default function PersonasPage() {
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
-          items={[{ label: 'Personas' }]}
+          items={[{ label: 'Audiência' }]}
         />
         <img 
           src={personasBanner} 
@@ -285,7 +285,7 @@ export default function PersonasPage() {
             </div>
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
-                Suas Personas
+                Sua Audiência
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground transition-colors">
