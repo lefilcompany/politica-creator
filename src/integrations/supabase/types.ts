@@ -536,6 +536,7 @@ export type Database = {
           created_at: string | null
           credits: number | null
           email: string
+          evidence_documents: Json | null
           evidence_history: string | null
           focus_areas: string[] | null
           force_password_change: boolean | null
@@ -586,6 +587,7 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           email: string
+          evidence_documents?: Json | null
           evidence_history?: string | null
           focus_areas?: string[] | null
           force_password_change?: boolean | null
@@ -636,6 +638,7 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           email?: string
+          evidence_documents?: Json | null
           evidence_history?: string | null
           focus_areas?: string[] | null
           force_password_change?: boolean | null

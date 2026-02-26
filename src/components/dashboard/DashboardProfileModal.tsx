@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle, Upload, X, File } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const MANDATE_STAGES = [
@@ -20,6 +20,15 @@ const TONE_OPTIONS = [
   'Didático', 'Combativo', 'Conciliador', 'Técnico',
   'Inspirador', 'Popular', 'Institucional', 'Empático',
 ];
+
+const ACCEPTED_FILE_TYPES = '.pdf,.docx,.txt';
+const MAX_FILE_SIZE_MB = 10;
+
+interface UploadedDoc {
+  name: string;
+  path: string;
+  size: number;
+}
 
 interface ProfileDetailData {
   mandate_stage: string;
@@ -40,6 +49,8 @@ export function DashboardProfileModal({ open, onClose }: Props) {
   const { user, reloadUserData } = useAuth();
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   const [data, setData] = useState<ProfileDetailData>({
     mandate_stage: '',
     biography: '',
@@ -55,10 +66,62 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       case 0: return !!data.mandate_stage;
       case 1: return data.biography.trim().length > 10;
       case 2: return !!data.tone_of_voice;
-      case 3: return true; // optional
-      case 4: return true; // optional
+      case 3: return true;
+      case 4: return true;
       default: return true;
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !user?.id) return;
+
+    setIsUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          toast.error(`"${file.name}" excede ${MAX_FILE_SIZE_MB}MB`);
+          continue;
+        }
+
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        if (!['pdf', 'docx', 'txt'].includes(ext || '')) {
+          toast.error(`"${file.name}" não é um formato aceito`);
+          continue;
+        }
+
+        const filePath = `${user.id}/${Date.now()}_${file.name}`;
+        const { error } = await supabase.storage
+          .from('profile-documents')
+          .upload(filePath, file);
+
+        if (error) {
+          toast.error(`Erro ao enviar "${file.name}"`);
+          console.error('Upload error:', error);
+          continue;
+        }
+
+        setUploadedDocs(prev => [...prev, {
+          name: file.name,
+          path: filePath,
+          size: file.size,
+        }]);
+      }
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveDoc = async (doc: UploadedDoc) => {
+    await supabase.storage.from('profile-documents').remove([doc.path]);
+    setUploadedDocs(prev => prev.filter(d => d.path !== doc.path));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
   const handleSubmit = async () => {
@@ -73,6 +136,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
           tone_of_voice: data.tone_of_voice,
           red_lines: data.red_lines || null,
           evidence_history: data.evidence_history || null,
+          evidence_documents: uploadedDocs.length > 0 ? JSON.parse(JSON.stringify(uploadedDocs)) : null,
           profile_detail_completed: true,
         })
         .eq('id', user.id);
@@ -109,7 +173,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
   const stepIcons = [Briefcase, UserCircle, Mic, ShieldAlert, FileText];
 
   const steps = [
-    // Step 0: Cargo / Fase
+    // Step 0: Fase
     <div key="s0" className="space-y-5">
       <div className="text-center space-y-1">
         <h3 className="text-lg font-bold text-foreground">Qual a sua fase atual?</h3>
@@ -194,7 +258,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       <p className="text-xs text-muted-foreground">Opcional — mas altamente recomendado para segurança política</p>
     </div>,
 
-    // Step 4: Evidências
+    // Step 4: Evidências + Upload
     <div key="s4" className="space-y-5">
       <div className="text-center space-y-1">
         <h3 className="text-lg font-bold text-foreground">Evidências e histórico</h3>
@@ -204,9 +268,58 @@ export function DashboardProfileModal({ open, onClose }: Props) {
         placeholder="Ex: PL 1234/2024 — Creches em período integral (aprovado). Entrega: 3 UBS inauguradas em 2024. Link: https://camara.gov.br/pl1234. Indicador: 95% de presença em plenário..."
         value={data.evidence_history}
         onChange={e => setData(prev => ({ ...prev, evidence_history: e.target.value }))}
-        rows={8}
+        rows={5}
         className="resize-none"
       />
+
+      {/* File upload area */}
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-foreground">Anexar documentos</p>
+        <label
+          className={`flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer transition-all
+            ${isUploading
+              ? 'border-primary/50 bg-primary/5'
+              : 'border-border hover:border-primary/40 hover:bg-muted/30'
+            }`}
+        >
+          <Upload className="w-5 h-5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
+            {isUploading ? 'Enviando...' : 'Clique para enviar PDF, DOCX ou TXT'}
+          </span>
+          <span className="text-xs text-muted-foreground">Máximo {MAX_FILE_SIZE_MB}MB por arquivo</span>
+          <input
+            type="file"
+            accept={ACCEPTED_FILE_TYPES}
+            multiple
+            onChange={handleFileUpload}
+            disabled={isUploading}
+            className="hidden"
+          />
+        </label>
+
+        {/* Uploaded files list */}
+        {uploadedDocs.length > 0 && (
+          <div className="space-y-2">
+            {uploadedDocs.map(doc => (
+              <div
+                key={doc.path}
+                className="flex items-center gap-2 p-2.5 rounded-lg border border-border bg-muted/30"
+              >
+                <File className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-sm text-foreground truncate flex-1">{doc.name}</span>
+                <span className="text-xs text-muted-foreground shrink-0">{formatFileSize(doc.size)}</span>
+                <button
+                  onClick={() => handleRemoveDoc(doc)}
+                  className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <p className="text-xs text-muted-foreground">Opcional — esses dados dão mais credibilidade ao conteúdo gerado pela IA</p>
     </div>,
   ];
@@ -274,7 +387,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
               Próximo <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2">
+            <Button onClick={handleSubmit} disabled={isSubmitting || isUploading} className="gap-2">
               <Sparkles className="w-4 h-4" />
               {isSubmitting ? 'Salvando...' : 'Concluir'}
             </Button>
