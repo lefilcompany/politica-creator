@@ -35,6 +35,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
+import { buildRequestPayload, type PromptFormFields } from "@/lib/buildImagePrompt";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
@@ -629,27 +630,26 @@ export default function CreateImage() {
       const selectedTheme = themes.find(t => t.id === formData.theme);
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
-      const requestData = {
-        brand: selectedBrand?.name || formData.brand,
+      // Build prompt payload using helper function
+      const promptFields: PromptFormFields = {
         brandId: formData.brand,
-        theme: selectedTheme?.title || formData.theme,
+        brandName: selectedBrand?.name || formData.brand,
         themeId: formData.theme,
-        persona: selectedPersona?.name || formData.persona,
+        themeName: selectedTheme?.title || formData.theme,
         personaId: formData.persona,
+        personaName: selectedPersona?.name || formData.persona,
         objective: formData.objective,
         description: formData.description,
-        tone: formData.tone,
         platform: formData.platform,
-        contentType: contentType,
-        visualStyle: formData.vibeStyle || formData.visualStyle || 'professional',
-        vibeStyle: formData.vibeStyle || 'professional',
+        contentType,
+        tones: formData.tone,
+        additionalInfo: formData.additionalInfo,
+        vibeStyle: formData.vibeStyle || formData.visualStyle || 'professional',
         fontStyle: formData.fontStyle || 'modern',
         politicalTone: formData.politicalTone || 'institucional',
-        additionalInfo: formData.additionalInfo,
-        preserveImages: finalBrandImages,
-        styleReferenceImages: finalUserImages,
-        brandImagesCount: finalBrandImages.length,
-        userImagesCount: finalUserImages.length,
+        includeText: formData.imageIncludeText || false,
+        textContent: formData.imageTextContent?.trim() || '',
+        textPosition: formData.imageTextPosition || 'center',
         negativePrompt: formData.negativePrompt,
         colorPalette: formData.colorPalette,
         lighting: formData.lighting,
@@ -657,12 +657,17 @@ export default function CreateImage() {
         cameraAngle: formData.cameraAngle,
         detailLevel: formData.detailLevel,
         mood: formData.mood,
+        brandImagesCount: finalBrandImages.length,
+        userImagesCount: finalUserImages.length,
+      };
+
+      const requestData = buildRequestPayload(promptFields, {
+        preserveImages: finalBrandImages,
+        styleReferenceImages: finalUserImages,
+        teamId: user?.teamId || '',
         width: formData.width,
         height: formData.height,
-        includeText: formData.imageIncludeText || false,
-        textContent: formData.imageTextContent?.trim() || "",
-        textPosition: formData.imageTextPosition || "center",
-      };
+      });
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       
@@ -692,10 +697,7 @@ export default function CreateImage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
           },
-          body: JSON.stringify({
-            ...requestData,
-            teamId: user?.teamId,
-          }),
+          body: JSON.stringify(requestData),
         }
       );
 
