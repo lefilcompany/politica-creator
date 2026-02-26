@@ -32,7 +32,7 @@ export const translations = {
       home: "Painel",
       brands: "Identidade",
       themes: "Pauta Estratégica",
-      personas: "Audiência",
+      personas: "Personas",
       quickContent: "Nota Rápida",
       history: "Arquivo",
       createContent: "Criar Conteúdo",
