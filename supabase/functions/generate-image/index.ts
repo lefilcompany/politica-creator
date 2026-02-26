@@ -163,7 +163,8 @@ async function enrichPromptWithFlash(
   personaData: any,
   politicalContext: string,
   politicalTone: string,
-  politicalProfile: any
+  politicalProfile: any,
+  params?: { textContent?: string; headline?: string; promptContext?: string }
 ): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   if (!LOVABLE_API_KEY) {
@@ -207,50 +208,80 @@ async function enrichPromptWithFlash(
     if (polParts.length > 0) contextParts.push(`PERFIL POLÍTICO: ${polParts.join(' | ')}`);
   }
 
-  const systemPrompt = `Você é um Consultor de Marketing Político e Diretor de Arte de Campanha de Alto Nível.
+  const pp = politicalProfile || {};
+  const cargo = pp.political_role || 'Político(a)';
+  const estado = pp.state || pp.city || 'Brasil';
+  const objetivo = themeData?.objectives || 'comunicação política';
+  const mensagemCentral = params?.textContent || params?.headline || '';
+  const tom = politicalTone || 'institucional';
+  const grau = (politicalTone === 'combativo') ? 'Alto' : (politicalTone === 'emocional' ? 'Médio' : 'Baixo/Propositivo');
+  const publicoAlvo = personaData?.name || themeData?.target_audience || 'público geral';
+  const fontStyleHint = toneParams.fontHint || 'sans-serif moderna';
 
-Sua tarefa é transformar uma descrição bruta do usuário em DOIS outputs estruturados:
+  const systemPrompt = `Você é um Estrategista de Marketing Político Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
 
-## 1. BRIEFING VISUAL (scene_description cinematográfica)
-Crie uma descrição visual rica e detalhada para geração de imagem por IA, incluindo:
-- Iluminação específica: ${toneParams.lighting}
+DADOS DO FORMULÁRIO:
+- Cargo/Local: ${cargo} em ${estado}
+- Objetivo: ${objetivo}
+- Mensagem Central: "${mensagemCentral}"
+- Descrição Visual Bruta: (será fornecida pelo usuário)
+- Tom/Combatividade: ${tom} / ${grau}
+- Público-Alvo: ${publicoAlvo}
+
+## DADOS CONTEXTUAIS COMPLETOS:
+${contextParts.join('\n')}
+${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
+
+## PARÂMETROS VISUAIS DO TOM "${tom.toUpperCase()}":
+- Iluminação: ${toneParams.lighting}
 - Composição: ${toneParams.composition}
 - Contraste: ${toneParams.contrast}
 - Foco visual: ${toneParams.focus}
-- Estilo geral: ${toneParams.style}
-- Atmosfera e mood adequados ao tom "${politicalTone}"
-- Detalhes de cenário regionais quando o Estado for mencionado (ex: se Pernambuco, incluir elementos sutis que remetam à região)
-- Linguagem corporal e expressão facial do político alinhados ao tom
-- Texturas, materiais, profundidade de campo
+- Estilo: ${toneParams.style}
+- Hint tipográfico: ${fontStyleHint}
+- ${toneParams.description}
 
-## 2. COPYWRITING
-- Headline: máximo 10 palavras, impactante, alinhada ao objetivo
-- Subtexto/CTA: máximo 15 palavras, complementar
+SUA MISSÃO (3 etapas obrigatórias):
 
-## DADOS CONTEXTUAIS:
-${contextParts.join('\n')}
-${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
+1. **EXPANDIR A CENA**: Transforme a "Descrição Visual Bruta" numa cena cinematográfica. Descreva:
+   - Lente da câmera (ex: 35mm para contexto ambiental, 85mm para retrato)
+   - Iluminação específica (${grau === 'Alto' ? 'sombras profundas, contra-luz dramático, low-key' : 'luz solar suave, golden hour, tons abertos e acolhedores'})
+   - Cores dominantes alinhadas à paleta da marca
+   - Expressão facial e linguagem corporal do político alinhados ao tom "${tom}"
+   - Elementos regionais sutis de ${estado} (arquitetura, vegetação, cultura local)
+   - Profundidade de campo, texturas e materiais
+
+2. **DEFINIR O LAYOUT DO TEXTO**: Se houver mensagem central "${mensagemCentral}", defina:
+   - Posição exata para impacto máximo (ex: "caixa alta, alinhado à direita sobre área de respiro")
+   - Estilo tipográfico: ${fontStyleHint}
+   - Hierarquia visual adequada ao público ${publicoAlvo}
+   - Garantia de legibilidade absoluta (contraste texto/fundo)
+
+3. **AJUSTAR O CLIMA**: Adapte toda a atmosfera:
+   ${grau === 'Alto' ? '- Sombras profundas, cores fortes e saturadas, contraste dramático, energia de urgência' : grau === 'Médio' ? '- Luz quente dourada, foco em expressões humanas, empatia e conexão' : '- Luz solar suave, tons abertos e limpos, estabilidade e confiança'}
 
 ## VALIDAÇÃO ÉTICA (pré-verificação):
 - Se houver menção a "inimigo" ou "adversário", transforme em "crítica política legítima"
 - Nunca gerar conteúdo que viole dignidade humana ou incite ódio
-- Respeitar regulamentações eleitorais
+- Respeitar regulamentações eleitorais (TSE)
 
 ## FORMATO DE RESPOSTA (JSON estrito):
 {
-  "briefing_visual": "descrição cinematográfica detalhada da cena...",
-  "headline": "texto principal sugerido",
-  "subtexto": "CTA ou texto secundário"
+  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. O político demonstra [EXPRESSÃO/POSTURA]. Elementos de ${estado} incluem [DETALHES REGIONAIS]. O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta e hierarquia visual para o público de ${publicoAlvo}.",
+  "headline": "texto principal sugerido (máx 10 palavras)",
+  "subtexto": "CTA ou texto secundário (máx 15 palavras)"
 }
 
 REGRAS:
 - Máximo 300 palavras no briefing_visual
 - Sempre em português
-- Seja extremamente específico e visual, nunca genérico
-- Adapte a estética ao tom: ${toneParams.description}`;
+- Seja EXTREMAMENTE específico e visual, nunca genérico
+- Cada elemento deve ter uma razão estratégica ligada ao objetivo "${objetivo}"`;
+
+  // pp already defined above
 
   try {
-    console.log('🎨 Step 1: LLM Refiner — Briefing Visual + Copywriting...');
+    console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Político...');
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -261,7 +292,7 @@ REGRAS:
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Transforme esta descrição em um Briefing Visual cinematográfico e Copywriting para campanha política:\n\n"${rawDescription}"` },
+          { role: 'user', content: `Transforme esta Descrição Visual Bruta num Briefing Visual cinematográfico completo:\n\n"${rawDescription}"\n\n${params?.promptContext ? `CONTEXTO CONSOLIDADO DO FORMULÁRIO:\n${params.promptContext}` : ''}` },
         ],
       }),
     });
@@ -657,7 +688,12 @@ serve(async (req) => {
       personaData,
       politicalContext,
       politicalTone,
-      fullPoliticalProfile
+      fullPoliticalProfile,
+      {
+        textContent: formData.textContent,
+        headline: formData.headline,
+        promptContext: formData.promptContext,
+      }
     );
 
     // =====================================
