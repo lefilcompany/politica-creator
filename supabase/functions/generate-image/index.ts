@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -119,11 +120,11 @@ serve(async (req) => {
     const authenticatedUserId = user.id;
 
     // Fetch user profile (team_id agora é opcional)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('team_id, credits')
-      .eq('id', authenticatedUserId)
-      .single();
+    const [profileResult, politicalProfile] = await Promise.all([
+      supabase.from('profiles').select('team_id, credits').eq('id', authenticatedUserId).single(),
+      fetchPoliticalProfile(supabase, authenticatedUserId)
+    ]);
+    const { data: profile, error: profileError } = profileResult;
 
     if (profileError) {
       console.error('Profile error:', profileError);
@@ -174,6 +175,10 @@ serve(async (req) => {
 
     // Build comprehensive structured prompt
     let enhancedPrompt = buildDetailedPrompt(formData);
+    const politicalContext = buildPoliticalContext(politicalProfile);
+    if (politicalContext) {
+      enhancedPrompt += `\n${politicalContext}`;
+    }
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) {

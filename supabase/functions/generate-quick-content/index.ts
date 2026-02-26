@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,11 +45,11 @@ serve(async (req) => {
     const authenticatedUserId = user.id;
 
     // Fetch user's team from profile (optional now)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('team_id, credits')
-      .eq('id', authenticatedUserId)
-      .single();
+    const [profileResult, politicalProfile] = await Promise.all([
+      supabase.from('profiles').select('team_id, credits').eq('id', authenticatedUserId).single(),
+      fetchPoliticalProfile(supabase, authenticatedUserId)
+    ]);
+    const { data: profile, error: profileError } = profileResult;
 
     if (profileError) {
       console.error('Profile error:', profileError);
@@ -307,8 +308,14 @@ serve(async (req) => {
     // ========================================
     // Construct a detailed prompt incorporating all user inputs
     
+    // Add political context
+    const politicalContext = buildPoliticalContext(politicalProfile);
+    
     // Start with the main instruction
     let userPrompt = `GENERATE NEW IMAGE: ${prompt}`;
+    if (politicalContext) {
+      contextSections.push(`[POLITICAL PROFILE] ${politicalContext}`);
+    }
     
     // Add context sections
     const contextSections: string[] = [];

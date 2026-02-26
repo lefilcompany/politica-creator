@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -89,8 +90,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check user credits (individual)
-    const creditCheck = await checkUserCredits(supabase, userId, CREDIT_COSTS.CONTENT_PLAN);
+    // Fetch political profile in parallel with credit check
+    const [creditCheck, politicalProfile] = await Promise.all([
+      checkUserCredits(supabase, userId, CREDIT_COSTS.CONTENT_PLAN),
+      fetchPoliticalProfile(supabase, userId)
+    ]);
 
     if (!creditCheck.hasCredits) {
       return new Response(
@@ -198,7 +202,8 @@ Tema ${index + 1}:
       });
     }
 
-    const userPrompt = `${brandContext}\n${themesContext}\n\nPlataforma: ${platform}\nQuantidade de Posts: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} post(s) seguindo a estrutura fornecida.`;
+    const politicalContext = buildPoliticalContext(politicalProfile);
+    const userPrompt = `${brandContext}\n${themesContext}\n${politicalContext}\n\nPlataforma: ${platform}\nQuantidade de Posts: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} post(s) seguindo a estrutura fornecida.`;
 
     console.log('Calling OpenAI API with gpt-4o model...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
