@@ -31,7 +31,6 @@ const VIBE_STYLES: Record<string, string> = {
   cinematic: "Fotografia cinematográfica 4K, color grading de filme, composição dramática, iluminação volumétrica",
   "3d_modern": "3D render minimalista, iluminação studio suave, materiais realistas, composição clean moderna",
   illustration: "Ilustração vetorial moderna, cores vibrantes, formas geométricas, design gráfico contemporâneo",
-  // Legacy styles mapping
   realistic: "Fotografia de alta qualidade, hiper-realista, 8K, iluminação natural profissional",
   animated: "3D animado estilo Pixar/Disney, renderização estilizada, cores vibrantes",
   cartoon: "Ilustração cartoon, contornos marcados, cores planas, design expressivo",
@@ -56,39 +55,69 @@ const FONT_STYLES: Record<string, string> = {
 // =====================================
 // TONE/OBJECTIVE → VISUAL PARAMETERS MAP (Political)
 // =====================================
-const TONE_VISUAL_MAP: Record<string, { contrast: string; lighting: string; style: string; composition: string; focus: string; description: string }> = {
+const TONE_VISUAL_MAP: Record<string, {
+  contrast: string;
+  lighting: string;
+  style: string;
+  composition: string;
+  focus: string;
+  description: string;
+  fontHint: string;
+  colorHint: string;
+}> = {
   combativo: {
-    contrast: "High",
-    lighting: "Dramatic, low-key, strong shadows",
-    style: "Bold, impactful, high contrast",
-    composition: "Dynamic, asymmetric, tension-driven",
-    focus: "Power, urgency, strength",
-    description: "Gera urgência e força. Cores intensas, tipografia impactante, contrastes fortes."
+    contrast: "Alto — contrastes fortes, sombras intensas",
+    lighting: "Dramática, low-key, sombras fortes, contra-luz",
+    style: "Bold, impactante, alto contraste, cores intensas",
+    composition: "Dinâmica, assimétrica, composição de tensão e urgência",
+    focus: "Poder, urgência, força, determinação",
+    description: "Gera urgência e força. Cores intensas, tipografia impactante, contrastes fortes.",
+    fontHint: "Sans-serif robusta, condensada e impactante",
+    colorHint: "Vermelho intenso, preto, branco alto contraste",
   },
   didatico: {
-    contrast: "Medium",
-    lighting: "Even, clean, bright studio",
-    style: "Clean/Grid, Infographic elements",
-    composition: "Organized, grid-based, clear hierarchy",
-    focus: "Data comprehension, clarity, trust",
-    description: "Facilita a compreensão de dados. Layout limpo, elementos infográficos, tons neutros."
+    contrast: "Médio — contraste equilibrado e legível",
+    lighting: "Uniforme, limpa, studio brilhante e neutro",
+    style: "Clean/Grid, elementos infográficos, dados visuais",
+    composition: "Organizada, grid-based, hierarquia clara, espaço para dados",
+    focus: "Compreensão de dados, clareza, confiança, transparência",
+    description: "Facilita a compreensão de dados. Layout limpo, elementos infográficos, tons neutros.",
+    fontHint: "Sans-serif moderna, geométrica, alta legibilidade",
+    colorHint: "Azul institucional, verde confiança, tons neutros",
   },
   emocional: {
-    contrast: "Low-Medium",
-    lighting: "Warm/Golden Hour, soft natural light",
-    style: "Warm, human-centered, empathetic",
-    composition: "Close-ups, human focus, intimate framing",
-    focus: "People/Expressions, human connection",
-    description: "Gera conexão humana e empatia. Iluminação quente, foco em pessoas e expressões."
+    contrast: "Baixo-Médio — tons suaves e acolhedores",
+    lighting: "Quente/Golden Hour, luz natural suave, amanhecer/pôr-do-sol",
+    style: "Quente, centrado no humano, empático, acolhedor",
+    composition: "Close-ups, foco humano, enquadramento íntimo, olhar direto",
+    focus: "Pessoas/Expressões, conexão humana, empatia, pertencimento",
+    description: "Gera conexão humana e empatia. Iluminação quente, foco em pessoas e expressões.",
+    fontHint: "Serifada elegante ou script acolhedora, transmitindo humanidade",
+    colorHint: "Tons quentes, âmbar, dourado, cores da terra",
   },
   institucional: {
-    contrast: "Low",
-    lighting: "Clean, balanced, professional studio",
-    style: "Minimalist, formal, authoritative",
-    composition: "Symmetrical, centered, stable",
-    focus: "Order, stability, governance",
-    description: "Transmite estabilidade e ordem. Estilo minimalista, composição simétrica."
+    contrast: "Baixo — composição estável e formal",
+    lighting: "Limpa, balanceada, studio profissional",
+    style: "Minimalista, formal, autoritário, governamental",
+    composition: "Simétrica, centrada, estável, bandeiras e símbolos",
+    focus: "Ordem, estabilidade, governança, competência",
+    description: "Transmite estabilidade e ordem. Estilo minimalista, composição simétrica.",
+    fontHint: "Serifada clássica, autoritária, transmitindo seriedade",
+    colorHint: "Azul escuro, dourado, branco, cores nacionais",
   },
+};
+
+// =====================================
+// ASPECT RATIO MAP (Platform → Ratio)
+// =====================================
+const PLATFORM_ASPECT_RATIO: Record<string, string> = {
+  'feed': '4:5',
+  'stories': '9:16',
+  'reels': '9:16',
+  'linkedin': '1.91:1',
+  'twitter': '1.91:1',
+  'facebook_feed': '4:5',
+  'youtube_thumb': '16:9',
 };
 
 // =====================================
@@ -107,7 +136,7 @@ async function fetchBrandData(supabase: any, brandId: string) {
 async function fetchThemeData(supabase: any, themeId: string) {
   const { data, error } = await supabase
     .from('strategic_themes')
-    .select('title, description, tone_of_voice, platforms, target_audience, objectives, macro_themes, objective_type, color_palette, hashtags')
+    .select('title, description, tone_of_voice, platforms, target_audience, objectives, macro_themes, objective_type, color_palette, hashtags, expected_action, best_formats')
     .eq('id', themeId)
     .single();
   if (error) { console.error('Error fetching theme:', error); return null; }
@@ -117,7 +146,7 @@ async function fetchThemeData(supabase: any, themeId: string) {
 async function fetchPersonaData(supabase: any, personaId: string) {
   const { data, error } = await supabase
     .from('personas')
-    .select('name, age, gender, location, professional_context, preferred_tone_of_voice, challenges, main_goal, beliefs_and_interests')
+    .select('name, age, gender, location, professional_context, preferred_tone_of_voice, challenges, main_goal, beliefs_and_interests, interest_triggers, purchase_journey_stage')
     .eq('id', personaId)
     .single();
   if (error) { console.error('Error fetching persona:', error); return null; }
@@ -125,7 +154,7 @@ async function fetchPersonaData(supabase: any, personaId: string) {
 }
 
 // =====================================
-// STEP 1: ENRICH PROMPT WITH GEMINI FLASH
+// STEP 1: LLM REFINER - BRIEFING VISUAL + COPYWRITING (Gemini Flash)
 // =====================================
 async function enrichPromptWithFlash(
   rawDescription: string,
@@ -133,67 +162,95 @@ async function enrichPromptWithFlash(
   themeData: any,
   personaData: any,
   politicalContext: string,
-  politicalTone?: string,
-  politicalProfile?: any
-): Promise<{ enrichedDescription: string; briefingVisual: string; copywriting: string }> {
+  politicalTone: string,
+  politicalProfile: any
+): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   if (!LOVABLE_API_KEY) {
     console.warn('LOVABLE_API_KEY not found, skipping enrichment');
-    return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
+    return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
   }
 
-  const toneParams = TONE_VISUAL_MAP[politicalTone || ''] || TONE_VISUAL_MAP['institucional'];
+  const toneParams = TONE_VISUAL_MAP[politicalTone] || TONE_VISUAL_MAP['institucional'];
 
+  // Build rich context from all data sources
   const contextParts: string[] = [];
+  
   if (brandData) {
-    contextParts.push(`Marca: ${brandData.name}, Segmento: ${brandData.segment || 'N/A'}, Valores: ${brandData.values || 'N/A'}`);
+    contextParts.push(`MARCA: "${brandData.name}" | Segmento: ${brandData.segment || 'N/A'} | Valores: ${brandData.values || 'N/A'} | Promessa: ${brandData.promise || 'N/A'} | Keywords: ${brandData.keywords || 'N/A'}`);
+    const colors: string[] = [];
+    if (brandData.brand_color) colors.push(brandData.brand_color);
+    if (brandData.color_palette && Array.isArray(brandData.color_palette)) {
+      brandData.color_palette.forEach((c: any) => { if (c.hex) colors.push(c.hex); });
+    }
+    if (colors.length > 0) contextParts.push(`Paleta: ${colors.join(', ')}`);
   }
+  
   if (themeData) {
-    contextParts.push(`Pauta: ${themeData.title}, Objetivos: ${themeData.objectives || 'N/A'}, Macro-temas: ${themeData.macro_themes || 'N/A'}`);
+    contextParts.push(`PAUTA: "${themeData.title}" | Objetivos: ${themeData.objectives || 'N/A'} | Macro-temas: ${themeData.macro_themes || 'N/A'} | Tom: ${themeData.tone_of_voice || 'N/A'} | Audiência: ${themeData.target_audience || 'N/A'} | Ação esperada: ${themeData.expected_action || 'N/A'}`);
   }
+  
   if (personaData) {
-    contextParts.push(`Audiência: ${personaData.name}, ${personaData.age || ''} anos, ${personaData.location || ''}, Contexto: ${personaData.professional_context || 'N/A'}`);
+    contextParts.push(`PERSONA: "${personaData.name}" | ${personaData.age || '?'} anos, ${personaData.gender || '?'}, ${personaData.location || '?'} | Contexto: ${personaData.professional_context || 'N/A'} | Desafios: ${personaData.challenges || 'N/A'} | Objetivo: ${personaData.main_goal || 'N/A'} | Gatilhos: ${personaData.interest_triggers || 'N/A'}`);
   }
+  
   if (politicalProfile) {
-    if (politicalProfile.political_role) contextParts.push(`Cargo: ${politicalProfile.political_role}`);
-    if (politicalProfile.political_level) contextParts.push(`Nível: ${politicalProfile.political_level}`);
-    if (politicalProfile.mandate_stage) contextParts.push(`Fase: ${politicalProfile.mandate_stage}`);
+    const polParts: string[] = [];
+    if (politicalProfile.political_role) polParts.push(`Cargo: ${politicalProfile.political_role}`);
+    if (politicalProfile.political_level) polParts.push(`Nível: ${politicalProfile.political_level}`);
+    if (politicalProfile.state) polParts.push(`Estado: ${politicalProfile.state}`);
+    if (politicalProfile.city) polParts.push(`Cidade: ${politicalProfile.city}`);
+    if (politicalProfile.mandate_stage) polParts.push(`Fase: ${politicalProfile.mandate_stage}`);
+    if (politicalProfile.political_party) polParts.push(`Partido: ${politicalProfile.political_party}`);
+    if (politicalProfile.focus_areas?.length) polParts.push(`Foco: ${politicalProfile.focus_areas.join(', ')}`);
+    if (politicalProfile.tone_of_voice) polParts.push(`Tom pessoal: ${politicalProfile.tone_of_voice}`);
+    if (polParts.length > 0) contextParts.push(`PERFIL POLÍTICO: ${polParts.join(' | ')}`);
   }
 
   const systemPrompt = `Você é um Consultor de Marketing Político e Diretor de Arte de Campanha de Alto Nível.
 
-Sua tarefa: Receber uma descrição bruta e dados contextuais e produzir DOIS outputs:
+Sua tarefa é transformar uma descrição bruta do usuário em DOIS outputs estruturados:
 
-1. **BRIEFING VISUAL**: Uma scene_description rica e cinematográfica para geração de imagem por IA, detalhando:
-   - Iluminação: ${toneParams.lighting}
-   - Composição: ${toneParams.composition}
-   - Contraste: ${toneParams.contrast}
-   - Foco visual: ${toneParams.focus}
-   - Estilo: ${toneParams.style}
-   - Atmosfera e mood adequados ao tom "${politicalTone || 'institucional'}"
-   - Detalhes visuais específicos (texturas, materiais, cores)
-   - Elementos de cena regionais quando apropriado
+## 1. BRIEFING VISUAL (scene_description cinematográfica)
+Crie uma descrição visual rica e detalhada para geração de imagem por IA, incluindo:
+- Iluminação específica: ${toneParams.lighting}
+- Composição: ${toneParams.composition}
+- Contraste: ${toneParams.contrast}
+- Foco visual: ${toneParams.focus}
+- Estilo geral: ${toneParams.style}
+- Atmosfera e mood adequados ao tom "${politicalTone}"
+- Detalhes de cenário regionais quando o Estado for mencionado (ex: se Pernambuco, incluir elementos sutis que remetam à região)
+- Linguagem corporal e expressão facial do político alinhados ao tom
+- Texturas, materiais, profundidade de campo
 
-2. **COPYWRITING**: Uma sugestão de headline (max 10 palavras) e subtexto/CTA (max 15 palavras) para a peça.
+## 2. COPYWRITING
+- Headline: máximo 10 palavras, impactante, alinhada ao objetivo
+- Subtexto/CTA: máximo 15 palavras, complementar
 
-Contexto: ${contextParts.join(' | ')}
-${politicalContext ? `Perfil político: ${politicalContext.substring(0, 500)}` : ''}
+## DADOS CONTEXTUAIS:
+${contextParts.join('\n')}
+${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
 
-FORMATO DE RESPOSTA (JSON):
+## VALIDAÇÃO ÉTICA (pré-verificação):
+- Se houver menção a "inimigo" ou "adversário", transforme em "crítica política legítima"
+- Nunca gerar conteúdo que viole dignidade humana ou incite ódio
+- Respeitar regulamentações eleitorais
+
+## FORMATO DE RESPOSTA (JSON estrito):
 {
-  "briefing_visual": "descrição cinematográfica detalhada...",
+  "briefing_visual": "descrição cinematográfica detalhada da cena...",
   "headline": "texto principal sugerido",
   "subtexto": "CTA ou texto secundário"
 }
 
 REGRAS:
 - Máximo 300 palavras no briefing_visual
-- Em português
-- Seja específico e visual, não genérico
+- Sempre em português
+- Seja extremamente específico e visual, nunca genérico
 - Adapte a estética ao tom: ${toneParams.description}`;
 
   try {
-    console.log('🎨 Step 1: Enriching prompt with Gemini Flash...');
+    console.log('🎨 Step 1: LLM Refiner — Briefing Visual + Copywriting...');
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -204,7 +261,7 @@ REGRAS:
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Transforme esta descrição em um Briefing Visual e Copywriting para campanha política:\n\n"${rawDescription}"` },
+          { role: 'user', content: `Transforme esta descrição em um Briefing Visual cinematográfico e Copywriting para campanha política:\n\n"${rawDescription}"` },
         ],
       }),
     });
@@ -214,15 +271,14 @@ REGRAS:
       console.error(`Flash enrichment failed with status ${status}`);
       if (status === 429) console.warn('Rate limited on enrichment, using original');
       if (status === 402) console.warn('Payment required on enrichment, using original');
-      return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
+      return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
     }
 
     const data = await response.json();
     const enriched = data.choices?.[0]?.message?.content?.trim();
     if (enriched && enriched.length > 20) {
-      console.log(`✅ Prompt enriched: ${enriched.length} chars`);
+      console.log(`✅ LLM Refiner output: ${enriched.length} chars`);
       
-      // Try to parse as JSON
       try {
         const jsonMatch = enriched.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -230,24 +286,25 @@ REGRAS:
           return {
             enrichedDescription: parsed.briefing_visual || rawDescription,
             briefingVisual: parsed.briefing_visual || '',
-            copywriting: [parsed.headline, parsed.subtexto].filter(Boolean).join(' | '),
+            headline: parsed.headline || '',
+            subtexto: parsed.subtexto || '',
           };
         }
       } catch (parseErr) {
         console.warn('Could not parse enrichment as JSON, using raw text');
       }
       
-      return { enrichedDescription: enriched, briefingVisual: '', copywriting: '' };
+      return { enrichedDescription: enriched, briefingVisual: '', headline: '', subtexto: '' };
     }
-    return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
+    return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
   } catch (error) {
-    console.error('Error enriching prompt:', error);
-    return { enrichedDescription: rawDescription, briefingVisual: '', copywriting: '' };
+    console.error('Error in LLM Refiner:', error);
+    return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
   }
 }
 
 // =====================================
-// BUILD "DIRETOR DE ARTE DIGITAL" PROMPT
+// STEP 2: BUILD POLITICAL MASTER PROMPT (Nano Banana Pro)
 // =====================================
 function buildDirectorPrompt(params: {
   userName: string;
@@ -257,6 +314,7 @@ function buildDirectorPrompt(params: {
   themeData: any;
   personaData: any;
   politicalContext: string;
+  politicalProfile: any;
   politicalTone: string;
   vibeStyle: string;
   fontStyle: string;
@@ -270,103 +328,156 @@ function buildDirectorPrompt(params: {
   additionalInfo: string;
   preserveImagesCount: number;
   styleReferenceImagesCount: number;
-  copywritingSuggestion: string;
+  headline: string;
+  subtexto: string;
 }): string {
   const sections: string[] = [];
   const toneParams = TONE_VISUAL_MAP[params.politicalTone] || TONE_VISUAL_MAP['institucional'];
+  const pp = params.politicalProfile || {};
 
   // === ROLE ===
-  sections.push(`Atue como um Consultor de Marketing Político e Designer de Campanha de Alto Nível. O seu objetivo é criar uma peça visual impecável para ${params.userName}, respeitando rigorosamente a identidade visual e as diretrizes estratégicas fornecidas abaixo.`);
+  sections.push(`Atue como um Consultor de Marketing Político e Designer de Campanha de Alto Nível. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
 
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
+  
+  if (pp.political_role || pp.state) {
+    contextLines.push(`- **Cargo/Função:** ${pp.political_role || 'Político(a)'} em ${pp.state || 'Brasil'}`);
+  }
+  if (pp.political_party) contextLines.push(`- **Partido:** ${pp.political_party}`);
+  if (pp.mandate_stage) contextLines.push(`- **Fase da Campanha/Mandato:** ${pp.mandate_stage}`);
+  if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Foco:** ${pp.focus_areas.join(', ')}`);
+
   if (params.brandData) {
     contextLines.push(`- **Marca:** ${params.brandData.name}`);
     if (params.brandData.segment) contextLines.push(`- **Setor/Nicho:** ${params.brandData.segment}`);
     if (params.brandData.values) contextLines.push(`- **Valores:** ${params.brandData.values}`);
     if (params.brandData.keywords) contextLines.push(`- **Keywords:** ${params.brandData.keywords}`);
-    if (params.brandData.promise) contextLines.push(`- **Promessa da marca:** ${params.brandData.promise}`);
+    if (params.brandData.promise) contextLines.push(`- **Promessa da Marca:** ${params.brandData.promise}`);
     if (params.brandData.goals) contextLines.push(`- **Objetivos:** ${params.brandData.goals}`);
     
-    // Color palette
     const colors: string[] = [];
     if (params.brandData.brand_color) colors.push(params.brandData.brand_color);
     if (params.brandData.color_palette && Array.isArray(params.brandData.color_palette)) {
-      params.brandData.color_palette.forEach((c: any) => {
-        if (c.hex) colors.push(c.hex);
-      });
+      params.brandData.color_palette.forEach((c: any) => { if (c.hex) colors.push(c.hex); });
     }
     if (colors.length > 0) {
-      contextLines.push(`- **Paleta de Cores Obrigatória:** ${colors.join(', ')}`);
+      contextLines.push(`- **Paleta de Cores Obrigatória:** ${colors.join(', ')}. Se imagens de referência forem fornecidas, extraia a paleta exata delas.`);
     }
-    if (params.brandData.restrictions) {
-      contextLines.push(`- **Restrições:** ${params.brandData.restrictions}`);
-    }
+    if (params.brandData.restrictions) contextLines.push(`- **Restrições:** ${params.brandData.restrictions}`);
   }
-  if (params.themeData) {
-    contextLines.push(`- **Pauta Estratégica:** ${params.themeData.title}`);
-    if (params.themeData.objectives) contextLines.push(`- **Objetivos da Pauta:** ${params.themeData.objectives}`);
-    if (params.themeData.macro_themes) contextLines.push(`- **Macro-temas:** ${params.themeData.macro_themes}`);
-    if (params.themeData.target_audience) contextLines.push(`- **Público-Alvo da Pauta:** ${params.themeData.target_audience}`);
-    if (params.themeData.hashtags) contextLines.push(`- **Hashtags:** ${params.themeData.hashtags}`);
-  }
+  
   if (params.personaData) {
-    contextLines.push(`- **Audiência:** ${params.personaData.name}`);
-    if (params.personaData.age) contextLines.push(`- **Idade:** ${params.personaData.age}`);
-    if (params.personaData.gender) contextLines.push(`- **Gênero:** ${params.personaData.gender}`);
-    if (params.personaData.location) contextLines.push(`- **Localização:** ${params.personaData.location}`);
-    if (params.personaData.professional_context) contextLines.push(`- **Contexto Profissional:** ${params.personaData.professional_context}`);
-    if (params.personaData.challenges) contextLines.push(`- **Desafios:** ${params.personaData.challenges}`);
-    if (params.personaData.main_goal) contextLines.push(`- **Objetivo Principal:** ${params.personaData.main_goal}`);
-    if (params.personaData.beliefs_and_interests) contextLines.push(`- **Interesses:** ${params.personaData.beliefs_and_interests}`);
+    contextLines.push(`- **Público-Alvo:** ${params.personaData.name}`);
+    const personaDetails: string[] = [];
+    if (params.personaData.age) personaDetails.push(`${params.personaData.age} anos`);
+    if (params.personaData.gender) personaDetails.push(params.personaData.gender);
+    if (params.personaData.location) personaDetails.push(params.personaData.location);
+    if (params.personaData.professional_context) personaDetails.push(params.personaData.professional_context);
+    if (personaDetails.length > 0) contextLines.push(`- **Perfil da Audiência:** ${personaDetails.join(', ')}`);
+    if (params.personaData.challenges) contextLines.push(`- **Desafios da Audiência:** ${params.personaData.challenges}`);
+    if (params.personaData.main_goal) contextLines.push(`- **Objetivo da Audiência:** ${params.personaData.main_goal}`);
+    if (params.personaData.beliefs_and_interests) contextLines.push(`- **Crenças e Interesses:** ${params.personaData.beliefs_and_interests}`);
+    if (params.personaData.interest_triggers) contextLines.push(`- **Gatilhos de Interesse:** ${params.personaData.interest_triggers}`);
   }
 
   // Tom de voz
   const toneStr = params.tones.length > 0 ? params.tones.join(', ') : 
-    (params.themeData?.tone_of_voice || params.personaData?.preferred_tone_of_voice || 'profissional');
+    (params.themeData?.tone_of_voice || params.personaData?.preferred_tone_of_voice || pp.tone_of_voice || 'profissional');
   contextLines.push(`- **Tom de Voz da Marca:** ${toneStr}`);
 
   if (contextLines.length > 0) {
-    sections.push(`### 1. CONTEXTO DO UTILIZADOR E MARCA\n${contextLines.join('\n')}`);
+    sections.push(`### 1. CONTEXTO DO UTILIZADOR E MARCA (Dados Dinâmicos)\n${contextLines.join('\n')}`);
   }
 
-  // === 2. CONTEÚDO E COMPOSIÇÃO DO POST ===
+  // === 2. DIRETRIZES ESTRATÉGICAS ===
+  const stratLines: string[] = [];
+  
+  if (pp.mandate_stage) stratLines.push(`- **Fase:** ${pp.mandate_stage} — Adaptar o semblante e maturidade visual para esta fase.`);
+  if (params.objective) stratLines.push(`- **Objetivo do Post:** ${params.objective}`);
+  if (params.personaData?.name) stratLines.push(`- **Público-Alvo:** ${params.personaData.name} — O design deve ressoar com este grupo específico.`);
+  
+  stratLines.push(`- **Grau de Combatividade:** ${params.politicalTone === 'combativo' ? 'Alto' : params.politicalTone === 'emocional' ? 'Baixo/Propositivo' : 'Médio'}`);
+  
+  if (params.politicalTone === 'combativo') {
+    stratLines.push(`  → Use contrastes fortes, cores intensas e tipografia impactante.`);
+  } else if (params.politicalTone === 'emocional') {
+    stratLines.push(`  → Use tons mais suaves, iluminação aberta e design acolhedor.`);
+  } else if (params.politicalTone === 'didatico') {
+    stratLines.push(`  → Use layout limpo/grid, elementos infográficos, iluminação uniforme.`);
+  } else {
+    stratLines.push(`  → Use composição simétrica, estilo minimalista, transmitindo estabilidade.`);
+  }
+
+  if (params.themeData) {
+    if (params.themeData.title) stratLines.push(`- **Tema Estratégico:** ${params.themeData.title}`);
+    if (params.themeData.objectives) stratLines.push(`- **Objetivos da Pauta:** ${params.themeData.objectives}`);
+    if (params.themeData.macro_themes) stratLines.push(`- **Macro-temas:** ${params.themeData.macro_themes}`);
+    if (params.themeData.target_audience) stratLines.push(`- **Público da Pauta:** ${params.themeData.target_audience}`);
+    if (params.themeData.expected_action) stratLines.push(`- **Ação Esperada:** ${params.themeData.expected_action}`);
+    if (params.themeData.hashtags) stratLines.push(`- **Hashtags:** ${params.themeData.hashtags}`);
+  }
+
+  if (stratLines.length > 0) {
+    sections.push(`### 2. DIRETRIZES ESTRATÉGICAS\n${stratLines.join('\n')}`);
+  }
+
+  // === 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO) ===
   const compositionLines: string[] = [];
   
-  if (params.includeText && params.textContent?.trim()) {
-    compositionLines.push(`- **Headline (Texto Principal na Imagem):** "${params.textContent}"`);
-  } else if (params.copywritingSuggestion) {
-    compositionLines.push(`- **Sugestão de Copywriting (gerada pelo LLM Refiner):** ${params.copywritingSuggestion}`);
+  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. O político deve demonstrar um semblante ${toneStr} através da linguagem corporal e expressão facial.`);
+
+  // Brand identity
+  const colors: string[] = [];
+  if (params.brandData?.brand_color) colors.push(params.brandData.brand_color);
+  if (params.brandData?.color_palette && Array.isArray(params.brandData.color_palette)) {
+    params.brandData.color_palette.forEach((c: any) => { if (c.hex) colors.push(c.hex); });
   }
-  
-  compositionLines.push(`- **Descrição da Cena:** ${params.enrichedDescription}`);
-  
+  if (colors.length > 0) {
+    compositionLines.push(`- **Identidade:** Aplique as cores ${colors.join(', ')} na composição.`);
+  }
+
+  // Visual style (Vibe)
   const vibeDesc = VIBE_STYLES[params.vibeStyle] || VIBE_STYLES['professional'] || params.vibeStyle;
   compositionLines.push(`- **Estilo Visual:** ${vibeDesc}`);
-
-  // === DIRETRIZES ESTRATÉGICAS (Tom Político) ===
-  compositionLines.push(`- **Tom/Objetivo Político:** ${params.politicalTone || 'institucional'}`);
-  compositionLines.push(`- **Contraste:** ${toneParams.contrast}`);
+  
+  // Lighting based on tone
   compositionLines.push(`- **Iluminação:** ${toneParams.lighting}`);
   compositionLines.push(`- **Composição:** ${toneParams.composition}`);
+  compositionLines.push(`- **Contraste:** ${toneParams.contrast}`);
   compositionLines.push(`- **Foco Visual:** ${toneParams.focus}`);
 
+  // Platform
   if (params.platform) compositionLines.push(`- **Plataforma:** ${params.platform}`);
-  if (params.objective) compositionLines.push(`- **Objetivo:** ${params.objective}`);
   if (params.contentType === 'ads') {
-    compositionLines.push(`- **Tipo:** Conteúdo de ANÚNCIO PAGO - foco em conversão, CTA implícito`);
+    compositionLines.push(`- **Tipo:** Conteúdo de ANÚNCIO PAGO — foco em conversão, CTA implícito`);
   } else {
-    compositionLines.push(`- **Tipo:** Conteúdo ORGÂNICO - foco em engajamento, autenticidade, conexão com comunidade`);
+    compositionLines.push(`- **Tipo:** Conteúdo ORGÂNICO — foco em engajamento, autenticidade, conexão`);
   }
 
-  sections.push(`### 2. CONTEÚDO E COMPOSIÇÃO DO POST\n${compositionLines.join('\n')}`);
+  // Regional adaptation
+  if (pp.state) {
+    compositionLines.push(`- **Regionalismo:** Adapte sutilmente o fundo da imagem (arquitetura, vegetação, elementos culturais) para remeter a ${pp.state}${pp.city ? ` / ${pp.city}` : ''}.`);
+  }
 
-  // === 3. INSTRUÇÕES CRUCIAIS DE DESIGN ===
-  const designLines: string[] = [];
+  // Qualidade
+  compositionLines.push(`- **Qualidade:** Fotorealismo 4K, profundidade de campo profissional, estilo de fotografia de campanha de alta verba.`);
+
+  sections.push(`### 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO)\n${compositionLines.join('\n')}`);
+
+  // === 4. TEXTO E DESIGN ===
+  const textLines: string[] = [];
   
   if (params.includeText && params.textContent?.trim()) {
-    const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
-    designLines.push(`- **Fidelidade Tipográfica:** O texto "${params.textContent}" deve ser renderizado PERFEITAMENTE, sem erros ortográficos, usando uma tipografia ${fontDesc}.`);
+    const headlineText = params.textContent;
+    
+    // Font based on political tone + user selection
+    const userFont = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
+    const toneFont = toneParams.fontHint;
+    
+    textLines.push(`- **Headline (Texto Principal na Imagem):** Renderize PERFEITAMENTE o texto: "${headlineText}"`);
+    textLines.push(`- **Tipografia:** ${userFont}. Adaptar ao tom político: ${toneFont}.`);
+    textLines.push(`- **Cor da tipografia:** Em harmonia com a paleta da marca${pp.state ? ` e cores que remetam a ${pp.state}` : ''}.`);
     
     const posLabels: Record<string, string> = {
       'top': 'no topo da imagem',
@@ -377,35 +488,46 @@ function buildDirectorPrompt(params: {
       'bottom-left': 'no canto inferior esquerdo',
       'bottom-right': 'no canto inferior direito',
     };
-    designLines.push(`- **Posição do Texto:** ${posLabels[params.textPosition] || 'centralizado'}`);
-    designLines.push(`- **Legibilidade e Contraste:** Garanta que o texto seja o foco principal e seja 100% legível. Utilize espaço negativo estratégico, sobreposições de gradiente sutil ou caixas de texto limpas para separar o texto do fundo.`);
+    textLines.push(`- **Posição do Texto:** ${posLabels[params.textPosition] || 'centralizado'}. O texto NÃO deve obstruir o rosto do candidato.`);
+    textLines.push(`- **Legibilidade e Contraste:** O texto DEVE ser o foco principal e ser 100% legível. Utilize espaço negativo estratégico, sobreposições de gradiente sutil ou caixas de texto limpas. O texto deve fazer parte da composição, não flutuar sem propósito.`);
   } else {
-    designLines.push(`- **SEM TEXTO:** CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
+    // Use LLM Refiner suggestions if available
+    if (params.headline) {
+      textLines.push(`- **Headline Sugerida (renderizar se apropriado):** "${params.headline}"`);
+      if (params.subtexto) textLines.push(`- **Subtexto/CTA Sugerido:** "${params.subtexto}"`);
+      textLines.push(`- **NOTA:** Renderize o texto apenas se fizer sentido para o layout. Se não, crie uma imagem puramente visual.`);
+    } else {
+      textLines.push(`- **SEM TEXTO:** CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
+    }
   }
   
-  designLines.push(`- **Design Inteligente:** Organize os elementos visuais de acordo com o Tom de Voz "${toneStr}". O layout deve guiar o olhar naturalmente pela composição.`);
+  textLines.push(`- **Design Inteligente:** Organize os elementos visuais de acordo com o Tom "${toneStr}". ${params.politicalTone === 'combativo' ? 'Use muito contraste e composições dinâmicas.' : params.politicalTone === 'emocional' ? 'Use iluminação quente e composições íntimas.' : params.politicalTone === 'didatico' ? 'Use layout grid e espaço para informação.' : 'Use composição simétrica e muito espaço em branco.'} O layout deve guiar o olhar para o elemento principal.`);
 
-  sections.push(`### 3. INSTRUÇÕES CRUCIAIS DE DESIGN\n${designLines.join('\n')}`);
+  sections.push(`### 4. TEXTO E DESIGN\n${textLines.join('\n')}`);
 
-  // === 4. REFERÊNCIAS VISUAIS ===
+  // === 5. REFERÊNCIAS VISUAIS ===
   if (params.preserveImagesCount > 0 || params.styleReferenceImagesCount > 0) {
     const refLines: string[] = [];
     if (params.preserveImagesCount > 0) {
-      refLines.push(`${params.preserveImagesCount} imagem(ns) da IDENTIDADE DA MARCA foram fornecidas. Use-as como REFERÊNCIA DE ESTILO (Style Reference): extraia a atmosfera, iluminação, paleta de cores e sentimento geral, aplicando-os à cena descrita. A nova imagem DEVE parecer parte do mesmo conjunto visual.`);
+      refLines.push(`${params.preserveImagesCount} imagem(ns) da IDENTIDADE DA MARCA foram fornecidas. Use como REFERÊNCIA DE ESTILO (Style Reference): extraia a atmosfera, iluminação, paleta de cores e sentimento geral. A nova imagem DEVE parecer parte do mesmo conjunto visual. Não replique as imagens, use-as como inspiração estética.`);
     }
     if (params.styleReferenceImagesCount > 0) {
       refLines.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA DO USUÁRIO foram fornecidas. Use como inspiração adicional de composição e estética.`);
     }
-    sections.push(`### 4. REFERÊNCIAS VISUAIS\n${refLines.join('\n')}`);
+    sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refLines.join('\n')}`);
   }
 
-  // === COMPLIANCE ===
-  sections.push(`### 5. COMPLIANCE ÉTICO
-DIRETRIZES ÉTICAS E LEGAIS OBRIGATÓRIAS (CONAR/CDC):
-- HONESTIDADE: A imagem NÃO PODE induzir ao erro
-- DIGNIDADE HUMANA: PROIBIDO discriminação
-- CONCORRÊNCIA: NÃO ridicularize concorrentes
-- Se político: respeitar regulamentações eleitorais`);
+  // === 6. COMPLIANCE E ESPECIFICAÇÕES ===
+  sections.push(`### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
+- **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
+- **Resolução:** 4K, PNG para tipografia nítida
+- **Geração de Pessoas:** Permitida — campanha política requer representação humana
+
+COMPLIANCE ÉTICO E LEGAL (CONAR/CDC/TSE):
+- HONESTIDADE: A imagem NÃO pode induzir ao erro ou criar falsas representações
+- DIGNIDADE: PROIBIDO qualquer forma de discriminação ou discurso de ódio
+- REGULAMENTAÇÃO ELEITORAL: Respeitar legislação vigente
+- ACESSIBILIDADE: Garantir contraste mínimo WCAG AA para textos`);
 
   // === POLITICAL CONTEXT ===
   if (params.politicalContext) {
@@ -414,7 +536,7 @@ DIRETRIZES ÉTICAS E LEGAIS OBRIGATÓRIAS (CONAR/CDC):
 
   // === ADDITIONAL INFO ===
   if (params.additionalInfo) {
-    sections.push(`### INFORMAÇÕES ADICIONAIS\n${params.additionalInfo}`);
+    sections.push(`### INFORMAÇÕES ADICIONAIS DO USUÁRIO\n${params.additionalInfo}`);
   }
 
   return sections.join('\n\n');
@@ -426,7 +548,6 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -455,7 +576,7 @@ serve(async (req) => {
 
     // Fetch profile + political profile in parallel
     const [profileResult, politicalProfile] = await Promise.all([
-      supabase.from('profiles').select('team_id, credits, name').eq('id', authenticatedUserId).single(),
+      supabase.from('profiles').select('team_id, credits, name, state, city').eq('id', authenticatedUserId).single(),
       fetchPoliticalProfile(supabase, authenticatedUserId)
     ]);
     const { data: profile, error: profileError } = profileResult;
@@ -469,6 +590,13 @@ serve(async (req) => {
 
     const authenticatedTeamId = profile?.team_id || null;
     const userName = profile?.name || 'Usuário';
+    
+    // Merge profile location into political profile
+    const fullPoliticalProfile = {
+      ...politicalProfile,
+      state: politicalProfile?.state || profile?.state,
+      city: politicalProfile?.city || profile?.city,
+    };
 
     const formData = await req.json();
     
@@ -479,13 +607,14 @@ serve(async (req) => {
       );
     }
 
-    console.log('🎬 Generate Image Request (Premium Pipeline):', { 
+    console.log('🎬 Generate Image Request (Premium Political Pipeline):', { 
       description: formData.description?.substring(0, 100),
       brandId: formData.brandId,
       themeId: formData.themeId,
       personaId: formData.personaId,
       vibeStyle: formData.vibeStyle,
       fontStyle: formData.fontStyle,
+      politicalTone: formData.politicalTone,
       platform: formData.platform,
       userId: authenticatedUserId,
     });
@@ -513,25 +642,26 @@ serve(async (req) => {
       brand: brandData?.name || 'none',
       theme: themeData?.title || 'none', 
       persona: personaData?.name || 'none',
+      politicalRole: fullPoliticalProfile?.political_role || 'none',
     });
 
     // =====================================
-    // STEP 1: ENRICH PROMPT WITH GEMINI FLASH (LLM Refiner)
+    // STEP 1: LLM REFINER (Gemini Flash) — Briefing Visual + Copywriting
     // =====================================
     const politicalContext = buildPoliticalContext(politicalProfile);
     const politicalTone = formData.politicalTone || 'institucional';
-    const { enrichedDescription, copywriting: copywritingSuggestion } = await enrichPromptWithFlash(
+    const { enrichedDescription, headline, subtexto } = await enrichPromptWithFlash(
       formData.description,
       brandData,
       themeData,
       personaData,
       politicalContext,
       politicalTone,
-      politicalProfile
+      fullPoliticalProfile
     );
 
     // =====================================
-    // STEP 2: BUILD STRUCTURED "CONSULTOR POLÍTICO" PROMPT
+    // STEP 2: BUILD STRUCTURED POLITICAL MASTER PROMPT
     // =====================================
     const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
     const preserveImages = formData.preserveImages || [];
@@ -545,6 +675,7 @@ serve(async (req) => {
       themeData,
       personaData,
       politicalContext,
+      politicalProfile: fullPoliticalProfile,
       politicalTone,
       vibeStyle: formData.vibeStyle || formData.visualStyle || 'professional',
       fontStyle: formData.fontStyle || 'modern',
@@ -558,13 +689,14 @@ serve(async (req) => {
       additionalInfo: cleanInput(formData.additionalInfo),
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
-      copywritingSuggestion,
+      headline,
+      subtexto,
     });
 
-    console.log('📝 Director prompt built:', enhancedPrompt.length, 'chars');
+    console.log('📝 Political Master Prompt built:', enhancedPrompt.length, 'chars');
 
     // =====================================
-    // STEP 3: GENERATE IMAGE WITH GEMINI 3 PRO (Lovable AI Gateway)
+    // STEP 3: GENERATE IMAGE WITH GEMINI 3 PRO (Nano Banana Pro)
     // =====================================
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -578,8 +710,8 @@ serve(async (req) => {
     
     // Add brand images (style reference)
     if (preserveImages.length > 0) {
-      console.log(`✅ Adding ${preserveImages.length} brand identity image(s)...`);
-      preserveImages.forEach((img: string, index: number) => {
+      console.log(`✅ Adding ${preserveImages.length} brand identity image(s) as style_reference...`);
+      preserveImages.forEach((img: string) => {
         messageContent.push({
           type: 'image_url',
           image_url: { url: img }
@@ -590,7 +722,7 @@ serve(async (req) => {
     // Add user reference images
     if (styleReferenceImages.length > 0) {
       console.log(`✅ Adding ${styleReferenceImages.length} user reference image(s)...`);
-      styleReferenceImages.forEach((img: string, index: number) => {
+      styleReferenceImages.forEach((img: string) => {
         messageContent.push({
           type: 'image_url',
           image_url: { url: img }
@@ -608,7 +740,7 @@ serve(async (req) => {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`🖼️ Image generation attempt ${attempt}/${MAX_RETRIES} via Lovable AI Gateway (Gemini 3 Pro)...`);
+        console.log(`🖼️ Image generation attempt ${attempt}/${MAX_RETRIES} via Nano Banana Pro (Gemini 3 Pro)...`);
 
         const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
@@ -651,11 +783,10 @@ serve(async (req) => {
         const data = await response.json();
         console.log('Gateway response received');
 
-        // Extract image from response - handle both OpenAI-style and Gemini-style responses
+        // Extract image from response
         if (data.choices?.[0]?.message?.content) {
           const content = data.choices[0].message.content;
           
-          // If content is an array (multimodal response)
           if (Array.isArray(content)) {
             for (const part of content) {
               if (part.type === 'image_url' && part.image_url?.url) {
@@ -667,14 +798,12 @@ serve(async (req) => {
                 description = part.text;
               }
             }
-          }
-          // If content is a string (text only response with inline image)
-          else if (typeof content === 'string') {
+          } else if (typeof content === 'string') {
             description = content;
           }
         }
 
-        // Also check for inline_data style (Gemini native format proxied)
+        // Also check for inline_data style (Gemini native format)
         if (!imageUrl && data.candidates?.[0]?.content?.parts) {
           const parts = data.candidates[0].content.parts;
           for (const part of parts) {
@@ -694,7 +823,7 @@ serve(async (req) => {
           throw new Error('No image found in response');
         }
 
-        break; // Success
+        break;
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
         lastError = error;
@@ -719,13 +848,11 @@ serve(async (req) => {
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
     
-    // Handle both base64 and URL responses
     let binaryData: Uint8Array;
     if (imageUrl.startsWith('data:')) {
       const base64Data = imageUrl.split(',')[1];
       binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
     } else {
-      // It's a URL, fetch it
       const imgResp = await fetch(imageUrl);
       const arrayBuf = await imgResp.arrayBuffer();
       binaryData = new Uint8Array(arrayBuf);
@@ -763,13 +890,15 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem (Pipeline Premium)',
+      description: 'Geração de imagem (Pipeline Político Premium)',
       metadata: { 
         platform: formData.platform, 
         vibeStyle: formData.vibeStyle || formData.visualStyle,
         fontStyle: formData.fontStyle,
+        politicalTone: formData.politicalTone,
         model: 'gemini-3-pro-image-preview',
         enriched: enrichedDescription !== formData.description,
+        hasHeadline: !!headline,
       }
     });
 
@@ -793,14 +922,17 @@ serve(async (req) => {
           platform: formData.platform,
           vibeStyle: formData.vibeStyle || formData.visualStyle,
           fontStyle: formData.fontStyle,
+          politicalTone: formData.politicalTone,
           contentType: formData.contentType,
           preserveImagesCount: preserveImages.length,
           styleReferenceImagesCount: styleReferenceImages.length,
-          pipeline: 'premium_v2',
+          pipeline: 'political_premium_v3',
         },
         result: {
           imageUrl: publicUrl,
           description: description,
+          headline: headline || null,
+          subtexto: subtexto || null,
         }
       })
       .select()
@@ -814,6 +946,8 @@ serve(async (req) => {
       JSON.stringify({ 
         imageUrl: publicUrl,
         description: description,
+        headline: headline || null,
+        subtexto: subtexto || null,
         actionId: actionData?.id,
         success: true 
       }),
