@@ -10,6 +10,7 @@ interface User {
   teamId?: string;
   isAdmin: boolean;
   avatarUrl?: string;
+  tutorialCompleted: boolean;
   // Créditos individuais do usuário
   credits: number;
   planId: string;
@@ -170,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         teamId: profile.team_id,
         isAdmin: isSystemAdmin,
         avatarUrl: profile.avatar_url,
+        tutorialCompleted: profile.tutorial_completed || false,
         // Créditos individuais
         credits: profile.credits || 0,
         planId: profile.plan_id || 'free',
@@ -276,6 +278,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name: profile.name || profile.email || prev.name,
           teamId: profile.team_id,
           avatarUrl: profile.avatar_url,
+          tutorialCompleted: profile.tutorial_completed || false,
           credits: profile.credits || 0,
           planId: profile.plan_id || 'free',
           subscriptionStatus: profile.subscription_status,
