@@ -531,14 +531,17 @@ export type Database = {
         Row: {
           avatar_url: string | null
           banner_url: string | null
+          biography: string | null
           city: string | null
           created_at: string | null
           credits: number | null
           email: string
+          evidence_history: string | null
           focus_areas: string[] | null
           force_password_change: boolean | null
           id: string
           main_social_networks: string[] | null
+          mandate_stage: string | null
           migration_user: boolean | null
           name: string
           onboarding_brands_completed: boolean | null
@@ -562,6 +565,8 @@ export type Database = {
           political_level: string | null
           political_party: string | null
           political_role: string | null
+          profile_detail_completed: boolean | null
+          red_lines: string | null
           state: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -569,20 +574,24 @@ export type Database = {
           subscription_status: string | null
           target_audience_description: string | null
           team_id: string | null
+          tone_of_voice: string | null
           tutorial_completed: boolean | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           banner_url?: string | null
+          biography?: string | null
           city?: string | null
           created_at?: string | null
           credits?: number | null
           email: string
+          evidence_history?: string | null
           focus_areas?: string[] | null
           force_password_change?: boolean | null
           id: string
           main_social_networks?: string[] | null
+          mandate_stage?: string | null
           migration_user?: boolean | null
           name: string
           onboarding_brands_completed?: boolean | null
@@ -606,6 +615,8 @@ export type Database = {
           political_level?: string | null
           political_party?: string | null
           political_role?: string | null
+          profile_detail_completed?: boolean | null
+          red_lines?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -613,20 +624,24 @@ export type Database = {
           subscription_status?: string | null
           target_audience_description?: string | null
           team_id?: string | null
+          tone_of_voice?: string | null
           tutorial_completed?: boolean | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           banner_url?: string | null
+          biography?: string | null
           city?: string | null
           created_at?: string | null
           credits?: number | null
           email?: string
+          evidence_history?: string | null
           focus_areas?: string[] | null
           force_password_change?: boolean | null
           id?: string
           main_social_networks?: string[] | null
+          mandate_stage?: string | null
           migration_user?: boolean | null
           name?: string
           onboarding_brands_completed?: boolean | null
@@ -650,6 +665,8 @@ export type Database = {
           political_level?: string | null
           political_party?: string | null
           political_role?: string | null
+          profile_detail_completed?: boolean | null
+          red_lines?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -657,6 +674,7 @@ export type Database = {
           subscription_status?: string | null
           target_audience_description?: string | null
           team_id?: string | null
+          tone_of_voice?: string | null
           tutorial_completed?: boolean | null
           updated_at?: string | null
         }
