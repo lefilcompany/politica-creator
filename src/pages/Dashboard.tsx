@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
@@ -21,6 +21,7 @@ import { DashboardProfileModal } from "@/components/dashboard/DashboardProfileMo
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
+  const queryClient = useQueryClient();
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Check if profile detail modal should show
@@ -231,7 +232,10 @@ const Dashboard = () => {
       </div>
       <DashboardProfileModal
         open={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
+        onClose={() => {
+          setShowProfileModal(false);
+          queryClient.setQueryData(['profile-detail-completed', user?.id], true);
+        }}
       />
     </div>
   );
