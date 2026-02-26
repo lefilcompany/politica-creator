@@ -832,7 +832,7 @@ const Auth = () => {
         </Button>
 
         {/* Container centralizado */}
-        <div className={`flex flex-col items-center gap-6 sm:gap-8 z-10 w-full ${isLoginMode ? 'max-w-lg' : 'max-w-3xl'}`}>
+        <div className={`flex flex-col items-center justify-center gap-6 sm:gap-8 z-10 w-full flex-1 ${isLoginMode ? 'max-w-lg' : 'max-w-3xl'}`}>
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
