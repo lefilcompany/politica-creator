@@ -10,6 +10,11 @@ export interface PoliticalProfile {
   focus_areas: string[] | null;
   main_social_networks: string[] | null;
   target_audience_description: string | null;
+  mandate_stage: string | null;
+  biography: string | null;
+  tone_of_voice: string | null;
+  red_lines: string | null;
+  evidence_history: string | null;
 }
 
 /**
@@ -21,7 +26,7 @@ export async function fetchPoliticalProfile(
 ): Promise<PoliticalProfile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('political_role, political_party, political_experience, political_level, focus_areas, main_social_networks, target_audience_description')
+    .select('political_role, political_party, political_experience, political_level, focus_areas, main_social_networks, target_audience_description, mandate_stage, biography, tone_of_voice, red_lines, evidence_history')
     .eq('id', userId)
     .single();
 
@@ -38,29 +43,27 @@ export function buildPoliticalContext(profile: PoliticalProfile | null): string 
 
   const lines: string[] = [];
 
-  if (profile.political_role) {
-    lines.push(`- Cargo político: ${profile.political_role}`);
-  }
-  if (profile.political_party) {
-    lines.push(`- Partido: ${profile.political_party}`);
-  }
-  if (profile.political_level) {
-    lines.push(`- Nível de atuação: ${profile.political_level}`);
-  }
-  if (profile.political_experience) {
-    lines.push(`- Experiência política: ${profile.political_experience}`);
-  }
-  if (profile.focus_areas && profile.focus_areas.length > 0) {
-    lines.push(`- Áreas de foco: ${profile.focus_areas.join(', ')}`);
-  }
-  if (profile.main_social_networks && profile.main_social_networks.length > 0) {
-    lines.push(`- Redes sociais principais: ${profile.main_social_networks.join(', ')}`);
-  }
-  if (profile.target_audience_description) {
-    lines.push(`- Público-alvo: ${profile.target_audience_description}`);
-  }
+  if (profile.political_role) lines.push(`- Cargo político: ${profile.political_role}`);
+  if (profile.political_party) lines.push(`- Partido: ${profile.political_party}`);
+  if (profile.political_level) lines.push(`- Nível de atuação: ${profile.political_level}`);
+  if (profile.political_experience) lines.push(`- Experiência política: ${profile.political_experience}`);
+  if (profile.mandate_stage) lines.push(`- Fase atual: ${profile.mandate_stage}`);
+  if (profile.focus_areas && profile.focus_areas.length > 0) lines.push(`- Áreas de foco: ${profile.focus_areas.join(', ')}`);
+  if (profile.main_social_networks && profile.main_social_networks.length > 0) lines.push(`- Redes sociais principais: ${profile.main_social_networks.join(', ')}`);
+  if (profile.target_audience_description) lines.push(`- Público-alvo: ${profile.target_audience_description}`);
+  if (profile.biography) lines.push(`- Biografia e trajetória: ${profile.biography}`);
+  if (profile.tone_of_voice) lines.push(`- Tom de voz preferido: ${profile.tone_of_voice}`);
+  if (profile.evidence_history) lines.push(`- Evidências e histórico: ${profile.evidence_history}`);
 
   if (lines.length === 0) return '';
 
-  return `\n# PERFIL POLÍTICO DO AUTOR\n${lines.join('\n')}\n\nIMPORTANTE: Considere o perfil político acima para adaptar tom, linguagem e contexto do conteúdo gerado. O conteúdo deve ser adequado ao cargo, partido e áreas de atuação do político.\n`;
+  let context = `\n# PERFIL POLÍTICO DO AUTOR\n${lines.join('\n')}\n`;
+
+  if (profile.red_lines) {
+    context += `\n# LINHAS VERMELHAS (RESTRIÇÕES ABSOLUTAS)\n${profile.red_lines}\n\nATENÇÃO: As linhas vermelhas acima são PROIBIÇÕES. O conteúdo NUNCA deve violar essas restrições.\n`;
+  }
+
+  context += `\nIMPORTANTE: Considere o perfil político acima para adaptar tom, linguagem e contexto do conteúdo gerado. O conteúdo deve ser adequado ao cargo, partido e áreas de atuação do político.\n`;
+
+  return context;
 }

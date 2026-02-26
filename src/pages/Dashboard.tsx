@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,9 +17,32 @@ import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActi
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
+import { DashboardProfileModal } from "@/components/dashboard/DashboardProfileModal";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  // Check if profile detail modal should show
+  const { data: profileDetailCompleted } = useQuery({
+    queryKey: ['profile-detail-completed', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('profile_detail_completed, mandate_stage, biography, tone_of_voice')
+        .eq('id', user!.id)
+        .single();
+      return data?.profile_detail_completed || (!!data?.mandate_stage && !!data?.biography && !!data?.tone_of_voice);
+    },
+    enabled: !!user?.id,
+    staleTime: Infinity,
+  });
+
+  useEffect(() => {
+    if (user && profileDetailCompleted === false) {
+      setShowProfileModal(true);
+    }
+  }, [user, profileDetailCompleted]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -206,6 +229,10 @@ const Dashboard = () => {
           isLoading={isLoadingActivities} 
         />
       </div>
+      <DashboardProfileModal
+        open={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </div>
   );
 };
