@@ -19,6 +19,7 @@ import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentA
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
 import { DashboardProfileModal } from "@/components/dashboard/DashboardProfileModal";
 import { ThesesBanner } from "@/components/dashboard/ThesesBanner";
+import { PoliticalProfileBanner } from "@/components/dashboard/PoliticalProfileBanner";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -211,6 +212,9 @@ const Dashboard = () => {
 
       {/* Banner */}
       <DashboardBanner userName={user.name} />
+
+      {/* Political Profile Banner */}
+      <PoliticalProfileBanner />
 
       {/* Quick Actions */}
       <div id="dashboard-quick-actions">
