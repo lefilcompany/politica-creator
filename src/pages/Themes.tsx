@@ -153,6 +153,10 @@ export default function Themes() {
               platforms: formData.platforms,
               expected_action: formData.expectedAction,
               additional_info: formData.additionalInfo,
+              tags: formData.tags,
+              subtags: formData.subtags as any,
+              objective_type: formData.objectiveType,
+              signals: formData.signals as any,
             })
             .eq('id', themeToEdit.id);
 
@@ -196,6 +200,10 @@ export default function Themes() {
               platforms: formData.platforms,
               expected_action: formData.expectedAction,
               additional_info: formData.additionalInfo,
+              tags: formData.tags,
+              subtags: formData.subtags as any,
+              objective_type: formData.objectiveType,
+              signals: formData.signals as any,
             })
             .select()
             .single();

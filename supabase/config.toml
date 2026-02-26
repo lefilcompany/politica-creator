@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.fact-check-content]
 verify_jwt = false
+
+[functions.collect-signals]
+verify_jwt = false

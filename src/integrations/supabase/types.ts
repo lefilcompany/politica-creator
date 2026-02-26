@@ -699,8 +699,12 @@ export type Database = {
           hashtags: string
           id: string
           macro_themes: string
+          objective_type: string | null
           objectives: string
           platforms: string
+          signals: Json | null
+          subtags: Json | null
+          tags: string[] | null
           target_audience: string
           team_id: string | null
           title: string
@@ -720,8 +724,12 @@ export type Database = {
           hashtags: string
           id?: string
           macro_themes: string
+          objective_type?: string | null
           objectives: string
           platforms: string
+          signals?: Json | null
+          subtags?: Json | null
+          tags?: string[] | null
           target_audience: string
           team_id?: string | null
           title: string
@@ -741,8 +749,12 @@ export type Database = {
           hashtags?: string
           id?: string
           macro_themes?: string
+          objective_type?: string | null
           objectives?: string
           platforms?: string
+          signals?: Json | null
+          subtags?: Json | null
+          tags?: string[] | null
           target_audience?: string
           team_id?: string | null
           title?: string

@@ -1,5 +1,15 @@
 import type { Plan } from "./plan";
 
+export type SignalItem = {
+  title: string;
+  description: string;
+  category: 'fato_confirmado' | 'noticia_local' | 'dado_publico' | 'release_institucional' | 'rumor' | 'tendencia';
+  status: 'verificado' | 'nao_verificado' | 'parcialmente_verificado';
+  relevance: 'alta' | 'media' | 'baixa';
+  source_hint: string;
+  date_hint: string;
+};
+
 export type StrategicTheme = {
   id: string;
   teamId: string;
@@ -18,6 +28,10 @@ export type StrategicTheme = {
   platforms: string;
   expectedAction: string;
   additionalInfo: string;
+  tags: string[];
+  subtags: Record<string, string[]>;
+  objectiveType: string;
+  signals: SignalItem[];
   createdAt: string;
   updatedAt: string;
 };
