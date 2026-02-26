@@ -535,8 +535,10 @@ export type Database = {
           created_at: string | null
           credits: number | null
           email: string
+          focus_areas: string[] | null
           force_password_change: boolean | null
           id: string
+          main_social_networks: string[] | null
           migration_user: boolean | null
           name: string
           onboarding_brands_completed: boolean | null
@@ -556,11 +558,16 @@ export type Database = {
           password_reset_sent_at: string | null
           phone: string | null
           plan_id: string | null
+          political_experience: string | null
+          political_level: string | null
+          political_party: string | null
+          political_role: string | null
           state: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_period_end: string | null
           subscription_status: string | null
+          target_audience_description: string | null
           team_id: string | null
           tutorial_completed: boolean | null
           updated_at: string | null
@@ -572,8 +579,10 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           email: string
+          focus_areas?: string[] | null
           force_password_change?: boolean | null
           id: string
+          main_social_networks?: string[] | null
           migration_user?: boolean | null
           name: string
           onboarding_brands_completed?: boolean | null
@@ -593,11 +602,16 @@ export type Database = {
           password_reset_sent_at?: string | null
           phone?: string | null
           plan_id?: string | null
+          political_experience?: string | null
+          political_level?: string | null
+          political_party?: string | null
+          political_role?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_period_end?: string | null
           subscription_status?: string | null
+          target_audience_description?: string | null
           team_id?: string | null
           tutorial_completed?: boolean | null
           updated_at?: string | null
@@ -609,8 +623,10 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           email?: string
+          focus_areas?: string[] | null
           force_password_change?: boolean | null
           id?: string
+          main_social_networks?: string[] | null
           migration_user?: boolean | null
           name?: string
           onboarding_brands_completed?: boolean | null
@@ -630,11 +646,16 @@ export type Database = {
           password_reset_sent_at?: string | null
           phone?: string | null
           plan_id?: string | null
+          political_experience?: string | null
+          political_level?: string | null
+          political_party?: string | null
+          political_role?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_period_end?: string | null
           subscription_status?: string | null
+          target_audience_description?: string | null
           team_id?: string | null
           tutorial_completed?: boolean | null
           updated_at?: string | null

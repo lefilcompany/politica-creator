@@ -42,6 +42,13 @@ export default function ProtectedRoute({ children, requireTeam = false }: Protec
       return;
     }
 
+    // Se o onboarding político não foi concluído, redirecionar
+    if (!user?.tutorialCompleted && location.pathname !== '/political-onboarding') {
+      hasRedirected.current = true;
+      navigate("/political-onboarding", { replace: true });
+      return;
+    }
+
     // Payment system disabled - free access
 
     // Se requer equipe especificamente e não tem, mostra mensagem
