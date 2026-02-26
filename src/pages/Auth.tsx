@@ -472,12 +472,9 @@ const Auth = () => {
 
   // Formulário de registro
   const registerFormContent = (
-    <form ref={registerFormRef} onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Grupo 1: Informações Pessoais */}
-      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
-        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Informações Pessoais
-        </Label>
+    <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-5">
+      {/* Row 1: Nome + Email */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -489,7 +486,6 @@ const Auth = () => {
             className="pl-10 h-11 text-sm"
           />
         </div>
-
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -504,89 +500,73 @@ const Auth = () => {
         </div>
       </div>
 
-      {/* Grupo 2: Segurança */}
-      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
-        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Segurança</Label>
-        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Senha"
-              required
-              minLength={6}
-              value={formData.password}
-              onChange={handleInputChange}
-              className="pl-10 pr-10 h-11 text-sm"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-8 w-8"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            </Button>
-          </div>
-
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              placeholder="Confirmar Senha"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 h-11 text-sm"
-            />
-          </div>
+      {/* Row 2: Senha + Confirmar Senha */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Senha"
+            required
+            minLength={6}
+            value={formData.password}
+            onChange={handleInputChange}
+            className="pl-10 pr-10 h-11 text-sm"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 h-8 w-8"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+          </Button>
+        </div>
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="confirmPassword"
+            type={showPassword ? "text" : "password"}
+            placeholder="Confirmar Senha"
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="pl-10 h-11 text-sm"
+          />
         </div>
       </div>
 
       {/* Validação de senha */}
       <div 
-        className={`md:col-span-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2.5 rounded-xl border border-green-200/50 dark:border-green-800/50 transition-all duration-300 ${
+        className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2.5 rounded-xl border border-green-200/50 dark:border-green-800/50 transition-all duration-300 ${
           formData.password ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden p-0 border-0'
         }`}
         aria-hidden={!formData.password}
       >
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <div
-              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${isPasswordValid ? "bg-green-500" : "bg-red-500"}`}
-            >
-              {isPasswordValid && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
+        <div className="flex justify-between items-center gap-2">
+          <div className="flex items-center gap-2 text-xs">
+            <div className={`w-2.5 h-2.5 rounded-full flex items-center justify-center transition-all ${isPasswordValid ? "bg-green-500" : "bg-red-500"}`}>
+              {isPasswordValid && <span className="text-white text-[8px]">✓</span>}
             </div>
-            <span
-              className={`font-medium transition-colors ${isPasswordValid ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
-            >
+            <span className={`font-medium transition-colors ${isPasswordValid ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}>
               Mínimo 6 caracteres
             </span>
           </div>
-
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <div
-              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${passwordsMatch ? "bg-green-500" : "bg-red-500"}`}
-            >
-              {passwordsMatch && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
+          <div className="flex items-center gap-2 text-xs">
+            <div className={`w-2.5 h-2.5 rounded-full flex items-center justify-center transition-all ${passwordsMatch ? "bg-green-500" : "bg-red-500"}`}>
+              {passwordsMatch && <span className="text-white text-[8px]">✓</span>}
             </div>
-            <span
-              className={`font-medium transition-colors ${passwordsMatch ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
-            >
+            <span className={`font-medium transition-colors ${passwordsMatch ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}>
               Senhas coincidem
             </span>
           </div>
         </div>
       </div>
 
-      {/* Grupo 3: Informações de Contato */}
-      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
-        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Informações de Contato
-        </Label>
+      {/* Row 3: Telefone + Estado + Cidade */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="relative">
           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -599,7 +579,6 @@ const Auth = () => {
             maxLength={15}
           />
         </div>
-
         <div className="relative">
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <select
@@ -619,56 +598,42 @@ const Auth = () => {
             ))}
           </select>
         </div>
-
-        <div>
-          <div className="relative">
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <select
-              value={formData.city}
-              onChange={(e) => handleSelectChange("city", e.target.value)}
-              disabled={loadingCities || !formData.state}
-              className="w-full h-11 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              data-lpignore="true"
-              data-1p-ignore="true"
-              autoComplete="off"
-            >
-              <option value="" disabled>Cidade</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.nome}>
-                  {city.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Grupo 4: Cupom (Opcional) */}
-      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
-        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Cupom (Opcional)
-        </Label>
         <div className="relative">
-          <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="couponCode"
-            placeholder="Digite seu cupom"
-            value={couponCode}
-            onChange={handleCouponInput}
-            className="pl-10 h-11 text-sm font-mono tracking-wider"
-            maxLength={30}
-          />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <select
+            value={formData.city}
+            onChange={(e) => handleSelectChange("city", e.target.value)}
+            disabled={loadingCities || !formData.state}
+            className="w-full h-11 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            autoComplete="off"
+          >
+            <option value="" disabled>Cidade</option>
+            {cities.map((city) => (
+              <option key={city.id} value={city.nome}>
+                {city.nome}
+              </option>
+            ))}
+          </select>
         </div>
-        <p className={`text-xs transition-all duration-200 ${couponCode ? 'opacity-100 h-auto' : 'opacity-0 h-0 overflow-hidden'}`}>
-          {isValidCouponFormat ? (
-            <span className="text-green-600 font-medium">✓ Formato válido</span>
-          ) : (
-            <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
-          )}
-        </p>
       </div>
 
-      <div className="space-y-4 pt-2 md:col-span-2">
+      {/* Row 4: Cupom */}
+      <div className="relative">
+        <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          id="couponCode"
+          placeholder="Cupom (opcional) — Ex: nome200 ou XX-YYYYYY-CC"
+          value={couponCode}
+          onChange={handleCouponInput}
+          className="pl-10 h-11 text-sm font-mono tracking-wider"
+          maxLength={30}
+        />
+      </div>
+
+      {/* Privacy + Submit */}
+      <div className="space-y-4 pt-1">
         <div className="flex items-start gap-2">
           <Checkbox
             id="privacy"
@@ -713,9 +678,8 @@ const Auth = () => {
             !privacyAccepted
           }
         >
-        {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
+          {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
         </Button>
-
       </div>
     </form>
   );
