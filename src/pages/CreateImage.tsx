@@ -519,8 +519,7 @@ export default function CreateImage() {
       formData.objective &&
       formData.platform &&
       formData.description &&
-      formData.tone.length > 0 &&
-      referenceFiles.length > 0
+      formData.tone.length > 0
     );
   }, [
     formData.brand,
@@ -528,7 +527,6 @@ export default function CreateImage() {
     formData.platform,
     formData.description,
     formData.tone.length,
-    referenceFiles.length
   ]);
 
   const validateForm = () => {
@@ -538,7 +536,7 @@ export default function CreateImage() {
     if (!formData.platform) missing.push('platform');
     if (!formData.description) missing.push('description');
     if (formData.tone.length === 0) missing.push('tone');
-    if (referenceFiles.length === 0) missing.push('referenceFiles');
+    // Imagens de referência são opcionais
     setMissingFields(missing);
     return missing.length === 0;
   };
@@ -1473,7 +1471,7 @@ export default function CreateImage() {
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-bold text-foreground flex items-center gap-2">
                     <ImagePlus className="h-4 w-4" />
-                    Imagens de Referência <span className="text-destructive">*</span>
+                    Imagens de Referência <span className="text-muted-foreground text-xs font-normal">(opcional)</span>
                   </Label>
                   <span className={`text-xs font-medium ${
                     referenceFiles.length >= 5 ? 'text-destructive' 
