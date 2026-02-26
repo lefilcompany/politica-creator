@@ -851,26 +851,48 @@ const Auth = () => {
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
 
-        {/* Container centralizado */}
-        <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full max-w-lg">
-          {/* Logo */}
+        {/* Layout 2 colunas */}
+        <div className="z-10 w-full max-w-5xl flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
+          {/* Coluna esquerda: Logo + Info */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex-shrink-0"
+            className="flex flex-col items-center lg:items-start gap-6 lg:sticky lg:top-8 lg:w-1/2 lg:pt-12"
           >
             <CreatorLogo />
+            <div className="text-center lg:text-left space-y-3">
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+                Crie conteúdo estratégico com IA
+              </h1>
+              <p className="text-muted-foreground text-base sm:text-lg max-w-md">
+                Planeje, crie e revise conteúdos para suas redes sociais de forma inteligente e organizada.
+              </p>
+            </div>
+            <div className="hidden lg:flex flex-col gap-3 mt-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+                <span>Geração de conteúdo com inteligência artificial</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+                <span>Planejamento estratégico de publicações</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+                <span>Revisão e aprovação em equipe</span>
+              </div>
+            </div>
           </motion.div>
 
-          {/* Card de auth */}
+          {/* Coluna direita: Formulário */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full relative flex-shrink-0"
+            className="w-full lg:w-1/2 relative flex-shrink-0"
           >
-            <div className="flex flex-col">
+            <div className="bg-card/90 backdrop-blur-xl rounded-2xl shadow-xl shadow-primary/5 border border-border/40 p-5 sm:p-7 md:p-8 flex flex-col">
               {/* Tabs */}
               <div className="flex mb-5 sm:mb-6 flex-shrink-0 border-b border-border/30">
                 <button
