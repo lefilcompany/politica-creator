@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
-import { fetchNewsArticles, formatArticlesForPrompt } from '../_shared/newsapi.ts';
+import { fetchNewsMultiQuery, formatArticlesForPrompt } from '../_shared/newsapi.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -63,61 +63,114 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'AI not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // ---- Extract key terms and search NewsAPI for verification ----
-    // Extract main entities/claims from the content for searching
-    const contentSnippet = content.trim().substring(0, 500);
-    // Extract proper nouns and key terms (names, parties, places)
-    const keyTerms = contentSnippet
-      .split(/[\s,.\-;:!?()"""'']+/)
-      .filter((w: string) => w.length > 3 && /^[A-ZÁÀÃÂÉÊÍÓÔÕÚÇ]/.test(w))
-      .slice(0, 8)
-      .join(' ');
+    // ---- Step 1: Use AI to extract key claims and search queries ----
+    const extractionResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [{
+          role: "user",
+          content: `Extraia do texto abaixo as principais AFIRMAÇÕES FACTUAIS que podem ser verificadas, e gere de 3 a 5 consultas de busca curtas (2-4 palavras cada) em português para pesquisar essas afirmações em notícias reais. Foque em nomes, datas, números, eventos, leis e dados citados.
 
-    const searchQuery = keyTerms || contentSnippet.substring(0, 100);
-    const articles = await fetchNewsArticles(searchQuery, { pageSize: 15 });
+Texto: "${content.trim().substring(0, 2000)}"
+
+Responda APENAS com JSON:
+{"claims": ["afirmação 1", "afirmação 2"], "searchQueries": ["consulta 1", "consulta 2", "consulta 3"]}`
+        }],
+        temperature: 0.1,
+      }),
+    });
+
+    let searchQueries: string[] = [];
+    let extractedClaims: string[] = [];
+
+    if (extractionResponse.ok) {
+      const extData = await extractionResponse.json();
+      const extContent = extData.choices?.[0]?.message?.content || '';
+      try {
+        const jsonMatch = extContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          searchQueries = parsed.searchQueries || [];
+          extractedClaims = parsed.claims || [];
+        }
+      } catch {
+        console.warn('Failed to parse extraction response');
+      }
+    } else {
+      await extractionResponse.text(); // consume body
+    }
+
+    // Fallback: extract key terms manually if AI extraction failed
+    if (searchQueries.length === 0) {
+      const contentSnippet = content.trim().substring(0, 500);
+      const keyTerms = contentSnippet
+        .split(/[\s,.\-;:!?()"""'']+/)
+        .filter((w: string) => w.length > 3 && /^[A-ZÁÀÃÂÉÊÍÓÔÕÚÇ]/.test(w))
+        .slice(0, 8)
+        .join(' ');
+      searchQueries = [keyTerms || contentSnippet.substring(0, 100)];
+    }
+
+    // ---- Step 2: Multi-query news search (7 days window) ----
+    const articles = await fetchNewsMultiQuery(searchQueries, { pageSize: 10, days: 7 });
     const newsContext = formatArticlesForPrompt(articles);
+
+    console.log(`Fact-check: ${searchQueries.length} queries, ${articles.length} articles found`);
 
     const today = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+    const claimsContext = extractedClaims.length > 0
+      ? `\n## AFIRMAÇÕES EXTRAÍDAS DO TEXTO:\n${extractedClaims.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n`
+      : '';
+
     const prompt = `${politicalContext}
 
-# MISSÃO: VERIFICADOR DE CONTEÚDO (FACT-CHECK) COM FONTES REAIS
+# MISSÃO: VERIFICADOR DE CONTEÚDO (FACT-CHECK) RIGOROSO
 
 Data de hoje: ${today}
 
-Você é um editor e fact-checker profissional especializado em comunicação política.
+Você é um fact-checker profissional premiado, especializado em verificação jornalística rigorosa. Sua reputação depende de PRECISÃO ABSOLUTA.
 
 ## CONTEÚDO A SER VERIFICADO:
 "${content.trim()}"
-
-## NOTÍCIAS REAIS ENCONTRADAS (últimas 24 horas via NewsAPI):
+${claimsContext}
+## NOTÍCIAS REAIS ENCONTRADAS (últimos 7 dias via NewsAPI):
 ${newsContext}
 
-## TAREFA
-Analise o conteúdo acima CRUZANDO com as notícias reais encontradas. Para cada afirmação no texto:
+## REGRAS DE VERIFICAÇÃO RIGOROSAS
 
-1. **Verifique se há correspondência** com as notícias reais — confirme ou desminta com base nos fatos
-2. **Cite as fontes** — mencione o nome do veículo e a data de publicação da notícia que comprova ou desmente
-3. **Identifique afirmações sem verificação possível** — quando não houver notícia correspondente
+1. **NUNCA invente fontes, dados ou informações.** Se não há evidência, diga claramente "sem verificação possível".
+2. **Cruze CADA afirmação factual** com as notícias reais fornecidas. Busque correspondências de nomes, datas, números e eventos.
+3. **Diferencie claramente entre:**
+   - Fatos confirmados por fontes (cite a fonte específica com nome do veículo e data)
+   - Fatos parcialmente confirmados (explique o que bate e o que diverge)
+   - Afirmações sem possibilidade de verificação nas fontes disponíveis
+   - Contradições diretas com fontes (cite qual fonte contradiz)
+4. **Seja HONESTO sobre limitações:** Se as notícias encontradas não cobrem o tema, informe isso claramente no veredicto.
+5. **Para cada alerta, SEMPRE inclua a fonte real** que sustenta sua análise (nome do veículo, URL e data).
+6. **Opiniões não são fatos** — não marque opiniões como "imprecisão". Foque em dados, números, datas e eventos verificáveis.
 
-Categorize cada alerta como:
-- "imprecisao" — Informação que contradiz fontes reais
-- "sem_fonte" — Afirmação que não tem comprovação nas fontes consultadas
-- "exagero" — Exagero ou generalização perigosa
-- "risco_imagem" — Frase que pode ser usada contra o político
-- "desinformacao" — Conteúdo que se assemelha a desinformação
-- "confirmado" — Afirmação confirmada por fontes reais
+## CATEGORIAS DE ALERTAS
+- "confirmado" — Afirmação confirmada por fonte real (CITE A FONTE)
+- "imprecisao" — Dados que contradizem fontes reais (CITE A FONTE que contradiz)
+- "sem_fonte" — Afirmação factual sem comprovação nas fontes consultadas
+- "exagero" — Exagero quantitativo ou generalização não sustentada por dados
+- "risco_imagem" — Frase que pode ser usada contra o político em contexto adversário
+- "desinformacao" — Conteúdo que contradiz fatos amplamente documentados
 
-IMPORTANTE:
-- Baseie-se SOMENTE nas notícias reais fornecidas. Não invente fontes.
-- Para cada alerta, indique qual fonte confirma ou contradiz a afirmação.
-- Se não houver notícias relevantes, informe que não foi possível verificar com fontes recentes.
+## SCORE DE CONFIABILIDADE (0-100)
+- 90-100: Todas as afirmações factuais confirmadas por fontes
+- 70-89: Maioria confirmada, poucas sem verificação
+- 50-69: Há contradições com fontes ou muitas afirmações não verificáveis
+- 30-49: Múltiplas imprecisões detectadas
+- 0-29: Desinformação clara ou dados amplamente incorretos
 
-Atribua um score de confiabilidade de 0 a 100:
-- 90-100: Excelente, afirmações confirmadas por fontes
-- 70-89: Bom, mas algumas afirmações sem verificação
-- 50-69: Atenção, há contradições com fontes reais
-- 0-49: Crítico, várias imprecisões detectadas`;
+IMPORTANTE: O score deve refletir a REALIDADE. Não infle o score. Se não há fontes para verificar, o score deve ser na faixa 50-69 (incerteza), NÃO 90+.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -126,7 +179,7 @@ Atribua um score de confiabilidade de 0 a 100:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [{ role: "user", content: prompt }],
         tools: [{
           type: "function",
@@ -136,7 +189,7 @@ Atribua um score de confiabilidade de 0 a 100:
             parameters: {
               type: "object",
               properties: {
-                score: { type: "number", description: "Score de confiabilidade 0-100" },
+                score: { type: "number", description: "Score de confiabilidade 0-100 baseado em evidências reais" },
                 verdict: { type: "string", enum: ["excelente", "bom", "atencao", "critico"], description: "Veredicto geral" },
                 alerts: {
                   type: "array",
@@ -145,18 +198,18 @@ Atribua um score de confiabilidade de 0 a 100:
                     properties: {
                       type: { type: "string", enum: ["imprecisao", "sem_fonte", "exagero", "risco_imagem", "desinformacao", "confirmado"] },
                       severity: { type: "string", enum: ["alta", "media", "baixa"] },
-                      text: { type: "string", description: "Trecho do conteúdo analisado" },
-                      explanation: { type: "string", description: "Explicação do problema ou confirmação" },
-                      suggestion: { type: "string", description: "Sugestão de correção ou validação" },
-                      source: { type: "string", description: "Nome do veículo/fonte que comprova ou contradiz (se disponível)" },
-                      sourceUrl: { type: "string", description: "URL da fonte (se disponível)" },
-                      sourceDate: { type: "string", description: "Data da publicação da fonte (se disponível)" },
+                      text: { type: "string", description: "Trecho EXATO do conteúdo analisado" },
+                      explanation: { type: "string", description: "Explicação detalhada com base factual" },
+                      suggestion: { type: "string", description: "Sugestão concreta de correção ou validação" },
+                      source: { type: "string", description: "Nome do veículo/fonte que comprova ou contradiz" },
+                      sourceUrl: { type: "string", description: "URL da fonte" },
+                      sourceDate: { type: "string", description: "Data da publicação da fonte" },
                     },
                     required: ["type", "severity", "text", "explanation", "suggestion"],
                     additionalProperties: false,
                   },
                 },
-                overallSuggestion: { type: "string", description: "Recomendação geral para o conteúdo" },
+                overallSuggestion: { type: "string", description: "Recomendação geral detalhada para melhorar o conteúdo" },
                 sources: {
                   type: "array",
                   items: {
@@ -170,10 +223,11 @@ Atribua um score de confiabilidade de 0 a 100:
                     required: ["name", "title"],
                     additionalProperties: false,
                   },
-                  description: "Lista de todas as fontes consultadas para esta verificação",
+                  description: "Lista de TODAS as fontes reais consultadas",
                 },
+                verificationSummary: { type: "string", description: "Resumo de 2-3 frases sobre o que foi possível verificar e o que não foi" },
               },
-              required: ["score", "verdict", "alerts", "overallSuggestion", "sources"],
+              required: ["score", "verdict", "alerts", "overallSuggestion", "sources", "verificationSummary"],
               additionalProperties: false,
             },
           },
@@ -196,7 +250,7 @@ Atribua um score de confiabilidade de 0 a 100:
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let result = { score: 0, verdict: 'critico', alerts: [], overallSuggestion: '', sources: [] };
+    let result = { score: 0, verdict: 'critico', alerts: [], overallSuggestion: '', sources: [], verificationSummary: '' };
 
     if (toolCall?.function?.arguments) {
       result = JSON.parse(toolCall.function.arguments);
@@ -220,6 +274,7 @@ Atribua um score de confiabilidade de 0 a 100:
       JSON.stringify({
         ...result,
         articlesFound: articles.length,
+        searchQueries,
         creditsUsed: CREDIT_COSTS.FACT_CHECK,
         remainingCredits: deductResult.newCredits,
       }),
