@@ -819,15 +819,27 @@ serve(async (req) => {
         const data = await response.json();
         console.log('Gateway response received');
 
-        // Extract image from response
-        if (data.choices?.[0]?.message?.content) {
-          const content = data.choices[0].message.content;
-          
+        // Extract image - check the `images` field first (Lovable AI Gateway format)
+        const message = data.choices?.[0]?.message;
+        if (message?.images?.length > 0) {
+          const img = message.images[0];
+          if (img?.image_url?.url) {
+            imageUrl = img.image_url.url;
+            console.log('Image extracted from message.images[]');
+          }
+          if (message.content && typeof message.content === 'string') {
+            description = message.content;
+          }
+        }
+
+        // Fallback: check content array format
+        if (!imageUrl && message?.content) {
+          const content = message.content;
           if (Array.isArray(content)) {
             for (const part of content) {
               if (part.type === 'image_url' && part.image_url?.url) {
                 imageUrl = part.image_url.url;
-                console.log('Image extracted from array response');
+                console.log('Image extracted from content array');
                 break;
               }
               if (part.type === 'text' && part.text) {
@@ -839,7 +851,7 @@ serve(async (req) => {
           }
         }
 
-        // Also check for inline_data style (Gemini native format)
+        // Fallback: inline_data style (Gemini native format)
         if (!imageUrl && data.candidates?.[0]?.content?.parts) {
           const parts = data.candidates[0].content.parts;
           for (const part of parts) {
@@ -856,6 +868,7 @@ serve(async (req) => {
         }
 
         if (!imageUrl) {
+          console.error('Response structure:', JSON.stringify(Object.keys(data)), JSON.stringify(Object.keys(message || {})));
           throw new Error('No image found in response');
         }
 
