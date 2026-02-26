@@ -467,16 +467,6 @@ const Auth = () => {
         </Button>
       </div>
 
-      <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
-        </div>
-      </div>
-
-      <GoogleSignInButton />
     </form>
   );
 
@@ -726,16 +716,6 @@ const Auth = () => {
         {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
         </Button>
 
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
-          </div>
-        </div>
-
-        <GoogleSignInButton label="Cadastrar com Google" />
       </div>
     </form>
   );
