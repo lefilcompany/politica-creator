@@ -28,10 +28,8 @@ const POLITICAL_LEVELS = [
 ];
 
 const EXPERIENCE_OPTIONS = [
-  { value: 'pre_candidato', label: 'Pré-candidato(a)', desc: 'Ainda não exerceu mandato' },
-  { value: 'primeiro_mandato', label: 'Primeiro mandato', desc: 'Exercendo o primeiro mandato' },
+  { value: 'sem_mandato', label: 'Não tem mandato ainda', desc: 'Ainda não exerceu nenhum mandato' },
   { value: 'reeleicao', label: 'Reeleição', desc: 'Já exerceu mandato anteriormente' },
-  { value: 'assessor', label: 'Assessor(a)', desc: 'Trabalha com assessoria política' },
 ];
 
 const FOCUS_AREAS = [
