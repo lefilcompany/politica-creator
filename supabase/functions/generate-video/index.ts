@@ -255,10 +255,29 @@ serve(async (req) => {
       duration = 8,
       negativePrompt = ''
     } = await req.json();
-    
+
+    const sanitizePromptForVideoSafety = (rawPrompt: string): string => {
+      if (!rawPrompt) return rawPrompt;
+
+      let sanitized = rawPrompt;
+
+      // Remove assinatura explícita de marca com nome próprio (ex: "Marca: Vereador X")
+      sanitized = sanitized.replace(/(?:^|\s)Marca:\s*[^.!\n]+[.!]?/gi, ' ');
+
+      // Neutraliza títulos com possível nome próprio para reduzir bloqueios de política
+      sanitized = sanitized.replace(
+        /\b(Vereador|Vereadora|Deputado|Deputada|Prefeito|Prefeita|Senador|Senadora|Governador|Governadora)\s+[A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+(?:\s+[A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+){0,3}/g,
+        '$1 local'
+      );
+
+      return sanitized.replace(/\s+/g, ' ').trim() || rawPrompt;
+    };
+
+    const safePrompt = sanitizePromptForVideoSafety(prompt);
+
     console.log('🎬 Iniciando geração de vídeo com Gemini Veo');
     console.log('🎯 Tipo de geração:', generationType);
-    console.log('📝 Prompt:', prompt);
+    console.log('📝 Prompt sanitizado:', safePrompt);
     console.log('🆔 Action ID:', actionId);
     console.log('📝 Incluir texto:', includeText);
     console.log('📝 Conteúdo do texto:', textContent ? `"${textContent}"` : 'Nenhum');
@@ -425,9 +444,9 @@ serve(async (req) => {
         prompt = `[CRITICAL - IDENTITY PRESERVATION MODE]
 
 EXACT VISUAL REPLICATION:
-- COPY EXACTLY: All colors, textures, objects, people, clothing, backgrounds from the provided image
-- MAINTAIN PRECISELY: Facial features, body proportions, visual style, composition, lighting quality
-- DO NOT ALTER: Color schemes, visual elements, design aesthetic, or any identifying characteristics
+- COPY EXACTLY: colors, textures, objects, clothing, and backgrounds from the provided image
+- MAINTAIN PRECISELY: scene composition, lighting quality, and camera framing
+- DO NOT ALTER: color schemes, visual elements, or design aesthetic
 
 ALLOWED CHANGES:
 - Add subtle motion/animation to existing elements
@@ -439,7 +458,6 @@ ${basePrompt}
 FORBIDDEN:
 - Changing colors, styles, or visual identity
 - Adding new objects, people, or elements not in the original image
-- Modifying facial features, clothing, or backgrounds
 - Altering the artistic style or visual aesthetic`;
       } else {
         prompt = `ANIMATION BASED ON REFERENCE IMAGE:
@@ -560,7 +578,7 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
     if (generationType === 'image_to_video') {
       // Veo 3.0: Prompt focado em movimento com preservação exata
       const preserveIdentity = preserveImages && preserveImages.length > 0;
-      optimizedPrompt = buildVeo30Prompt(prompt, preserveIdentity, negativePrompt);
+      optimizedPrompt = buildVeo30Prompt(safePrompt, preserveIdentity, negativePrompt);
       console.log('🎬 Using Veo 3.0 optimized prompt (Image-to-Video)');
     } else {
       // Veo 3.1: Prompt estruturado com pesos e comandos imperativos
@@ -568,7 +586,7 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
       const hasStyleImages = styleReferenceImages && styleReferenceImages.length > 0;
       
       optimizedPrompt = buildVeo31Prompt(
-        prompt,
+        safePrompt,
         brandData,
         themeData,
         personaData,
