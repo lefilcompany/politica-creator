@@ -517,20 +517,14 @@ export default function CreateVideo() {
                     value={formData.videoModel}
                     onValueChange={(value) => {
                       const newModel = value as 'veo' | 'sora';
-                      setFormData(prev => ({
+                    setFormData(prev => ({
                         ...prev,
                         videoModel: newModel,
                         // Ajustar duração para limites do modelo
                         videoDuration: newModel === 'sora' 
                           ? (prev.videoDuration > 10 ? 10 : prev.videoDuration < 5 ? 5 : prev.videoDuration)
                           : (prev.videoDuration > 8 ? 8 : prev.videoDuration < 4 ? 4 : prev.videoDuration),
-                        // Sora não suporta image_to_video via referência direta
-                        videoGenerationType: newModel === 'sora' ? 'text_to_video' : prev.videoGenerationType,
                       }));
-                      if (newModel === 'sora' && referenceImage) {
-                        removeReferenceImage();
-                        toast.info("Sora 2 funciona apenas com texto. A imagem de referência foi removida.");
-                      }
                     }}
                     options={[
                       { value: "veo", label: "Google Veo 3 (Padrão)" },
@@ -541,7 +535,7 @@ export default function CreateVideo() {
                   />
                   <p className="text-xs text-muted-foreground">
                     {formData.videoModel === 'sora' 
-                      ? 'Sora 2: vídeos com áudio sincronizado, até 20s'
+                      ? 'Sora 2: vídeos com áudio sincronizado e imagem de referência'
                       : 'Veo 3: suporta imagem-para-vídeo'}
                   </p>
                 </div>
@@ -663,8 +657,8 @@ export default function CreateVideo() {
             </CardContent>
           </Card>
 
-          {/* 5. Imagem de Referência (apenas para Veo) */}
-          {formData.videoModel === 'veo' && (
+          {/* 5. Imagem de Referência */}
+          {(
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
             <CardContent className="p-4 md:p-5 space-y-3">
               <Label className="text-sm font-bold text-foreground flex items-center gap-2">
