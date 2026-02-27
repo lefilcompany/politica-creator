@@ -294,7 +294,7 @@ export default function Defense() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Search className="h-5 w-5 text-primary" />
-                Monitor de Fake News
+                Radar de Notícias
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Busque por menções falsas ou ataques relacionados ao seu perfil político. Custo: {CREDIT_COSTS.FAKE_NEWS_MONITOR} créditos.
