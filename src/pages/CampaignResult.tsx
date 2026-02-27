@@ -14,6 +14,7 @@ import {
   Sparkles, Loader2, ChevronLeft, Coins, ArrowRight,
   Download, Pencil, Undo2, Redo2,
 } from "lucide-react";
+import { Activity } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import createBanner from "@/assets/create-banner.jpg";
 
@@ -463,9 +464,15 @@ export default function CampaignResult() {
         </section>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-wrap gap-3 pt-4">
           <Button variant="outline" onClick={() => navigate("/create/campaign")} className="gap-2">
             <ChevronLeft className="h-4 w-4" /> Nova Campanha
+          </Button>
+          <Button variant="outline" onClick={() => {
+            const allTexts = pkg.micro_narrativas?.map((n: any) => `${n.titulo}\n${n.texto}`).join("\n\n") || "";
+            navigate("/repercussion", { state: { content: allTexts.substring(0, 2000) } });
+          }} className="gap-2">
+            <Activity className="h-4 w-4" /> Analisar Repercussão
           </Button>
           <Button variant="outline" onClick={() => navigate("/history")} className="gap-2">
             Ver Histórico <ArrowRight className="h-4 w-4" />

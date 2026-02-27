@@ -12,6 +12,7 @@ export const CREDIT_COSTS = {
   FAKE_NEWS_RESPOND: 3,     // Resposta a fake news
   FACT_CHECK: 1,            // Verificação de conteúdo
   CAMPAIGN_PACKAGE: 50,     // Pacote de campanha completo
+  ANALYZE_REPERCUSSION: 2,  // Análise de repercussão
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {

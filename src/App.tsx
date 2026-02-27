@@ -62,6 +62,8 @@ const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Defense = lazy(() => import("./pages/Defense"));
 const ActionView = lazy(() => import("./pages/ActionView"));
+const RepercussionAnalysis = lazy(() => import("./pages/RepercussionAnalysis"));
+const RepercussionResult = lazy(() => import("./pages/RepercussionResult"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
@@ -151,6 +153,8 @@ const App = () => (
                         <Route path="about" element={<SuspenseRoute><About /></SuspenseRoute>} />
                         <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
                         <Route path="defense" element={<SuspenseRoute><Defense /></SuspenseRoute>} />
+                        <Route path="repercussion" element={<SuspenseRoute><RepercussionAnalysis /></SuspenseRoute>} />
+                        <Route path="repercussion-result" element={<SuspenseRoute><RepercussionResult /></SuspenseRoute>} />
                       </Route>
                       
                       {/* System admin routes with separate layout */}
