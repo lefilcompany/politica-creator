@@ -62,22 +62,15 @@ const Dashboard = () => {
   }, [user]);
 
   const { data: actionsCount = 0 } = useQuery({
-    queryKey: ['dashboard-actions-count', user?.id, user?.teamId],
+    queryKey: ['dashboard-actions-count', user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
       try {
-        let query = supabase
+        const { count, error } = await supabase
           .from('actions')
           .select('id', { count: 'exact', head: true })
-          .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO']);
-        
-        if (user.teamId) {
-          query = query.eq('team_id', user.teamId);
-        } else {
-          query = query.eq('user_id', user.id);
-        }
-        
-        const { count, error } = await query;
+          .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO'])
+          .eq('user_id', user.id);
         if (error) throw error;
         return count || 0;
       } catch {
@@ -125,24 +118,15 @@ const Dashboard = () => {
   });
 
   const { data: recentActivities = [], isLoading: isLoadingActivities } = useQuery({
-    queryKey: ['dashboard-recent-activities', user?.teamId],
+    queryKey: ['dashboard-recent-activities', user?.id],
     queryFn: async () => {
-      if (!user?.teamId) return [];
-      try {
-        const { data, error } = await supabase
-          .rpc('get_action_summaries', {
-            p_team_id: user.teamId,
-            p_limit: 6,
-          });
-        if (!error && data && data.length > 0) return data;
-      } catch {}
-      // Fallback: direct query
+      if (!user?.id) return [];
       const { data: fallbackData } = await supabase
         .from('actions')
         .select('id, type, created_at, approved, brand_id, brands(name), result, details, thumb_path')
-        .eq('team_id', user.teamId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(6);
       return (fallbackData || []).map((a: any) => ({
         id: a.id,
         type: a.type,
@@ -158,7 +142,7 @@ const Dashboard = () => {
         thumb_path: a.thumb_path || null,
       }));
     },
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 
 

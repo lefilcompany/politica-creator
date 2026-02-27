@@ -68,17 +68,16 @@ export default function CreateVideo() {
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
 
   // React Query for brands, themes, personas
-  const teamId = user?.teamId;
   const userId = user?.id;
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
-    queryKey: ['brands', teamId],
+    queryKey: ['brands', userId],
     queryFn: async () => {
-      if (!teamId) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('brands')
         .select('id, name, responsible, created_at, updated_at')
-        .eq('team_id', teamId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []).map((b: any) => ({
@@ -86,43 +85,43 @@ export default function CreateVideo() {
         brandColor: null, avatarUrl: null, createdAt: b.created_at, updatedAt: b.updated_at,
       })) as BrandSummary[];
     },
-    enabled: !!teamId,
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: themes = [], isLoading: loadingThemes } = useQuery({
-    queryKey: ['themes', teamId],
+    queryKey: ['themes', userId],
     queryFn: async () => {
-      if (!teamId) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('strategic_themes')
         .select('id, brand_id, title, created_at')
-        .eq('team_id', teamId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []).map((t: any) => ({
         id: t.id, brandId: t.brand_id, title: t.title, createdAt: t.created_at,
       })) as StrategicThemeSummary[];
     },
-    enabled: !!teamId,
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: personas = [], isLoading: loadingPersonas } = useQuery({
-    queryKey: ['personas', teamId],
+    queryKey: ['personas', userId],
     queryFn: async () => {
-      if (!teamId) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('personas')
         .select('id, brand_id, name, created_at')
-        .eq('team_id', teamId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []).map((p: any) => ({
         id: p.id, brandId: p.brand_id, name: p.name, createdAt: p.created_at,
       })) as PersonaSummary[];
     },
-    enabled: !!teamId,
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 

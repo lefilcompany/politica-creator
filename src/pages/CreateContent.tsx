@@ -266,17 +266,17 @@ export default function CreateContent() {
           supabase
             .from('brands')
             .select('id, name, responsible, created_at, updated_at')
-            .eq('team_id', user.teamId)
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false }),
           supabase
             .from('strategic_themes')
             .select('id, brand_id, title, created_at')
-            .eq('team_id', user.teamId)
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false }),
           supabase
             .from('personas')
             .select('id, brand_id, name, created_at')
-            .eq('team_id', user.teamId)
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false })
         ]);
 

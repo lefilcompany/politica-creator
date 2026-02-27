@@ -45,16 +45,10 @@ const ReviewContent = () => {
 
   // React Query for brands
   const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
-    queryKey: ['brands', user?.teamId],
+    queryKey: ['brands', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const query = supabase.from("brands").select("id, name");
-      if (user.teamId) {
-        query.eq("team_id", user.teamId);
-      } else {
-        query.eq("user_id", user.id);
-      }
-      const { data, error } = await query;
+      const { data, error } = await supabase.from("brands").select("id, name").eq("user_id", user.id);
       if (error) throw error;
       return data || [];
     },
@@ -64,16 +58,10 @@ const ReviewContent = () => {
 
   // React Query for themes
   const { data: themes = [], isLoading: isLoadingThemes } = useQuery({
-    queryKey: ['themes', user?.teamId],
+    queryKey: ['themes', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const query = supabase.from("strategic_themes").select("id, title, brand_id");
-      if (user.teamId) {
-        query.eq("team_id", user.teamId);
-      } else {
-        query.eq("user_id", user.id);
-      }
-      const { data, error } = await query;
+      const { data, error } = await supabase.from("strategic_themes").select("id, title, brand_id").eq("user_id", user.id);
       if (error) throw error;
       return (data || []).map((t) => ({ id: t.id, title: t.title, brandId: t.brand_id }));
     },

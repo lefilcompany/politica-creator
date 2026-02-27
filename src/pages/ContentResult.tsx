@@ -579,7 +579,7 @@ export default function ContentResult() {
       } = await supabase.from("actions").insert({
         type: actionType,
         brand_id: brandId,
-        team_id: user.teamId,
+        team_id: user.teamId || null,
         user_id: user.id,
         status: "Concluído",
         approved: false,

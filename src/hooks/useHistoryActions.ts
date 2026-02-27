@@ -22,12 +22,12 @@ export function useHistoryBrands() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['history-brands', user?.teamId],
+    queryKey: ['history-brands', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('brands')
         .select('id, name, responsible, created_at, updated_at')
-        .eq('team_id', user!.teamId!)
+        .eq('user_id', user!.id)
         .order('name');
       if (error) throw error;
       return (data || []).map(brand => ({
@@ -40,7 +40,7 @@ export function useHistoryBrands() {
         updatedAt: brand.updated_at
       })) as BrandSummary[];
     },
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 }
 
@@ -48,7 +48,7 @@ export function useHistoryActions(filters: HistoryFilters) {
   const { user } = useAuth();
 
   return useInfiniteQuery<HistoryPage>({
-    queryKey: ['history-actions', user?.teamId, filters.brandFilter, filters.typeFilter],
+    queryKey: ['history-actions', user?.id, filters.brandFilter, filters.typeFilter],
     queryFn: async ({ pageParam }) => {
       const cursor = pageParam as { createdAt: string; id: string } | undefined;
       
@@ -61,32 +61,43 @@ export function useHistoryActions(filters: HistoryFilters) {
         if (entry) typeDbValue = entry[0];
       }
 
-      const { data, error } = await supabase.rpc('get_action_summaries', {
-        p_team_id: user!.teamId!,
-        p_brand_filter: filters.brandFilter !== 'all' ? filters.brandFilter : null,
-        p_type_filter: typeDbValue,
-        p_limit: ITEMS_PER_PAGE,
-        p_cursor_created_at: cursor?.createdAt || null,
-        p_cursor_id: cursor?.id || null,
-      });
+      // Query actions directly by user_id instead of using RPC with team_id
+      let query = supabase
+        .from('actions')
+        .select('id, type, created_at, approved, brand_id, thumb_path, result, details, brands(name)', { count: 'exact' })
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+        .limit(ITEMS_PER_PAGE);
+
+      if (filters.brandFilter !== 'all') {
+        query = query.eq('brand_id', filters.brandFilter);
+      }
+      if (typeDbValue) {
+        query = query.eq('type', typeDbValue);
+      }
+      if (cursor) {
+        query = query.or(`created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`);
+      }
+
+      const { data: rows, error, count } = await query;
 
       if (error) throw error;
 
-      const rows = data || [];
-      const totalCount = rows[0]?.total_count || 0;
+      const totalCount = count || 0;
 
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || '';
       const storageBase = projectId
         ? `https://${projectId}.supabase.co/storage/v1/object/public/creations/`
         : '';
 
-      const actions: ActionSummary[] = rows.map((row: any) => {
-        // Build thumbnail URL: prefer thumb_path, then image_url from function
+      const actions: ActionSummary[] = (rows || []).map((row: any) => {
         let imageUrl: string | undefined;
         if (row.thumb_path && storageBase) {
           imageUrl = `${storageBase}${row.thumb_path}`;
-        } else if (row.image_url) {
-          imageUrl = row.image_url;
+        } else if (row.result?.imageUrl) {
+          imageUrl = row.result.imageUrl;
+        } else if (row.result?.originalImage) {
+          imageUrl = row.result.originalImage;
         }
 
         return {
@@ -94,11 +105,11 @@ export function useHistoryActions(filters: HistoryFilters) {
           type: row.type,
           createdAt: row.created_at,
           approved: row.approved,
-          brand: row.brand_name ? { id: row.brand_id, name: row.brand_name } : null,
+          brand: row.brands ? { id: row.brand_id, name: row.brands.name } : null,
           imageUrl,
-          title: row.title || undefined,
-          platform: row.platform || undefined,
-          objective: row.objective || undefined,
+          title: row.result?.title || row.result?.description || undefined,
+          platform: row.details?.platform || undefined,
+          objective: row.details?.objective || undefined,
         };
       });
 
@@ -111,6 +122,6 @@ export function useHistoryActions(filters: HistoryFilters) {
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 }

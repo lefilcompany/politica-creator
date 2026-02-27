@@ -8,17 +8,17 @@ export type ThemeInsert = TablesInsert<'strategic_themes'>;
 export type ThemeUpdate = TablesUpdate<'strategic_themes'>;
 
 export const useThemes = (brandId?: string) => {
-  const { team } = useAuth();
+  const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['themes', team?.id, brandId],
+    queryKey: ['themes', user?.id, brandId],
     queryFn: async () => {
-      if (!team?.id) return [];
+      if (!user?.id) return [];
       
       let query = supabase
         .from('strategic_themes')
         .select('*')
-        .eq('team_id', team.id)
+        .eq('user_id', user.id)
         .order('title');
       
       if (brandId) {
@@ -30,8 +30,8 @@ export const useThemes = (brandId?: string) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!team?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -57,7 +57,7 @@ export const useTheme = (themeId: string | undefined) => {
 
 export const useCreateTheme = () => {
   const queryClient = useQueryClient();
-  const { user, team } = useAuth();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (theme: Omit<ThemeInsert, 'user_id' | 'team_id'>) => {
@@ -68,7 +68,7 @@ export const useCreateTheme = () => {
         .insert({
           ...theme,
           user_id: user.id,
-          team_id: team?.id,
+          team_id: user.teamId || null,
         })
         .select()
         .single();

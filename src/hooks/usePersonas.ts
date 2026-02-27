@@ -8,17 +8,17 @@ export type PersonaInsert = TablesInsert<'personas'>;
 export type PersonaUpdate = TablesUpdate<'personas'>;
 
 export const usePersonas = (brandId?: string) => {
-  const { team } = useAuth();
+  const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['personas', team?.id, brandId],
+    queryKey: ['personas', user?.id, brandId],
     queryFn: async () => {
-      if (!team?.id) return [];
+      if (!user?.id) return [];
       
       let query = supabase
         .from('personas')
         .select('*')
-        .eq('team_id', team.id)
+        .eq('user_id', user.id)
         .order('name');
       
       if (brandId) {
@@ -30,8 +30,8 @@ export const usePersonas = (brandId?: string) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!team?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -57,7 +57,7 @@ export const usePersona = (personaId: string | undefined) => {
 
 export const useCreatePersona = () => {
   const queryClient = useQueryClient();
-  const { user, team } = useAuth();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (persona: Omit<PersonaInsert, 'user_id' | 'team_id'>) => {
@@ -68,7 +68,7 @@ export const useCreatePersona = () => {
         .insert({
           ...persona,
           user_id: user.id,
-          team_id: team?.id,
+          team_id: user.teamId || null,
         })
         .select()
         .single();
