@@ -11,7 +11,7 @@ import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert
 import { Progress } from '@/components/ui/progress';
 
 const MANDATE_STAGES = [
-  { value: 'mandato', label: 'Mandato', desc: 'Atualmente exercendo mandato eletivo' },
+  { value: 'mandato', label: 'Período extraeleitoral', desc: 'Fora do período de campanha eleitoral' },
   { value: 'pre_campanha', label: 'Pré-campanha', desc: 'Fase de articulação e preparação' },
   { value: 'campanha', label: 'Campanha', desc: 'Em período de campanha eleitoral' },
 ];
