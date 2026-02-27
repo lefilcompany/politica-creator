@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Zap, Video, Coins, Info, ImagePlus, X, HelpCircle } from "lucide-react";
-import { VideoPaywallModal } from "@/components/VideoPaywallModal";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
@@ -67,7 +67,7 @@ export default function CreateVideo() {
   const [loading, setLoading] = useState<boolean>(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
+  
 
   // React Query for brands, themes, personas
   const userId = user?.id;
@@ -168,9 +168,11 @@ export default function CreateVideo() {
       return toast.error("Preencha todos os campos obrigatórios.");
     }
 
-    // Show paywall modal for video payment
-    setShowPaywall(true);
-    return;
+    // Check credits
+    const requiredCredits = CREDIT_COSTS.VIDEO_GENERATION;
+    if ((user.credits || 0) < requiredCredits) {
+      return toast.error(`Créditos insuficientes. Você precisa de ${requiredCredits} créditos para gerar um vídeo.`);
+    }
 
     setLoading(true);
     const toastId = toast.loading("Iniciando geração de vídeo...");
@@ -677,10 +679,6 @@ export default function CreateVideo() {
         </div>
       </main>
 
-      <VideoPaywallModal
-        isOpen={showPaywall}
-        onClose={() => setShowPaywall(false)}
-      />
     </div>
   );
 }
