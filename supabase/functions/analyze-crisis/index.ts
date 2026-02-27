@@ -1,8 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { CREDIT_COSTS } from "../_shared/creditCosts.ts";
-import { deductCredits } from "../_shared/userCredits.ts";
-import { recordCreditUsage } from "../_shared/creditHistory.ts";
-import { searchNews } from "../_shared/newsapi.ts";
+import { deductUserCredits, recordUserCreditUsage } from "../_shared/userCredits.ts";
+import { fetchNewsArticles } from "../_shared/newsapi.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,18 +44,19 @@ Deno.serve(async (req) => {
 
     if (!profile?.team_id) throw new Error("Usuário sem equipe");
 
-    // Deduct credits
-    const { data: team } = await supabase
-      .from("teams")
+    // Check user credits
+    const { data: userProfile } = await supabase
+      .from("profiles")
       .select("credits")
-      .eq("id", profile.team_id)
+      .eq("id", user.id)
       .single();
 
-    if (!team || team.credits < CREDIT_COSTS.CRISIS_ANALYSIS) {
+    const currentCredits = userProfile?.credits || 0;
+    if (currentCredits < CREDIT_COSTS.CRISIS_ANALYSIS) {
       return new Response(JSON.stringify({
         error: "Créditos insuficientes",
         required: CREDIT_COSTS.CRISIS_ANALYSIS,
-        available: team?.credits || 0,
+        available: currentCredits,
       }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     let newsContext = "";
     let articlesFound = 0;
     try {
-      const newsResults = await searchNews(subject, 5);
+      const newsResults = await fetchNewsArticles(subject, { pageSize: 5 });
       if (newsResults && newsResults.length > 0) {
         articlesFound = newsResults.length;
         newsContext = newsResults.map((n: any, i: number) =>
@@ -183,12 +183,15 @@ Responda EXCLUSIVAMENTE em JSON válido com esta estrutura:
     }
 
     // Deduct credits
-    await deductCredits(supabase, profile.team_id, CREDIT_COSTS.CRISIS_ANALYSIS);
-    await recordCreditUsage(supabase, {
+    const creditsBefore = currentCredits;
+    await deductUserCredits(supabase, user.id, CREDIT_COSTS.CRISIS_ANALYSIS);
+    await recordUserCreditUsage(supabase, {
       userId: user.id,
       teamId: profile.team_id,
       actionType: "CRISIS_ANALYSIS",
       creditsUsed: CREDIT_COSTS.CRISIS_ANALYSIS,
+      creditsBefore,
+      creditsAfter: creditsBefore - CREDIT_COSTS.CRISIS_ANALYSIS,
       description: `Análise de crise: ${crisisLabel}`,
     });
 
