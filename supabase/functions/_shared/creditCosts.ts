@@ -13,6 +13,7 @@ export const CREDIT_COSTS = {
   FACT_CHECK: 1,            // Verificação de conteúdo
   CAMPAIGN_PACKAGE: 50,     // Pacote de campanha completo
   ANALYZE_REPERCUSSION: 2,  // Análise de repercussão
+  CRISIS_ANALYSIS: 3,       // Análise de crise (sala de situação)
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {

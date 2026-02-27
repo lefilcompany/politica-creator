@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Search, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink, Newspaper } from "lucide-react";
+import { Shield, Search, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink, Newspaper, Siren, Radio } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { CreditConfirmationDialog } from "@/components/CreditConfirmationDialog";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import defenseBanner from "@/assets/defense-banner.jpg";
 
 // Types
@@ -65,6 +67,37 @@ interface FactCheckResult {
   auditCorrections?: string | null;
 }
 
+interface CrisisResult {
+  precedentes: {
+    encontrados: boolean;
+    resumo: string;
+    casos: Array<{ titulo: string; data: string; desfecho: string; licao: string }>;
+  };
+  diagnostico: {
+    gravidade: "critica" | "alta" | "media" | "baixa";
+    velocidade_propagacao: "viral" | "rapida" | "moderada" | "lenta";
+    tipo_confirmado: string;
+    resumo_executivo: string;
+    fatores_agravantes: string[];
+    fatores_atenuantes: string[];
+  };
+  nota_oficial: {
+    titulo: string;
+    corpo: string;
+    pontos_chave: string[];
+  };
+  plano_acao: {
+    primeiras_2h: string[];
+    primeiras_24h: string[];
+    proxima_semana: string[];
+  };
+  riscos: Array<{ descricao: string; probabilidade: "alta" | "media" | "baixa"; mitigacao: string }>;
+  o_que_nao_fazer: string[];
+  articlesFound?: number;
+  crisisType?: string;
+  crisisLabel?: string;
+}
+
 const classificationLabels: Record<string, { label: string; color: string }> = {
   fake_news: { label: "Fake News", color: "bg-destructive text-destructive-foreground" },
   ataque_infundado: { label: "Ataque Infundado", color: "bg-orange-500 text-white" },
@@ -84,6 +117,21 @@ const verdictConfig: Record<string, { label: string; color: string; icon: React.
   atencao: { label: "Atenção", color: "text-yellow-600", icon: AlertTriangle },
   critico: { label: "Crítico", color: "text-destructive", icon: AlertCircle },
 };
+
+const gravidadeConfig: Record<string, { label: string; color: string; bg: string }> = {
+  critica: { label: "CRÍTICA", color: "text-red-700 dark:text-red-400", bg: "bg-red-100 dark:bg-red-900/30" },
+  alta: { label: "ALTA", color: "text-orange-700 dark:text-orange-400", bg: "bg-orange-100 dark:bg-orange-900/30" },
+  media: { label: "MÉDIA", color: "text-yellow-700 dark:text-yellow-400", bg: "bg-yellow-100 dark:bg-yellow-900/30" },
+  baixa: { label: "BAIXA", color: "text-green-700 dark:text-green-400", bg: "bg-green-100 dark:bg-green-900/30" },
+};
+
+const crisisTypes = [
+  { value: "corruption", label: "Denúncia de desvio / corrupção", icon: "🏛️" },
+  { value: "fake_news", label: "Fake news / boato coordenado", icon: "📡" },
+  { value: "out_of_context", label: "Vídeo ou áudio fora de contexto", icon: "🎥" },
+  { value: "communication_error", label: "Erro real de comunicação (gafe)", icon: "🎤" },
+  { value: "public_policy", label: "Crise de política pública (fato social grave)", icon: "⚠️" },
+];
 
 export default function Defense() {
   const { toast } = useToast();
@@ -106,6 +154,14 @@ export default function Defense() {
   const [factCheckLoading, setFactCheckLoading] = useState(false);
   const [factCheckResult, setFactCheckResult] = useState<FactCheckResult | null>(null);
   const [showFactCheckConfirm, setShowFactCheckConfirm] = useState(false);
+
+  // Crisis state
+  const [crisisSubject, setCrisisSubject] = useState("");
+  const [crisisType, setCrisisType] = useState("");
+  const [crisisContext, setCrisisContext] = useState("");
+  const [crisisLoading, setCrisisLoading] = useState(false);
+  const [crisisResult, setCrisisResult] = useState<CrisisResult | null>(null);
+  const [showCrisisConfirm, setShowCrisisConfirm] = useState(false);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -166,6 +222,24 @@ export default function Defense() {
     }
   };
 
+  // Crisis handler
+  const handleCrisis = async () => {
+    setCrisisLoading(true);
+    setCrisisResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-crisis', {
+        body: { subject: crisisSubject, crisisType, additionalContext: crisisContext }
+      });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      setCrisisResult(data);
+    } catch (e: any) {
+      toast({ title: "Erro", description: e.message || "Falha na análise de crise", variant: "destructive" });
+    } finally {
+      setCrisisLoading(false);
+    }
+  };
+
   const scoreColor = (score: number) => {
     if (score >= 90) return "bg-green-500";
     if (score >= 70) return "bg-blue-500";
@@ -177,17 +251,17 @@ export default function Defense() {
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb items={[{ label: "Defesa Digital" }]} />
+      <PageBreadcrumb items={[{ label: "Defesa & Crise" }]} />
 
       {/* Banner */}
       <div className="relative rounded-2xl overflow-hidden h-40 md:h-52">
-        <img src={defenseBanner} alt="Defesa Digital" className="w-full h-full object-cover" />
+        <img src={defenseBanner} alt="Defesa & Crise" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30 flex items-center px-8">
           <div className="flex items-center gap-4">
             <Shield className="h-10 w-10 text-white" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">Defesa Digital</h1>
-              <p className="text-white/80 text-sm md:text-base">Monitore, responda e verifique — proteja sua imagem</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white">Defesa & Crise</h1>
+              <p className="text-white/80 text-sm md:text-base">Monitore, responda, verifique e gerencie crises</p>
             </div>
           </div>
         </div>
@@ -195,18 +269,22 @@ export default function Defense() {
 
       {/* Tabs */}
       <Tabs defaultValue="monitor" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/60 p-1.5 rounded-lg shadow-inner">
-          <TabsTrigger value="monitor" className="flex items-center gap-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
+        <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/60 p-1.5 rounded-lg shadow-inner">
+          <TabsTrigger value="monitor" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Monitorar</span>
           </TabsTrigger>
-          <TabsTrigger value="respond" className="flex items-center gap-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
+          <TabsTrigger value="respond" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
             <MessageSquareReply className="h-4 w-4" />
             <span className="hidden sm:inline">Responder</span>
           </TabsTrigger>
-          <TabsTrigger value="verify" className="flex items-center gap-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
+          <TabsTrigger value="verify" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
             <CheckCircle2 className="h-4 w-4" />
             <span className="hidden sm:inline">Verificar</span>
+          </TabsTrigger>
+          <TabsTrigger value="crisis" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
+            <Siren className="h-4 w-4" />
+            <span className="hidden sm:inline">Sala de Crise</span>
           </TabsTrigger>
         </TabsList>
 
@@ -541,6 +619,285 @@ export default function Defense() {
             resourceType="verificação"
             title="Verificar Conteúdo?"
             onConfirm={() => { setShowFactCheckConfirm(false); handleFactCheck(); }}
+          />
+        </TabsContent>
+
+        {/* TAB: CRISIS - SALA DE CRISE */}
+        <TabsContent value="crisis" className="space-y-4 mt-4">
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Siren className="h-5 w-5 text-destructive" />
+                Sala de Crise
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Analise crises em tempo real: busque precedentes, classifique o tipo e receba uma nota oficial pronta. Custo: {CREDIT_COSTS.CRISIS_ANALYSIS} créditos.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Step 1: Subject */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold">1</span>
+                  Esse assunto já aconteceu antes?
+                </Label>
+                <Textarea
+                  placeholder="Descreva o assunto da crise. Ex: 'Vídeo circulando nas redes mostrando suposta ligação com empresa investigada...'"
+                  value={crisisSubject}
+                  onChange={(e) => setCrisisSubject(e.target.value)}
+                  rows={3}
+                  maxLength={2000}
+                />
+                <p className="text-xs text-muted-foreground">
+                  A IA buscará precedentes em notícias recentes e no histórico político
+                </p>
+              </div>
+
+              {/* Step 2: Classification */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold">2</span>
+                  Entrou em colapso? Classifique o tipo:
+                </Label>
+                <RadioGroup value={crisisType} onValueChange={setCrisisType} className="space-y-2">
+                  {crisisTypes.map((type) => (
+                    <div key={type.value} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
+                      <RadioGroupItem value={type.value} id={type.value} />
+                      <Label htmlFor={type.value} className="flex items-center gap-2 cursor-pointer flex-1">
+                        <span className="text-lg">{type.icon}</span>
+                        <span className="text-sm">{type.label}</span>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Step 3: Additional context */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold">3</span>
+                  Contexto adicional (opcional)
+                </Label>
+                <Textarea
+                  placeholder="Informações extras: quem publicou, onde circulou, se já houve pronunciamento anterior..."
+                  value={crisisContext}
+                  onChange={(e) => setCrisisContext(e.target.value)}
+                  rows={2}
+                  maxLength={1000}
+                />
+              </div>
+
+              <Button
+                onClick={() => setShowCrisisConfirm(true)}
+                disabled={crisisLoading || crisisSubject.trim().length < 5 || !crisisType}
+                className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                size="lg"
+              >
+                {crisisLoading ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Analisando crise...</>
+                ) : (
+                  <><Siren className="h-4 w-4 mr-2" />Ativar Sala de Crise</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Crisis Results */}
+          {crisisResult && (
+            <div className="space-y-4">
+              {/* Diagnosis */}
+              {crisisResult.diagnostico && (
+                <Card className="border-l-4 border-l-destructive">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Radio className="h-5 w-5 text-destructive" />
+                      Diagnóstico da Crise
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap gap-3">
+                      <div className={`px-3 py-1.5 rounded-lg ${gravidadeConfig[crisisResult.diagnostico.gravidade]?.bg}`}>
+                        <span className="text-xs font-medium text-muted-foreground">Gravidade</span>
+                        <p className={`font-bold text-sm ${gravidadeConfig[crisisResult.diagnostico.gravidade]?.color}`}>
+                          {gravidadeConfig[crisisResult.diagnostico.gravidade]?.label}
+                        </p>
+                      </div>
+                      <div className="px-3 py-1.5 rounded-lg bg-muted">
+                        <span className="text-xs font-medium text-muted-foreground">Propagação</span>
+                        <p className="font-bold text-sm">{crisisResult.diagnostico.velocidade_propagacao}</p>
+                      </div>
+                      <div className="px-3 py-1.5 rounded-lg bg-muted">
+                        <span className="text-xs font-medium text-muted-foreground">Tipo</span>
+                        <p className="font-bold text-sm">{crisisResult.crisisLabel}</p>
+                      </div>
+                    </div>
+
+                    <p className="text-sm">{crisisResult.diagnostico.resumo_executivo}</p>
+
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                        <p className="text-xs font-semibold text-destructive mb-2">⚠️ Fatores Agravantes</p>
+                        <ul className="space-y-1">
+                          {crisisResult.diagnostico.fatores_agravantes?.map((f, i) => (
+                            <li key={i} className="text-xs text-muted-foreground">• {f}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+                        <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-2">✓ Fatores Atenuantes</p>
+                        <ul className="space-y-1">
+                          {crisisResult.diagnostico.fatores_atenuantes?.map((f, i) => (
+                            <li key={i} className="text-xs text-muted-foreground">• {f}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Precedentes */}
+              {crisisResult.precedentes && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      📚 Precedentes
+                      {crisisResult.articlesFound !== undefined && crisisResult.articlesFound > 0 && (
+                        <Badge variant="outline" className="text-xs">{crisisResult.articlesFound} notícias</Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">{crisisResult.precedentes.resumo}</p>
+                    {crisisResult.precedentes.casos?.length > 0 && (
+                      <div className="space-y-2">
+                        {crisisResult.precedentes.casos.map((caso, i) => (
+                          <div key={i} className="p-3 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-sm">{caso.titulo}</span>
+                              {caso.data && <Badge variant="outline" className="text-xs">{caso.data}</Badge>}
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-1"><strong>Desfecho:</strong> {caso.desfecho}</p>
+                            <p className="text-xs text-primary"><strong>Lição:</strong> {caso.licao}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Nota Oficial */}
+              {crisisResult.nota_oficial && (
+                <Card className="border-primary/30">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      📋 Proposta de Nota Oficial
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(
+                      `${crisisResult.nota_oficial.titulo}\n\n${crisisResult.nota_oficial.corpo}`
+                    )}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <h3 className="font-bold text-base">{crisisResult.nota_oficial.titulo}</h3>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{crisisResult.nota_oficial.corpo}</p>
+                    {crisisResult.nota_oficial.pontos_chave?.length > 0 && (
+                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                        <p className="text-xs font-semibold text-primary mb-2">Pontos-chave garantidos:</p>
+                        <ul className="space-y-1">
+                          {crisisResult.nota_oficial.pontos_chave.map((p, i) => (
+                            <li key={i} className="text-xs flex items-start gap-2">
+                              <CheckCircle2 className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                              {p}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Plano de Ação */}
+              {crisisResult.plano_acao && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">🗓️ Plano de Ação</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[
+                      { key: "primeiras_2h", label: "⏱️ Primeiras 2 horas", items: crisisResult.plano_acao.primeiras_2h },
+                      { key: "primeiras_24h", label: "📅 Primeiras 24 horas", items: crisisResult.plano_acao.primeiras_24h },
+                      { key: "proxima_semana", label: "📆 Próxima semana", items: crisisResult.plano_acao.proxima_semana },
+                    ].map((phase) => (
+                      <div key={phase.key} className="space-y-1.5">
+                        <p className="text-sm font-semibold">{phase.label}</p>
+                        <ul className="space-y-1 pl-1">
+                          {phase.items?.map((item, i) => (
+                            <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                              <span className="text-primary mt-0.5">→</span> {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Riscos */}
+              {crisisResult.riscos?.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">⚡ Riscos Identificados</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {crisisResult.riscos.map((risco, i) => (
+                      <div key={i} className={`p-3 rounded-lg border-l-4 ${urgencyColors[risco.probabilidade]} bg-muted/30`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-medium">{risco.descricao}</span>
+                          <Badge variant="outline" className="text-xs">{risco.probabilidade}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground"><strong>Mitigação:</strong> {risco.mitigacao}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* O que NÃO fazer */}
+              {crisisResult.o_que_nao_fazer?.length > 0 && (
+                <Card className="border-destructive/20">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      🚫 O que NÃO fazer
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {crisisResult.o_que_nao_fazer.map((item, i) => (
+                        <li key={i} className="text-sm flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          <CreditConfirmationDialog
+            isOpen={showCrisisConfirm}
+            onOpenChange={setShowCrisisConfirm}
+            cost={CREDIT_COSTS.CRISIS_ANALYSIS}
+            currentBalance={currentCredits}
+            resourceType="análise de crise"
+            title="Ativar Sala de Crise?"
+            onConfirm={() => { setShowCrisisConfirm(false); handleCrisis(); }}
           />
         </TabsContent>
       </Tabs>
