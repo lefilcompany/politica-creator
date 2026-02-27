@@ -261,13 +261,30 @@ serve(async (req) => {
 
       let sanitized = rawPrompt;
 
-      // Remove assinatura explícita de marca com nome próprio (ex: "Marca: Vereador X")
+      // Remove "Marca: ..." blocks
       sanitized = sanitized.replace(/(?:^|\s)Marca:\s*[^.!\n]+[.!]?/gi, ' ');
 
-      // Neutraliza títulos com possível nome próprio para reduzir bloqueios de política
+      // Remove political titles followed by proper names
       sanitized = sanitized.replace(
-        /\b(Vereador|Vereadora|Deputado|Deputada|Prefeito|Prefeita|Senador|Senadora|Governador|Governadora)\s+[A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+(?:\s+[A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+){0,3}/g,
-        '$1 local'
+        /\b(Vereador|Vereadora|Deputado|Deputada|Prefeito|Prefeita|Senador|Senadora|Governador|Governadora|Ministro|Ministra|Presidente|Candidato|Candidata)\s+[A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+){0,4}/gi,
+        '$1'
+      );
+
+      // Remove standalone proper names (2+ consecutive capitalized words that look like person names)
+      // Common Portuguese non-name words to keep
+      const keepWords = new Set(['Criar', 'Vídeo', 'Conteúdo', 'Brasil', 'São', 'Rio', 'Minas', 'Gerais', 'Paulo', 'Janeiro', 'Grande', 'Norte', 'Sul', 'Bahia', 'Ceará', 'Pará', 'Santa', 'Catarina', 'Paraná', 'Goiás', 'Maranhão', 'Porto', 'Alegre', 'Belo', 'Horizonte', 'Recife', 'Fortaleza', 'Salvador', 'Brasília', 'Curitiba', 'Instagram', 'Facebook', 'Twitter', 'TikTok', 'YouTube', 'LinkedIn', 'WhatsApp', 'Stories', 'Reels', 'Feed', 'Post', 'Story']);
+      
+      sanitized = sanitized.replace(
+        /\b([A-ZÀ-Ú][a-zà-ÿ]+(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Ú][a-zà-ÿ]+){1,4})\b/g,
+        (match, group) => {
+          const words = group.split(/\s+/).filter((w: string) => !w.match(/^d[aeo]s?$/i));
+          const allKept = words.every((w: string) => keepWords.has(w));
+          if (allKept) return match;
+          // If it looks like a person name (not in keep list), remove it
+          const nonKeptCount = words.filter((w: string) => !keepWords.has(w)).length;
+          if (nonKeptCount >= 2) return '';
+          return match;
+        }
       );
 
       return sanitized.replace(/\s+/g, ' ').trim() || rawPrompt;
