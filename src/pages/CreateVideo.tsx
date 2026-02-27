@@ -363,20 +363,28 @@ export default function CreateVideo() {
                   <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                   <span>Seja específico sobre cenas, movimentos, estilo e mood desejado</span>
                 </p>
-                <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1.5 flex items-center gap-1.5">
-                    <HelpCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                    Evite nomes de pessoas reais
+                <div className="mt-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
+                  <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                    Dicas para um prompt eficaz
                   </p>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    A IA bloqueia vídeos com nomes ou rostos de pessoas reais. Descreva a aparência em vez de citar nomes:
-                  </p>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex gap-2">
-                      <span className="text-destructive/70 line-through shrink-0">❌ "Lionel Messi jogando"</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-green-600 dark:text-green-400 shrink-0">✅ "Um jogador de futebol com camisa 10 driblando em um estádio lotado"</span>
+                  <div className="space-y-1.5 text-xs text-muted-foreground">
+                    <p>🎭 <strong>Sujeito genérico:</strong> "Um homem de meia-idade com expressão determinada..."</p>
+                    <p>🎬 <strong>Ação/Movimento:</strong> "...caminhando por uma praça movimentada..."</p>
+                    <p>📷 <strong>Câmera:</strong> "...plano sequência com iluminação de golden hour."</p>
+                    <p>🎨 <strong>Clima:</strong> "Estilo cinematográfico, cores vibrantes, alta fidelidade."</p>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-border/50">
+                    <p className="text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mb-1">
+                      <HelpCircle className="h-3 w-3 flex-shrink-0" />
+                      Evite nomes de pessoas reais
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      A IA bloqueia nomes e rostos reais. Descreva características físicas em vez de citar nomes:
+                    </p>
+                    <div className="mt-1 space-y-0.5 text-xs">
+                      <p className="text-destructive/70 line-through">❌ "Lionel Messi jogando futebol"</p>
+                      <p className="text-green-600 dark:text-green-400">✅ "Um jogador com camisa 10, barba curta, driblando em estádio lotado"</p>
                     </div>
                   </div>
                 </div>
