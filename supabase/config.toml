@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-campaign]
 verify_jwt = false
+
+[functions.analyze-repercussion]
+verify_jwt = false

@@ -13,6 +13,7 @@ export const CREDIT_COSTS = {
   FACT_CHECK: 1,
   COLLECT_SIGNALS: 1,
   CAMPAIGN_PACKAGE: 50,
+  ANALYZE_REPERCUSSION: 2,
 } as const;
 
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
@@ -31,6 +32,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     FACT_CHECK: "Verificação de conteúdo",
     COLLECT_SIGNALS: "Coleta de sinais",
     CAMPAIGN_PACKAGE: "Pacote de campanha",
+    ANALYZE_REPERCUSSION: "Análise de repercussão",
   };
   return labels[action];
 };

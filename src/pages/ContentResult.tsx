@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins, Undo2, Redo2 } from "lucide-react";
+import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins, Undo2, Redo2, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -883,6 +883,11 @@ export default function ContentResult() {
                       <span className="hidden sm:inline">Salvo no Histórico - Ver Detalhes</span>
                       <span className="sm:hidden">Ver no Histórico</span>
                     </Button>}
+
+                  <Button onClick={() => navigate("/repercussion", { state: { content: contentData.caption || [contentData.title, contentData.body, contentData.hashtags?.join(" ")].filter(Boolean).join("\n\n") } })} variant="outline" className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md text-sm sm:text-base gap-2" size="lg">
+                    <Activity className="h-4 w-4" />
+                    Analisar Repercussão
+                  </Button>
 
                   <Button onClick={() => navigate("/create")} variant="outline" className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent text-sm sm:text-base" size="lg">
                     Criar Novo Conteúdo

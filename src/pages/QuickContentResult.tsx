@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, Redo2, Zap, ArrowLeft, Coins, Building2, Palette, User, Share2, Loader2 } from "lucide-react";
+import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, Redo2, Zap, ArrowLeft, Coins, Building2, Palette, User, Share2, Loader2, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -621,6 +621,16 @@ export default function QuickContentResult() {
             >
               <Download className="h-4 w-4 mr-2" />
               Baixar imagem
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate("/repercussion", { state: { content: description } })}
+              className="hover:scale-105 transition-transform"
+            >
+              <Activity className="h-4 w-4 mr-2" />
+              Analisar Repercussão
             </Button>
 
             <Button
