@@ -91,7 +91,35 @@ serve(async (req) => {
     
     let session;
 
-    if (type === 'plan' || type === 'credits') {
+    if (type === 'video') {
+      // Compra avulsa de geração de vídeo - R$ 30,00
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price_data: {
+              currency: 'brl',
+              product_data: {
+                name: 'Geração de Vídeo com IA',
+                description: 'Uma geração de vídeo com IA de alta qualidade',
+              },
+              unit_amount: 3000, // R$ 30,00
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${origin}${return_url || '/create/video'}?video_paid=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}${return_url || '/create/video'}?canceled=true`,
+        metadata: {
+          user_id: user.id,
+          team_id: teamId || '',
+          purchase_type: 'video',
+        }
+      });
+      logStep("Video checkout session created", { sessionId: session.id });
+    } else if (type === 'plan' || type === 'credits') {
       // Compra de pacote de créditos (pagamento único)
       const packageId = package_id || plan_id;
       if (!price_id || !packageId) throw new Error("price_id and package_id are required for credits purchase");
