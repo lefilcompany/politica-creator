@@ -146,36 +146,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
         }
       }
 
-      // 3. Enviar evento RD Station
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('email, name, phone, city, state')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profile) {
-          await supabase.functions.invoke('rd-station-integration', {
-            body: {
-              eventType: 'team_created',
-              userData: {
-                email: profile.email,
-                name: profile.name,
-                phone: profile.phone,
-                city: profile.city,
-                state: profile.state,
-                teamName: teamName,
-                userRole: 'admin',
-                tags: ['time_criado', 'admin']
-              }
-            }
-          });
-        }
-      } catch (rdError) {
-        console.error('Erro ao enviar para RD Station:', rdError);
-      }
-      
-      // 4. Fechar dialog e redirecionar
+      // 3. Fechar dialog e redirecionar
       if (context === 'register') {
         // Cenário de REGISTRO: fazer logout e redirecionar para login
         toast.success("Equipe criada com sucesso! Faça login para acessar o sistema.");
