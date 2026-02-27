@@ -38,7 +38,7 @@ export const translations = {
       createContent: "Criar Conteúdo",
       reviewContent: "Revisar Material",
       planContent: "Planejar Campanha",
-      team: "Gabinete",
+      team: "Equipe de Criadores",
       plan: "Plano",
       defense: "Defesa Digital",
     },
