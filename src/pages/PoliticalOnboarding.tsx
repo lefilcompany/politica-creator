@@ -169,7 +169,7 @@ export default function PoliticalOnboarding() {
     // Step 0: Cargo e Nível
     <div key="step0" className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-xl font-bold text-foreground">Qual o seu cargo político?</h2>
+        <h2 className="text-xl font-bold text-foreground">Qual o cargo pretendido?</h2>
         <p className="text-sm text-muted-foreground">Selecione o cargo que você exerce ou pretende exercer</p>
       </div>
 
