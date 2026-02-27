@@ -103,7 +103,7 @@ export default function PoliticalOnboarding() {
     switch (currentStep) {
       case 0: return data.political_role && data.political_level;
       case 1: return data.political_party && data.political_experience;
-      case 2: return data.state && data.city;
+      case 2: return !!data.state;
       case 3: return data.focus_areas.length > 0;
       case 4: return data.main_social_networks.length > 0;
       default: return true;
@@ -268,14 +268,6 @@ export default function PoliticalOnboarding() {
             placeholder="Ex: São Paulo"
             value={data.state}
             onChange={e => setData(prev => ({ ...prev, state: e.target.value }))}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Cidade</label>
-          <Input
-            placeholder="Ex: Campinas"
-            value={data.city}
-            onChange={e => setData(prev => ({ ...prev, city: e.target.value }))}
           />
         </div>
       </div>
