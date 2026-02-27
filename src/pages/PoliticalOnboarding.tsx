@@ -361,8 +361,8 @@ export default function PoliticalOnboarding() {
 
   return (
     <div className="min-h-screen bg-[var(--layout-bg)] flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg shadow-xl border-border/50">
-        <CardContent className="p-6 sm:p-8">
+      <Card className="w-full max-w-2xl shadow-xl border-border/50">
+        <CardContent className="p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="text-center mb-6">
             <img src={logoCreator} alt="Creator" className="h-8 mx-auto mb-4" />
