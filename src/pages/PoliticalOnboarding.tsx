@@ -17,10 +17,8 @@ import {
 import logoCreator from '@/assets/logoCreatorPreta.png';
 
 const POLITICAL_ROLES = [
-  'Vereador(a)', 'Prefeito(a)', 'Vice-Prefeito(a)',
   'Deputado(a) Estadual', 'Deputado(a) Federal',
-  'Senador(a)', 'Governador(a)', 'Vice-Governador(a)',
-  'Assessor(a) Parlamentar', 'Pré-candidato(a)',
+  'Senador(a)', 'Governador(a)', 'Presidente',
 ];
 
 const POLITICAL_LEVELS = [
