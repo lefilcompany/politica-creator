@@ -150,7 +150,7 @@ Responda EXCLUSIVAMENTE em JSON válido com esta estrutura:
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
 
-    const aiResponse = await fetch("https://ai-gateway.lovable.dev/api/chat/completions", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
