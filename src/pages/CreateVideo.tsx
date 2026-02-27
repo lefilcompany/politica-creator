@@ -178,8 +178,7 @@ export default function CreateVideo() {
     const toastId = toast.loading("Iniciando geração de vídeo...");
 
     try {
-      const selectedBrand = brands.find(b => b.id === formData.brand);
-      const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}${selectedBrand ? `. Marca: ${selectedBrand.name}` : ''}.`;
+      const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}.`;
       
       const { data: actionData } = await supabase.from('actions').insert({
         type: 'GERAR_VIDEO',

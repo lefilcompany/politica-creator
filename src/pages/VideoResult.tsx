@@ -30,6 +30,7 @@ interface VideoResultData {
   audioStyle?: string;
   visualStyle?: string;
   veoVersion?: string;
+  error?: string;
 }
 
 export default function VideoResult() {
@@ -75,8 +76,8 @@ export default function VideoResult() {
                 audioStyle?: string;
                 visualStyle?: string;
                 veoVersion?: string;
+                error?: string;
               } | null;
-
               if (actionData?.status === 'completed' && result?.videoUrl) {
                 setVideoData(prev => prev ? {
                   ...prev,
@@ -99,8 +100,9 @@ export default function VideoResult() {
                   clearInterval(intervalId);
                 }
               } else if (actionData?.status === 'failed') {
-                toast.error("Falha ao gerar o vídeo. Tente novamente.");
-                setVideoData(prev => prev ? { ...prev, isProcessing: false } : null);
+                const errorMessage = result?.error || "Falha ao gerar o vídeo. Tente novamente.";
+                toast.error(errorMessage);
+                setVideoData(prev => prev ? { ...prev, isProcessing: false, error: errorMessage } : null);
                 
                 // Limpar o intervalo em caso de falha
                 if (intervalId) {
@@ -292,7 +294,7 @@ export default function VideoResult() {
                 ) : (
                   <div className="text-center text-muted-foreground p-8">
                     <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg">Vídeo não disponível</p>
+                    <p className="text-lg">{videoData.error || "Vídeo não disponível"}</p>
                   </div>
                 )}
               </div>
