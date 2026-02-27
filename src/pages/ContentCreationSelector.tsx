@@ -204,7 +204,7 @@ export default function ContentCreationSelector() {
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/15 border border-secondary/30">
                     <Video className="h-4 w-4 text-secondary" />
                     <span className="text-sm font-bold text-secondary">
-                      R$ 30,00
+                      {CREDIT_COSTS.VIDEO_GENERATION} créditos
                     </span>
                   </div>
                 </CardContent>
