@@ -59,19 +59,13 @@ export default function QuickContent() {
   const pasteAreaRef = useRef<HTMLDivElement>(null);
 
   // React Query for brands, themes, personas
-  const teamId = user?.teamId;
   const userId = user?.id;
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
-    queryKey: ['brands', teamId],
+    queryKey: ['brands', userId],
     queryFn: async () => {
-      const query = supabase.from("brands").select("*").order("name");
-      if (teamId) {
-        query.eq("team_id", teamId);
-      } else {
-        query.eq("user_id", userId!);
-      }
-      const { data, error } = await query;
+      if (!userId) return [];
+      const { data, error } = await supabase.from("brands").select("*").eq("user_id", userId).order("name");
       if (error) throw error;
       return (data || []) as any as Brand[];
     },
@@ -80,15 +74,10 @@ export default function QuickContent() {
   });
 
   const { data: themes = [], isLoading: loadingThemes } = useQuery({
-    queryKey: ['themes', teamId],
+    queryKey: ['themes', userId],
     queryFn: async () => {
-      const query = supabase.from("strategic_themes").select("*").order("title");
-      if (teamId) {
-        query.eq("team_id", teamId);
-      } else {
-        query.eq("user_id", userId!);
-      }
-      const { data, error } = await query;
+      if (!userId) return [];
+      const { data, error } = await supabase.from("strategic_themes").select("*").eq("user_id", userId).order("title");
       if (error) throw error;
       return (data || []) as any as StrategicTheme[];
     },
@@ -97,15 +86,10 @@ export default function QuickContent() {
   });
 
   const { data: personas = [], isLoading: loadingPersonas } = useQuery({
-    queryKey: ['personas', teamId],
+    queryKey: ['personas', userId],
     queryFn: async () => {
-      const query = supabase.from("personas").select("*").order("name");
-      if (teamId) {
-        query.eq("team_id", teamId);
-      } else {
-        query.eq("user_id", userId!);
-      }
-      const { data, error } = await query;
+      if (!userId) return [];
+      const { data, error } = await supabase.from("personas").select("*").eq("user_id", userId).order("name");
       if (error) throw error;
       return (data || []) as any as Persona[];
     },

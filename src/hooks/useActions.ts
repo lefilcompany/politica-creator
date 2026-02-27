@@ -18,18 +18,18 @@ interface UseActionsOptions {
 }
 
 export const useActions = (options: UseActionsOptions = {}) => {
-  const { team } = useAuth();
+  const { user } = useAuth();
   const { brandId, type, status, limit = 50 } = options;
 
   return useQuery({
-    queryKey: ['actions', team?.id, brandId, type, status, limit],
+    queryKey: ['actions', user?.id, brandId, type, status, limit],
     queryFn: async () => {
-      if (!team?.id) return [];
+      if (!user?.id) return [];
       
       let query = supabase
         .from('actions')
         .select('*, brands(name)')
-        .eq('team_id', team.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(limit);
       
@@ -48,8 +48,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
       if (error) throw error;
       return data as ActionWithBrand[];
     },
-    enabled: !!team?.id,
-    staleTime: 1000 * 60 * 1, // 1 minute - actions change more frequently
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 1,
   });
 };
 

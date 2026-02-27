@@ -63,7 +63,7 @@ const PlanContent = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!user?.teamId || !user?.id) {
+      if (!user?.id) {
         if (user) setIsLoadingData(false);
         return;
       }
@@ -73,8 +73,8 @@ const PlanContent = () => {
           { data: brandsData, error: brandsError },
           { data: themesData, error: themesError },
         ] = await Promise.all([
-          supabase.from("brands").select("id, name").eq("team_id", user.teamId),
-          supabase.from("strategic_themes").select("id, title, brand_id").eq("team_id", user.teamId),
+          supabase.from("brands").select("id, name").eq("user_id", user.id),
+          supabase.from("strategic_themes").select("id, title, brand_id").eq("user_id", user.id),
         ]);
 
         if (brandsError) throw brandsError;

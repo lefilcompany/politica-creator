@@ -140,17 +140,16 @@ export default function CreateImage() {
   const [promptPreview, setPromptPreview] = useState("");
 
   // React Query for brands, themes, personas
-  const teamId = user?.teamId;
   const userId = user?.id;
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
-    queryKey: ['brands', teamId],
+    queryKey: ['brands', userId],
     queryFn: async () => {
-      if (!teamId) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('brands')
         .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
-        .eq('team_id', teamId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []).map((brand: any) => ({
@@ -163,18 +162,18 @@ export default function CreateImage() {
         updatedAt: brand.updated_at,
       })) as BrandSummary[];
     },
-    enabled: !!teamId,
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: themes = [], isLoading: loadingThemes } = useQuery({
-    queryKey: ['themes-full', teamId],
+    queryKey: ['themes-full', userId],
     queryFn: async () => {
-      if (!teamId) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('strategic_themes')
         .select('id, brand_id, title, tone_of_voice, platforms, target_audience, objectives, objective_type, created_at')
-        .eq('team_id', teamId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []).map((theme: any) => ({
@@ -189,18 +188,18 @@ export default function CreateImage() {
         createdAt: theme.created_at,
       }));
     },
-    enabled: !!teamId,
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: personas = [], isLoading: loadingPersonas } = useQuery({
-    queryKey: ['personas-full', teamId],
+    queryKey: ['personas-full', userId],
     queryFn: async () => {
-      if (!teamId) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('personas')
         .select('id, brand_id, name, age, gender, location, professional_context, preferred_tone_of_voice, created_at')
-        .eq('team_id', teamId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []).map((persona: any) => ({
@@ -215,49 +214,7 @@ export default function CreateImage() {
         createdAt: persona.created_at,
       }));
     },
-    enabled: !!teamId,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: team = null } = useQuery({
-    queryKey: ['team', teamId],
-    queryFn: async () => {
-      if (!teamId) return null;
-      const { data: teamData, error } = await supabase
-        .from('teams')
-        .select('*, plan:plans(*)')
-        .eq('id', teamId)
-        .single();
-      if (error) throw error;
-      return {
-        id: teamData.id,
-        name: teamData.name,
-        code: teamData.code,
-        admin: teamData.admin_id,
-        admin_id: teamData.admin_id,
-        members: [],
-        pending: [],
-        plan: teamData.plan ? {
-          id: teamData.plan.id,
-          name: teamData.plan.name,
-          description: teamData.plan.description || '',
-          price: Number(teamData.plan.price_monthly || 0),
-          credits: (teamData.plan as any).credits || 0,
-          maxMembers: teamData.plan.max_members,
-          maxBrands: teamData.plan.max_brands,
-          maxStrategicThemes: teamData.plan.max_strategic_themes,
-          maxPersonas: teamData.plan.max_personas,
-          trialDays: teamData.plan.trial_days || 0,
-          isActive: teamData.plan.is_active,
-          stripePriceId: teamData.plan.stripe_price_id_monthly,
-        } : null,
-        credits: (teamData as any).credits || 0,
-        free_brands_used: (teamData as any).free_brands_used || 0,
-        free_personas_used: (teamData as any).free_personas_used || 0,
-        free_themes_used: (teamData as any).free_themes_used || 0,
-      } as Team;
-    },
-    enabled: !!teamId,
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 

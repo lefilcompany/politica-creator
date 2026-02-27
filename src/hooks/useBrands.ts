@@ -8,24 +8,24 @@ export type BrandInsert = TablesInsert<'brands'>;
 export type BrandUpdate = TablesUpdate<'brands'>;
 
 export const useBrands = () => {
-  const { team } = useAuth();
+  const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['brands', team?.id],
+    queryKey: ['brands', user?.id],
     queryFn: async () => {
-      if (!team?.id) return [];
+      if (!user?.id) return [];
       
       const { data, error } = await supabase
         .from('brands')
         .select('*')
-        .eq('team_id', team.id)
+        .eq('user_id', user.id)
         .order('name');
       
       if (error) throw error;
       return data;
     },
-    enabled: !!team?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -51,7 +51,7 @@ export const useBrand = (brandId: string | undefined) => {
 
 export const useCreateBrand = () => {
   const queryClient = useQueryClient();
-  const { user, team } = useAuth();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (brand: Omit<BrandInsert, 'user_id' | 'team_id'>) => {
@@ -62,7 +62,7 @@ export const useCreateBrand = () => {
         .insert({
           ...brand,
           user_id: user.id,
-          team_id: team?.id,
+          team_id: user.teamId || null,
         })
         .select()
         .single();
