@@ -38,7 +38,8 @@ interface FormData {
   videoVisualStyle: 'cinematic' | 'animation' | 'realistic' | 'creative';
   videoAspectRatio: '16:9' | '9:16';
   videoResolution: '720p' | '1080p';
-  videoDuration: 4 | 6 | 8;
+  videoDuration: number;
+  videoModel: 'veo' | 'sora';
 }
 
 const toneOptions = ["inspirador", "motivacional", "profissional", "casual", "elegante", "moderno", "tradicional", "divertido", "sério"];
@@ -62,6 +63,7 @@ export default function CreateVideo() {
     videoAspectRatio: '9:16',
     videoResolution: '1080p',
     videoDuration: 8,
+    videoModel: 'veo',
   });
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -217,6 +219,7 @@ export default function CreateVideo() {
           resolution: formData.videoResolution,
           duration: formData.videoDuration,
           preserveImages,
+          videoModel: formData.videoModel,
         },
       });
 
@@ -507,6 +510,41 @@ export default function CreateVideo() {
                 Configurações do Vídeo
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Modelo de IA */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Modelo de IA</Label>
+                  <NativeSelect
+                    value={formData.videoModel}
+                    onValueChange={(value) => {
+                      const newModel = value as 'veo' | 'sora';
+                      setFormData(prev => ({
+                        ...prev,
+                        videoModel: newModel,
+                        // Ajustar duração para limites do modelo
+                        videoDuration: newModel === 'sora' 
+                          ? (prev.videoDuration > 10 ? 10 : prev.videoDuration < 5 ? 5 : prev.videoDuration)
+                          : (prev.videoDuration > 8 ? 8 : prev.videoDuration < 4 ? 4 : prev.videoDuration),
+                        // Sora não suporta image_to_video via referência direta
+                        videoGenerationType: newModel === 'sora' ? 'text_to_video' : prev.videoGenerationType,
+                      }));
+                      if (newModel === 'sora' && referenceImage) {
+                        removeReferenceImage();
+                        toast.info("Sora 2 funciona apenas com texto. A imagem de referência foi removida.");
+                      }
+                    }}
+                    options={[
+                      { value: "veo", label: "Google Veo 3 (Padrão)" },
+                      { value: "sora", label: "OpenAI Sora 2" },
+                    ]}
+                    placeholder="Selecione o modelo"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {formData.videoModel === 'sora' 
+                      ? 'Sora 2: vídeos com áudio sincronizado, até 20s'
+                      : 'Veo 3: suporta imagem-para-vídeo'}
+                  </p>
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-foreground">Estilo Visual</Label>
                   <NativeSelect
@@ -556,11 +594,19 @@ export default function CreateVideo() {
                   <NativeSelect
                     value={String(formData.videoDuration)}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))}
-                    options={[
-                      { value: "4", label: "4 segundos" },
-                      { value: "6", label: "6 segundos" },
-                      { value: "8", label: "8 segundos" },
-                    ]}
+                    options={formData.videoModel === 'sora' 
+                      ? [
+                          { value: "5", label: "5 segundos" },
+                          { value: "10", label: "10 segundos" },
+                          { value: "15", label: "15 segundos" },
+                          { value: "20", label: "20 segundos" },
+                        ]
+                      : [
+                          { value: "4", label: "4 segundos" },
+                          { value: "6", label: "6 segundos" },
+                          { value: "8", label: "8 segundos" },
+                        ]
+                    }
                     placeholder="Selecione a duração"
                     triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                   />
@@ -617,7 +663,8 @@ export default function CreateVideo() {
             </CardContent>
           </Card>
 
-          {/* 5. Imagem de Referência */}
+          {/* 5. Imagem de Referência (apenas para Veo) */}
+          {formData.videoModel === 'veo' && (
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
             <CardContent className="p-4 md:p-5 space-y-3">
               <Label className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -674,6 +721,7 @@ export default function CreateVideo() {
               )}
             </CardContent>
           </Card>
+          )}
 
           {/* Generate Button */}
           <div className="flex justify-end pb-6">
