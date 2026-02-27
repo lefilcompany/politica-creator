@@ -66,8 +66,8 @@ serve(async (req) => {
     // Agora qualquer usuário autenticado pode comprar para si mesmo
 
     const { type, price_id, plan_id, package_id, credits, return_url } = await req.json();
-    if (!type || !['plan', 'custom', 'credits'].includes(type)) {
-      throw new Error("type is required and must be 'plan', 'custom', or 'credits'");
+    if (!type || !['plan', 'custom', 'credits', 'video'].includes(type)) {
+      throw new Error("type is required and must be 'plan', 'custom', 'credits', or 'video'");
     }
     logStep("Request data received", { type, price_id, plan_id, package_id, credits });
 
