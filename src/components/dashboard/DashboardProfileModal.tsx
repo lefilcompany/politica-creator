@@ -16,10 +16,6 @@ const MANDATE_STAGES = [
   { value: 'campanha', label: 'Campanha', desc: 'Em período de campanha eleitoral' },
 ];
 
-const TONE_OPTIONS = [
-  'Didático', 'Combativo', 'Conciliador', 'Técnico',
-  'Inspirador', 'Popular', 'Institucional', 'Empático',
-];
 
 const ACCEPTED_FILE_TYPES = '.pdf,.docx,.txt';
 const MAX_FILE_SIZE_MB = 10;
@@ -33,7 +29,6 @@ interface UploadedDoc {
 interface ProfileDetailData {
   mandate_stage: string;
   biography: string;
-  tone_of_voice: string;
   red_lines: string;
   evidence_history: string;
 }
@@ -45,7 +40,7 @@ interface RecommendedThesis {
   relevance: string;
 }
 
-const FORM_STEPS = 5;
+const FORM_STEPS = 4;
 
 interface Props {
   open: boolean;
@@ -72,7 +67,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
   const [data, setData] = useState<ProfileDetailData>({
     mandate_stage: '',
     biography: '',
-    tone_of_voice: '',
     red_lines: '',
     evidence_history: '',
   });
@@ -90,7 +84,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
         setData({
           mandate_stage: profile.mandate_stage || '',
           biography: profile.biography || '',
-          tone_of_voice: profile.tone_of_voice || '',
           red_lines: profile.red_lines || '',
           evidence_history: profile.evidence_history || '',
         });
@@ -109,9 +102,8 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     switch (step) {
       case 0: return !!data.mandate_stage;
       case 1: return data.biography.trim().length > 10;
-      case 2: return !!data.tone_of_voice;
+      case 2: return true;
       case 3: return true;
-      case 4: return true;
       default: return true;
     }
   };
@@ -210,7 +202,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
         .update({
           mandate_stage: data.mandate_stage,
           biography: data.biography,
-          tone_of_voice: data.tone_of_voice,
           red_lines: data.red_lines || null,
           evidence_history: data.evidence_history || null,
           evidence_documents: uploadedDocs.length > 0 ? JSON.parse(JSON.stringify(uploadedDocs)) : null,
@@ -255,7 +246,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     onClose();
   };
 
-  const stepIcons = [Briefcase, UserCircle, Mic, ShieldAlert, FileText, ...(showTheses ? [BookOpen] : [])];
+  const stepIcons = [Briefcase, UserCircle, ShieldAlert, FileText, ...(showTheses ? [BookOpen] : [])];
 
   const thesesStep = (
     <div key="s-theses" className="space-y-5">
@@ -349,36 +340,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       <p className="text-xs text-muted-foreground">Mínimo de 10 caracteres</p>
     </div>,
 
-    // Step 2: Tom de voz
-    <div key="s2" className="space-y-5">
-      <div className="text-center space-y-1">
-        <h3 className="text-lg font-bold text-foreground">Tom de voz</h3>
-        <p className="text-sm text-muted-foreground">Como você quer que a IA se comunique por você?</p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {TONE_OPTIONS.map(tone => (
-          <button
-            key={tone}
-            onClick={() => setData(prev => ({ ...prev, tone_of_voice: tone }))}
-            className={`px-4 py-2.5 rounded-full border text-sm font-medium transition-all
-              ${data.tone_of_voice === tone
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border hover:border-primary/40 text-foreground hover:bg-muted/50'
-              }`}
-          >
-            {data.tone_of_voice === tone && <Check className="inline-block w-3 h-3 mr-1" />}
-            {tone}
-          </button>
-        ))}
-      </div>
-      {data.tone_of_voice && (
-        <p className="text-sm text-muted-foreground text-center">
-          Selecionado: <Badge variant="secondary">{data.tone_of_voice}</Badge>
-        </p>
-      )}
-    </div>,
-
-    // Step 3: Linhas vermelhas
+    // Step 2: Linhas vermelhas
     <div key="s3" className="space-y-5">
       <div className="text-center space-y-1">
         <h3 className="text-lg font-bold text-foreground">Linhas vermelhas</h3>
@@ -394,7 +356,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       <p className="text-xs text-muted-foreground">Opcional — mas altamente recomendado para segurança política</p>
     </div>,
 
-    // Step 4: Evidências + Upload
+    // Step 3: Evidências + Upload
     <div key="s4" className="space-y-5">
       <div className="text-center space-y-1">
         <h3 className="text-lg font-bold text-foreground">Evidências e histórico</h3>
@@ -501,18 +463,13 @@ export function DashboardProfileModal({ open, onClose }: Props) {
 
               <div className="border-t border-border/30" />
 
-              {/* Tom de voz */}
+              {/* Linhas vermelhas */}
               {formSteps[2]}
 
               <div className="border-t border-border/30" />
 
-              {/* Linhas vermelhas */}
-              {formSteps[3]}
-
-              <div className="border-t border-border/30" />
-
               {/* Evidências */}
-              {formSteps[4]}
+              {formSteps[3]}
             </div>
 
             {/* Actions - fixed at bottom */}
@@ -520,7 +477,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
               <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
                 Pular
               </Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting || isUploading || !data.mandate_stage || data.biography.trim().length <= 10 || !data.tone_of_voice} className="gap-2">
+              <Button onClick={handleSubmit} disabled={isSubmitting || isUploading || !data.mandate_stage || data.biography.trim().length <= 10} className="gap-2">
                 <Sparkles className="w-4 h-4" />
                 {isSubmitting ? 'Salvando...' : 'Concluir'}
               </Button>
