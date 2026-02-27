@@ -135,6 +135,24 @@ export default function CreateVideo() {
   const filteredThemes = formData.brand ? themes.filter((t) => t.brandId === formData.brand) : [];
   const filteredPersonas = formData.brand ? personas.filter((p) => p.brandId === formData.brand) : [];
 
+  // Redimensionar imagem para resolução exata (necessário para Sora 2)
+  const resizeImageToDataUrl = (dataUrl: string, targetWidth: number, targetHeight: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Canvas not supported'));
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+        resolve(canvas.toDataURL('image/jpeg', 0.92));
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -206,7 +224,17 @@ export default function CreateVideo() {
         throw new Error("Não foi possível iniciar a geração (ação não registrada).");
       }
 
-      const preserveImages = referenceImage ? [referenceImage] : [];
+      let preserveImages: string[] = [];
+      if (referenceImage) {
+        if (formData.videoModel === 'sora') {
+          // Sora 2 exige que a imagem tenha exatamente a resolução do vídeo
+          const [w, h] = formData.videoAspectRatio === '9:16' ? [720, 1280] : [1280, 720];
+          const resized = await resizeImageToDataUrl(referenceImage, w, h);
+          preserveImages = [resized];
+        } else {
+          preserveImages = [referenceImage];
+        }
+      }
 
       const { data: responseData, error: invokeError } = await supabase.functions.invoke('generate-video', {
         body: {
