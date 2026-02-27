@@ -7,6 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone, Activity } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
+import { useImageLimit } from "@/hooks/useImageLimit";
+import { FreeLimitBlocker } from "@/components/FreeLimitBlocker";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
@@ -18,8 +20,10 @@ export default function ContentCreationSelector() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { hasReachedLimit, imageCount, maxImages } = useImageLimit();
   const [isLoading, setIsLoading] = useState(true);
   const [creationType, setCreationType] = useState<CreationType | null>(null);
+  const [showLimitBlocker, setShowLimitBlocker] = useState(false);
 
   useEffect(() => {
     if (user !== null && user !== undefined) {
@@ -37,6 +41,12 @@ export default function ContentCreationSelector() {
 
   useEffect(() => {
     if (creationType) {
+      // Check image limit for image-related creation types
+      if ((creationType === "image" || creationType === "campaign") && hasReachedLimit) {
+        setShowLimitBlocker(true);
+        setCreationType(null);
+        return;
+      }
       const routes: Record<CreationType, string> = {
         image: "/create/image",
         video: "/create/video",
@@ -45,7 +55,7 @@ export default function ContentCreationSelector() {
       };
       navigate(routes[creationType]);
     }
-  }, [creationType, navigate]);
+  }, [creationType, navigate, hasReachedLimit]);
 
   if (isLoading) {
     return (
@@ -255,6 +265,13 @@ export default function ContentCreationSelector() {
           </div>
         </RadioGroup>
       </main>
+
+      <FreeLimitBlocker
+        isOpen={showLimitBlocker}
+        onClose={() => setShowLimitBlocker(false)}
+        imageCount={imageCount}
+        maxImages={maxImages}
+      />
     </div>
   );
 }

@@ -15,9 +15,20 @@ export function useCreditsAction() {
     actionType: keyof typeof CREDIT_COSTS,
     options?: ExecuteActionOptions
   ): Promise<T | null> => {
+    const cost = CREDIT_COSTS[actionType];
+    const currentCredits = user?.credits || 0;
+
+    if (currentCredits < cost) {
+      toast.error(`Créditos insuficientes. Necessário: ${cost}, disponível: ${currentCredits}.`);
+      return null;
+    }
+
     try {
-      // Payment system disabled - execute without credit checks
       const result = await actionFn();
+      
+      // Refresh credits after action
+      await refreshUserCredits();
+      
       options?.onSuccess?.();
       return result;
     } catch (error) {
