@@ -64,6 +64,18 @@ async function processVideoGeneration(operationName: string, actionId: string, u
         console.log('Background: ✅ Operation completed!');
         console.log('Background: Full response structure:', JSON.stringify(statusData.response, null, 2));
         
+        // Verificar se o conteúdo foi filtrado pelo RAI (segurança)
+        const raiReasons = statusData.response?.generateVideoResponse?.raiMediaFilteredReasons;
+        const raiCount = statusData.response?.generateVideoResponse?.raiMediaFilteredCount;
+        if (raiReasons && raiReasons.length > 0) {
+          console.error('Background: Content filtered by RAI:', raiReasons);
+          throw new Error(`Conteúdo bloqueado pela política de segurança da IA: ${raiReasons[0]}`);
+        }
+        if (raiCount && raiCount > 0 && !statusData.response?.generateVideoResponse?.generatedSamples?.length) {
+          console.error('Background: All samples filtered by RAI, count:', raiCount);
+          throw new Error('Todos os vídeos gerados foram bloqueados pela política de segurança. Tente reformular o prompt sem mencionar nomes de pessoas reais ou celebridades.');
+        }
+        
         // Tentar múltiplos caminhos possíveis na resposta
         videoUri = statusData.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri ||
                    statusData.response?.video?.uri ||
