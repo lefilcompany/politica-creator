@@ -463,11 +463,24 @@ serve(async (req) => {
 
       // Mapear aspect ratio para resolução Sora
       const soraResolution = aspectRatio === '9:16' ? '720x1280' : '1280x720';
+
+      // Sora 2 aceita apenas 4, 8 ou 12 segundos
+      const soraAllowedSeconds = [4, 8, 12] as const;
+      const requestedDuration = Number(duration) || 8;
+      const soraSeconds = soraAllowedSeconds.reduce((closest, current) => {
+        const closestDiff = Math.abs(closest - requestedDuration);
+        const currentDiff = Math.abs(current - requestedDuration);
+
+        if (currentDiff < closestDiff) return current;
+        if (currentDiff === closestDiff && current < closest) return current;
+        return closest;
+      }, soraAllowedSeconds[0]);
       
       console.log('🎬 [Sora 2] Iniciando geração de vídeo');
       console.log('📝 [Sora 2] Prompt:', safePrompt);
       console.log('📐 [Sora 2] Resolução:', soraResolution);
-      console.log('⏱️ [Sora 2] Duração:', duration + 's');
+      console.log('⏱️ [Sora 2] Duração solicitada:', requestedDuration + 's');
+      console.log('⏱️ [Sora 2] Duração ajustada:', soraSeconds + 's');
 
       // 1. Criar job de vídeo
       const createResponse = await fetch('https://api.openai.com/v1/videos', {
@@ -479,7 +492,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'sora-2',
           prompt: safePrompt,
-          seconds: String(Math.min(duration, 20)),
+          seconds: String(soraSeconds),
           size: soraResolution,
         }),
       });
