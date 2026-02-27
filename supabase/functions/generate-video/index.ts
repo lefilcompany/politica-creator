@@ -253,7 +253,9 @@ serve(async (req) => {
       aspectRatio = '9:16',
       resolution = '1080p',
       duration = 8,
-      negativePrompt = ''
+      negativePrompt = '',
+      // MODELO DE VÍDEO
+      videoModel = 'veo'
     } = await req.json();
 
     const sanitizePromptForVideoSafety = (rawPrompt: string): string => {
@@ -447,8 +449,189 @@ serve(async (req) => {
 
     console.log(`Credits decremented: ${creditsBefore} → ${deductResult.newCredits}`);
 
+    console.log('🤖 Modelo selecionado pelo usuário:', videoModel);
+
+    // ========== SORA 2 (OpenAI) ==========
+    if (videoModel === 'sora') {
+      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+      if (!OPENAI_API_KEY) {
+        return new Response(
+          JSON.stringify({ error: 'OPENAI_API_KEY não configurada para Sora 2.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Mapear aspect ratio para resolução Sora
+      const soraResolution = aspectRatio === '9:16' ? '720x1280' : '1280x720';
+      
+      console.log('🎬 [Sora 2] Iniciando geração de vídeo');
+      console.log('📝 [Sora 2] Prompt:', safePrompt);
+      console.log('📐 [Sora 2] Resolução:', soraResolution);
+      console.log('⏱️ [Sora 2] Duração:', duration + 's');
+
+      // 1. Criar job de vídeo
+      const createResponse = await fetch('https://api.openai.com/v1/videos', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'sora-2',
+          prompt: safePrompt,
+          duration: Math.min(duration, 20),
+          resolution: soraResolution,
+        }),
+      });
+
+      if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        console.error('❌ [Sora 2] Create error:', createResponse.status, errorText);
+        
+        // Reembolsar para erros de servidor/quota
+        if (createResponse.status === 429 || createResponse.status >= 500) {
+          const { data: currentProfile } = await supabase.from('profiles').select('credits').eq('id', actionData.user_id).single();
+          if (currentProfile) {
+            const refundedAfter = currentProfile.credits + CREDIT_COSTS.VIDEO_GENERATION;
+            await supabase.from('profiles').update({ credits: refundedAfter }).eq('id', actionData.user_id);
+            await recordUserCreditUsage(supabase, {
+              userId: actionData.user_id, teamId: actionData.team_id || undefined,
+              actionType: 'VIDEO_GENERATION_REFUND', creditsUsed: -CREDIT_COSTS.VIDEO_GENERATION,
+              creditsBefore: currentProfile.credits, creditsAfter: refundedAfter,
+              description: `Reembolso: Erro ${createResponse.status} no Sora 2`,
+              metadata: { action_id: actionId, error_status: createResponse.status }
+            });
+          }
+        }
+
+        await supabase.from('actions').update({
+          status: 'failed',
+          result: { error: `Erro Sora 2: ${createResponse.status}`, details: errorText },
+          updated_at: new Date().toISOString()
+        }).eq('id', actionId);
+
+        return new Response(
+          JSON.stringify({ error: 'Erro ao iniciar geração com Sora 2', status: 'failed' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const jobData = await createResponse.json();
+      const videoJobId = jobData.id;
+      console.log('✅ [Sora 2] Job criado:', videoJobId);
+
+      // 2. Background polling do Sora
+      const soraBackgroundPromise = (async () => {
+        try {
+          let isDone = false;
+          let attempts = 0;
+          const maxAttempts = 120; // 10 min
+
+          while (!isDone && attempts < maxAttempts) {
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            const statusRes = await fetch(`https://api.openai.com/v1/videos/${videoJobId}`, {
+              headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+            });
+
+            if (!statusRes.ok) {
+              console.error('[Sora 2] Status check failed:', statusRes.status);
+              const statusText = await statusRes.text();
+              console.error('[Sora 2] Status body:', statusText);
+              continue;
+            }
+
+            const statusData = await statusRes.json();
+            console.log(`[Sora 2] Poll ${attempts}: status=${statusData.status}`);
+
+            if (statusData.status === 'completed') {
+              isDone = true;
+
+              // 3. Download do MP4
+              const contentRes = await fetch(`https://api.openai.com/v1/videos/${videoJobId}/content`, {
+                headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+              });
+
+              if (!contentRes.ok) {
+                throw new Error(`Sora 2 download failed: ${contentRes.status}`);
+              }
+
+              const videoBlob = await contentRes.blob();
+              console.log('[Sora 2] Video downloaded, size:', videoBlob.size);
+
+              // Upload para storage
+              const fileName = `${actionId}_sora_${Date.now()}.mp4`;
+              const filePath = `videos/${fileName}`;
+              const arrayBuffer = await videoBlob.arrayBuffer();
+
+              const { error: uploadError } = await supabase.storage
+                .from('videos')
+                .upload(filePath, arrayBuffer, { contentType: 'video/mp4', upsert: true });
+
+              if (uploadError) throw uploadError;
+
+              const { data: publicUrlData } = supabase.storage.from('videos').getPublicUrl(filePath);
+              const videoUrl = publicUrlData.publicUrl;
+
+              await supabase.from('actions').update({
+                result: {
+                  videoUrl,
+                  processingTime: `${attempts * 5} seconds`,
+                  attempts,
+                  modelUsed: 'sora-2',
+                  veoVersion: 'sora-2',
+                },
+                status: 'completed',
+                updated_at: new Date().toISOString()
+              }).eq('id', actionId);
+
+              console.log('✅ [Sora 2] Video generation completed');
+
+            } else if (statusData.status === 'failed') {
+              const errorMsg = statusData.error?.message || 'Sora 2 generation failed';
+              throw new Error(errorMsg);
+            }
+          }
+
+          if (!isDone) {
+            throw new Error('Sora 2 timeout after 10 minutes');
+          }
+        } catch (error) {
+          console.error('[Sora 2] Background error:', error);
+          await supabase.from('actions').update({
+            status: 'failed',
+            result: {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              modelUsed: 'sora-2',
+              failedAt: new Date().toISOString()
+            },
+            updated_at: new Date().toISOString()
+          }).eq('id', actionId);
+        }
+      })();
+
+      // @ts-ignore
+      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+        // @ts-ignore
+        EdgeRuntime.waitUntil(soraBackgroundPromise);
+      } else {
+        soraBackgroundPromise;
+      }
+
+      return new Response(
+        JSON.stringify({
+          status: 'processing',
+          message: 'Sora 2 video generation started.',
+          actionId,
+          modelUsed: 'sora-2'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ========== VEO (Google) ==========
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
-    
     // Nova função para Veo 3.0 (Image-to-Video) - Imperativa e Focada
     function buildVeo30Prompt(
       basePrompt: string,
