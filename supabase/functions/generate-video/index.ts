@@ -479,8 +479,8 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'sora-2',
           prompt: safePrompt,
-          duration: Math.min(duration, 20),
-          resolution: soraResolution,
+          seconds: String(Math.min(duration, 20)),
+          size: soraResolution,
         }),
       });
 
