@@ -363,6 +363,23 @@ export default function CreateVideo() {
                   <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                   <span>Seja específico sobre cenas, movimentos, estilo e mood desejado</span>
                 </p>
+                <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1.5 flex items-center gap-1.5">
+                    <HelpCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                    Evite nomes de pessoas reais
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    A IA bloqueia vídeos com nomes ou rostos de pessoas reais. Descreva a aparência em vez de citar nomes:
+                  </p>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex gap-2">
+                      <span className="text-destructive/70 line-through shrink-0">❌ "Lionel Messi jogando"</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-green-600 dark:text-green-400 shrink-0">✅ "Um jogador de futebol com camisa 10 driblando em um estádio lotado"</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
