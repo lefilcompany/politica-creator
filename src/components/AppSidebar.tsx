@@ -1,13 +1,14 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, BookOpen, Coins, Briefcase, Shield } from "lucide-react";
+import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, BookOpen, Coins, Briefcase, Shield, ImageIcon } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
+import { useImageLimit } from "@/hooks/useImageLimit";
 import { useTranslation } from "@/hooks/useTranslation";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
@@ -167,6 +168,7 @@ export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const { remaining, maxImages } = useImageLimit();
   const { theme } = useTheme();
   const { t } = useTranslation();
 
@@ -259,7 +261,7 @@ export function AppSidebar() {
                 <TooltipContent side="right">
                   <div className="flex flex-col items-start">
                     <span className="font-bold text-sm">{user.credits || 0} créditos</span>
-                    <span className="text-xs opacity-80">Clique para comprar</span>
+                    <span className="text-xs opacity-80">{remaining}/{maxImages} imagens</span>
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -273,7 +275,10 @@ export function AppSidebar() {
                 <Coins className="h-5 w-5 flex-shrink-0" />
                 <div className="flex flex-col">
                   <span className="font-bold text-sm">{user.credits || 0} créditos</span>
-                  <span className="text-xs opacity-80">Comprar mais</span>
+                  <div className="flex items-center gap-1 text-xs opacity-80">
+                    <ImageIcon className="h-3 w-3" />
+                    <span>{remaining}/{maxImages} imagens restantes</span>
+                  </div>
                 </div>
               </NavLink>
             )}
