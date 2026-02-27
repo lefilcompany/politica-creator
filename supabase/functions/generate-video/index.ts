@@ -476,26 +476,64 @@ serve(async (req) => {
         return closest;
       }, soraAllowedSeconds[0]);
       
+      const hasReferenceImage = preserveImages && preserveImages.length > 0 && preserveImages[0];
+      
       console.log('🎬 [Sora 2] Iniciando geração de vídeo');
       console.log('📝 [Sora 2] Prompt:', safePrompt);
       console.log('📐 [Sora 2] Resolução:', soraResolution);
       console.log('⏱️ [Sora 2] Duração solicitada:', requestedDuration + 's');
       console.log('⏱️ [Sora 2] Duração ajustada:', soraSeconds + 's');
+      console.log('🖼️ [Sora 2] Imagem de referência:', hasReferenceImage ? 'Sim' : 'Não');
 
       // 1. Criar job de vídeo
-      const createResponse = await fetch('https://api.openai.com/v1/videos', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'sora-2',
-          prompt: safePrompt,
-          seconds: String(soraSeconds),
-          size: soraResolution,
-        }),
-      });
+      let createResponse: Response;
+      
+      if (hasReferenceImage) {
+        // Image-to-video: usar multipart/form-data com input_reference
+        const { base64: imageBase64, mimeType: imageMimeType } = extractBase64(preserveImages[0]);
+        
+        // Converter base64 para Uint8Array
+        const binaryString = atob(imageBase64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const ext = imageMimeType === 'image/png' ? 'png' : imageMimeType === 'image/webp' ? 'webp' : 'jpeg';
+        const blob = new Blob([bytes], { type: imageMimeType });
+        
+        const formData = new FormData();
+        formData.append('model', 'sora-2');
+        formData.append('prompt', safePrompt);
+        formData.append('seconds', String(soraSeconds));
+        formData.append('size', soraResolution);
+        formData.append('input_reference', blob, `reference.${ext}`);
+        
+        console.log('🖼️ [Sora 2] Enviando imagem como input_reference via multipart/form-data');
+        
+        createResponse = await fetch('https://api.openai.com/v1/videos', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          },
+          body: formData,
+        });
+      } else {
+        // Text-to-video: usar JSON
+        createResponse = await fetch('https://api.openai.com/v1/videos', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'sora-2',
+            prompt: safePrompt,
+            seconds: String(soraSeconds),
+            size: soraResolution,
+          }),
+        });
+      }
 
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
