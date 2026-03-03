@@ -322,6 +322,21 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
             </div>
           </div>
           
+          {/* Botão de Localização */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGetLocation}
+              disabled={isLocating || loadingStates}
+              className="gap-2"
+            >
+              {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+              {isLocating ? 'Detectando...' : 'Usar minha localização'}
+            </Button>
+          </div>
+
           {/* Botões de Ação */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-5 border-t border-primary/10">
             <Button 
