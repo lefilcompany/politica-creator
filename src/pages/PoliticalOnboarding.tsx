@@ -302,6 +302,17 @@ export default function PoliticalOnboarding() {
             value={data.state}
             onChange={e => setData(prev => ({ ...prev, state: e.target.value }))}
           />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGetLocation}
+            disabled={isLocating}
+            className="w-full gap-2"
+          >
+            {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+            {isLocating ? 'Detectando...' : 'Usar minha localização'}
+          </Button>
         </div>
       </div>
 
