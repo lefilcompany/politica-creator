@@ -260,10 +260,15 @@ SUA MISSÃO (3 etapas obrigatórias):
 3. **AJUSTAR O CLIMA**: Adapte toda a atmosfera:
    ${grau === 'Alto' ? '- Sombras profundas, cores fortes e saturadas, contraste dramático, energia de urgência' : grau === 'Médio' ? '- Luz quente dourada, foco em expressões humanas, empatia e conexão' : '- Luz solar suave, tons abertos e limpos, estabilidade e confiança'}
 
-## VALIDAÇÃO ÉTICA (pré-verificação):
+## VALIDAÇÃO ÉTICA E COMPLIANCE TSE 2026 (pré-verificação obrigatória):
 - Se houver menção a "inimigo" ou "adversário", transforme em "crítica política legítima"
 - Nunca gerar conteúdo que viole dignidade humana ou incite ódio
-- Respeitar regulamentações eleitorais (TSE)
+- PROIBIDO gerar deepfakes ou conteúdo de nudez/pornografia envolvendo candidatos
+- PROIBIDO gerar conteúdo de violência política contra a mulher
+- PROIBIDO recomendar candidaturas — não incluir mensagens que indiquem "vote em X"
+- Todo conteúdo gerado por IA DEVE ser rotulado (a plataforma adiciona automaticamente)
+- Respeitar Resoluções TSE Eleições 2026 (Res. 23.610/2019 atualizada)
+- Respeitar inclusão e representatividade de candidaturas indígenas, negras e femininas
 
 ## FORMATO DE RESPOSTA (JSON estrito):
 {
@@ -548,17 +553,43 @@ function buildDirectorPrompt(params: {
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refLines.join('\n')}`);
   }
 
-  // === 6. COMPLIANCE E ESPECIFICAÇÕES ===
-  sections.push(`### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
+  // === 6. COMPLIANCE E ESPECIFICAÇÕES (TSE Eleições 2026 — Res. 23.610/2019 atualizada) ===
+  sections.push(`### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE (TSE Eleições 2026)
 - **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
 - **Resolução:** 4K, PNG para tipografia nítida
 - **Geração de Pessoas:** Permitida — campanha política requer representação humana
 
-COMPLIANCE ÉTICO E LEGAL (CONAR/CDC/TSE):
-- HONESTIDADE: A imagem NÃO pode induzir ao erro ou criar falsas representações
-- DIGNIDADE: PROIBIDO qualquer forma de discriminação ou discurso de ódio
-- REGULAMENTAÇÃO ELEITORAL: Respeitar legislação vigente
-- ACESSIBILIDADE: Garantir contraste mínimo WCAG AA para textos`);
+COMPLIANCE ÉTICO E LEGAL — RESOLUÇÕES TSE ELEIÇÕES 2026 (aprovadas em 02/06/2025):
+
+**A. ROTULAGEM OBRIGATÓRIA DE IA (Res. TSE nº 23.610/2019, atualizada):**
+- Todo conteúdo sintético gerado ou modificado por IA DEVE ser devidamente rotulado
+- A divulgação ou compartilhamento de conteúdo sintético SEM rotulagem adequada é PROIBIDA
+- A responsabilidade solidária recai sobre provedores de aplicação que não indisponibilizem conteúdo não rotulado
+
+**B. RESTRIÇÃO TEMPORAL DE CONTEÚDO SINTÉTICO:**
+- É VEDADA a circulação de quaisquer conteúdos sintéticos NOVOS, produzidos ou alterados por IA, que modifiquem imagem, voz ou manifestação de candidata(o) ou pessoa pública, ainda que rotulados, no período de 72 HORAS ANTES até 24 HORAS APÓS o pleito (1º turno: 04/10/2026)
+- Esta restrição visa excluir surpresas indesejadas no período mais crítico do processo eleitoral
+
+**C. PROIBIÇÕES ABSOLUTAS:**
+- PROIBIDO criar deepfakes: alterações em fotografia, vídeo ou registro audiovisual contendo cena de sexo, nudez ou pornografia
+- PROIBIDO gerar conteúdo de violência política contra a mulher
+- PROIBIDO recomendar candidaturas via IA — a plataforma NÃO deve fornecer recomendação de candidaturas, impedindo interferência algorítmica no processo decisório do voto
+- PROIBIDO criar ou promover perfis falsos, apócrifos ou automatizados que comprometam a integridade eleitoral
+- PROIBIDO reproduzir conteúdo já objeto de ordem de indisponibilização pela Justiça Eleitoral
+
+**D. HONESTIDADE E DIGNIDADE (CONAR/CDC/TSE):**
+- A imagem NÃO pode induzir ao erro ou criar falsas representações
+- PROIBIDO qualquer forma de discriminação ou discurso de ódio
+- Respeitar inclusão radical e interseccional — pessoas negras, indígenas e mulheres devem ser representadas com dignidade
+
+**E. PROPAGANDA ELEITORAL:**
+- Permitida entrega de material de campanha em espaços públicos abertos (vias, praças, feiras, parques) desde que garantida a mobilidade
+- Manifestação espontânea em ambientes universitários, escolares, comunitários ou de movimentos sociais é permitida na pré-campanha (ADPF 548)
+- Destinação proporcional de tempo a candidaturas indígenas na propaganda gratuita
+
+**F. ACESSIBILIDADE:**
+- Garantir contraste mínimo WCAG AA para textos
+- Considerar acessibilidade visual para pessoas com deficiência`);
 
   // === POLITICAL CONTEXT ===
   if (params.politicalContext) {

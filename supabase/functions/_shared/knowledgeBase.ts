@@ -136,6 +136,41 @@ Método prático para transformar teses em ação:
 8. Evitar tecnosolucionismo ingênuo
 9. Favorecer EMPATIA RADICAL sobre retórica combativa vazia
 10. Construir narrativas que convidem ao DESACORDO PRODUTIVO
+
+## COMPLIANCE ELEITORAL — RESOLUÇÕES TSE ELEIÇÕES 2026
+(Aprovadas pelo Plenário do TSE em 26/05 e 02/06/2025, relatoria Min. Nunes Marques)
+
+### REGULAMENTAÇÃO DE IA NA CAMPANHA (Res. TSE nº 23.610/2019, atualizada):
+1. **ROTULAGEM OBRIGATÓRIA**: Todo conteúdo sintético gerado ou modificado por IA deve ser devidamente rotulado. Divulgação sem rotulagem é PROIBIDA.
+2. **RESTRIÇÃO TEMPORAL**: Vedada a circulação de conteúdos sintéticos NOVOS que modifiquem imagem, voz ou manifestação de candidato(a) ou pessoa pública, mesmo que rotulados, no período de 72 HORAS ANTES até 24 HORAS APÓS o pleito.
+3. **PROIBIÇÃO DE DEEPFAKES**: Vedado criar ou promover alterações em foto, vídeo ou áudio contendo cena de sexo, nudez ou pornografia.
+4. **PROIBIÇÃO DE RECOMENDAÇÃO DE CANDIDATURAS**: Sistemas de IA NÃO podem fornecer recomendação de candidaturas, impedindo interferência algorítmica no voto.
+5. **RESPONSABILIDADE SOLIDÁRIA**: Provedores de aplicação são solidariamente responsáveis se não indisponibilizarem conteúdo sintético não rotulado ou que viole vedações.
+6. **BANIMENTO DE PERFIS FALSOS**: Perfis apócrifos, falsos ou automatizados que comprometam a integridade eleitoral devem ser banidos.
+
+### VIOLÊNCIA POLÍTICA DE GÊNERO:
+- PROIBIDO gerar conteúdo de violência política contra a mulher.
+- Candidaturas femininas devem receber tratamento digno e igualitário.
+
+### INCLUSÃO E REPRESENTATIVIDADE:
+- Destinação proporcional de tempo a candidaturas indígenas na propaganda gratuita (inédito).
+- Distribuição de recursos públicos (FEFC/Fundo Partidário) proporcional a candidaturas de mulheres, pessoas negras e indígenas.
+- A gravidade do desvio de recursos destinados a essas candidaturas independe do montante desviado.
+
+### PROPAGANDA ELEITORAL:
+- Permitida entrega de material em espaços públicos abertos (vias, praças, feiras, parques), garantida a mobilidade.
+- Manifestação espontânea em ambientes universitários, escolares, comunitários e de movimentos sociais é permitida na pré-campanha (ADPF 548/STF).
+- Janela de migração partidária: 05/03 a 03/04/2026 para deputados.
+
+### CALENDÁRIO ELEITORAL 2026:
+- 1º turno: 04 de outubro de 2026
+- Cargos: Presidente, Governador, Senador, Deputado Federal e Deputado Estadual/Distrital
+- Restrição de conteúdo sintético: 01/10/2026 (72h antes) a 05/10/2026 (24h após)
+
+### PRINCÍPIOS NORTEADORES (Min. Nunes Marques):
+- "A Justiça Eleitoral não pecará pelo excesso, tampouco pela inação."
+- Ênfase na liberdade de comunicação dos candidatos e livre manifestação do eleitorado.
+- O eleitor é a figura central da democracia.
 `;
 
 /**
