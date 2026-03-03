@@ -554,9 +554,26 @@ export default function CreateImage() {
     setShowConfirmModal(true);
   };
 
-  // Step 2: Actually generate after user confirms
-  const handleGenerateContent = async () => {
+  // Step 2: After confirm, show thesis recommendation modal
+  const handleConfirmAndShowThesis = () => {
     setShowConfirmModal(false);
+    setShowThesisModal(true);
+  };
+
+  const handleThesisSelected = (thesis: Thesis) => {
+    setSelectedThesis(thesis);
+    setShowThesisModal(false);
+    handleGenerateContent(thesis);
+  };
+
+  const handleContinueWithoutThesis = () => {
+    setSelectedThesis(null);
+    setShowThesisModal(false);
+    handleGenerateContent(null);
+  };
+
+  // Step 3: Actually generate after user confirms
+  const handleGenerateContent = async (thesis: Thesis | null = null) => {
     if (!user) return toast.error("Usuário não encontrado.");
 
     setLoading(true);
