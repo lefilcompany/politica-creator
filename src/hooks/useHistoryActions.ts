@@ -87,18 +87,25 @@ export function useHistoryActions(filters: HistoryFilters) {
 
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || '';
       const storageBase = projectId
-        ? `https://${projectId}.supabase.co/storage/v1/object/public/creations/`
+        ? `https://${projectId}.supabase.co/storage/v1/object/public/`
         : '';
 
       const actions: ActionSummary[] = (rows || []).map((row: any) => {
         let imageUrl: string | undefined;
         if (row.thumb_path && storageBase) {
+          // thumb_path already includes bucket name (e.g. "content-images/...")
           imageUrl = `${storageBase}${row.thumb_path}`;
         } else if (row.result?.imageUrl) {
           imageUrl = row.result.imageUrl;
         } else if (row.result?.originalImage) {
           imageUrl = row.result.originalImage;
         }
+
+        // Title priority: result.title > details.description > result.description
+        const title = row.result?.title 
+          || row.details?.description 
+          || row.result?.description 
+          || undefined;
 
         return {
           id: row.id,
@@ -107,7 +114,7 @@ export function useHistoryActions(filters: HistoryFilters) {
           approved: row.approved,
           brand: row.brands ? { id: row.brand_id, name: row.brands.name } : null,
           imageUrl,
-          title: row.result?.title || row.result?.description || undefined,
+          title,
           platform: row.details?.platform || undefined,
           objective: row.details?.objective || undefined,
         };
