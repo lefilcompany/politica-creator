@@ -476,14 +476,12 @@ export default function CreateImage() {
 
   const isFormValid = useMemo(() => {
     return (
-      formData.brand &&
       formData.objective &&
       formData.platform &&
       formData.description &&
       formData.tone.length > 0
     );
   }, [
-    formData.brand,
     formData.objective,
     formData.platform,
     formData.description,
@@ -492,7 +490,6 @@ export default function CreateImage() {
 
   const validateForm = () => {
     const missing: string[] = [];
-    if (!formData.brand) missing.push('brand');
     if (!formData.objective) missing.push('objective');
     if (!formData.platform) missing.push('platform');
     if (!formData.description) missing.push('description');
