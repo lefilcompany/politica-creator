@@ -76,6 +76,7 @@ export default function PoliticalOnboarding() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     political_role: '',
     political_party: '',
@@ -87,6 +88,38 @@ export default function PoliticalOnboarding() {
     state: '',
     city: '',
   });
+
+  const handleGetLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error('Seu navegador não suporta geolocalização');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`
+          );
+          const geo = await res.json();
+          const state = geo?.address?.state || '';
+          setData(prev => ({ ...prev, state }));
+          if (state) toast.success(`Localização detectada: ${state}`);
+          else toast.error('Não foi possível detectar o estado');
+        } catch {
+          toast.error('Erro ao detectar localização');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      () => {
+        toast.error('Permissão de localização negada');
+        setIsLocating(false);
+      },
+      { timeout: 10000 }
+    );
+  };
 
   const progress = ((currentStep + 1) / TOTAL_STEPS) * 100;
 
