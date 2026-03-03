@@ -55,7 +55,7 @@ serve(async (req) => {
     }
     const creditsBefore = creditsCheck.currentCredits;
 
-    const { message, brandId, themeId, personaId, platform, tone } = await req.json();
+    const { message, brandId, themeId, personaId, platform, tone, selectedThesis } = await req.json();
 
     if (!message || typeof message !== 'string' || message.trim().length < 5) {
       return new Response(JSON.stringify({ error: 'Mensagem deve ter pelo menos 5 caracteres' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -97,6 +97,22 @@ serve(async (req) => {
     const toneInstruction = tone ? `O tom deve ser "${tone}".` : '';
     const platformInstruction = platform ? `Otimizado para ${platform}.` : '';
 
+    // Build thesis-specific instruction
+    let thesisInstruction = '';
+    if (selectedThesis && selectedThesis.title) {
+      thesisInstruction = `
+
+## BANDEIRA SELECIONADA PELO CANDIDATO — DIRETRIZ CENTRAL
+O candidato escolheu a Tese ${selectedThesis.number}: "${selectedThesis.title}" como bandeira deste post.
+Descrição: ${selectedThesis.shortDescription}
+
+REGRA ABSOLUTA: TODOS os 10 textos devem ser fundamentados EXCLUSIVAMENTE nesta tese.
+- Cada texto deve abordar a mesma tese de ângulos e estilos diferentes
+- Traduza o conceito acadêmico em linguagem eleitoral prática e acessível
+- O candidato quer usar esta tese como bandeira política — faça isso brilhar
+- No campo "thesis_reference", TODAS as referências devem ser para a Tese ${selectedThesis.number}`;
+    }
+
     const knowledgeBase = getKnowledgeBaseContext();
 
     // Fetch user's recommended theses
@@ -114,6 +130,7 @@ serve(async (req) => {
     const systemPrompt = `Você é um Redator Político Sênior e Estrategista de Comunicação, especializado no framework conceitual do livro "A Próxima Democracia — 32 Teses para o Futuro da Política no Mundo Figital" (Silvio Meira & Rosário Pompéia, 2025).
 
 Sua tarefa é transformar a ideia bruta do candidato em 10 versões profissionais de texto para comunicação política, FUNDAMENTADAS nas teses do livro.
+${thesisInstruction}
 
 ## BASE DE CONHECIMENTO — AS 32 TESES
 ${knowledgeBase.substring(0, 4000)}

@@ -15,6 +15,8 @@ import { usePersonas } from "@/hooks/usePersonas";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import createBanner from "@/assets/create-banner.jpg";
+import { ThesisSelector } from "@/components/criar-texto/ThesisSelector";
+import { getThesisById } from "@/lib/theses";
 
 export default function CreateText() {
   const navigate = useNavigate();
@@ -29,7 +31,18 @@ export default function CreateText() {
   const [personaId, setPersonaId] = useState<string>("");
   const [platform, setPlatform] = useState<string>("");
   const [tone, setTone] = useState<string>("");
+  const [selectedThesisId, setSelectedThesisId] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Extract recommended thesis IDs from user profile
+  const recommendedThesesIds: string[] = (() => {
+    const rt = user?.recommended_theses;
+    if (!rt || !Array.isArray(rt)) return [];
+    return rt.map((t: any) => {
+      const num = t.thesis_number || t.number;
+      return num ? `t${num}` : "";
+    }).filter(Boolean);
+  })();
 
   const isLoading = brandsLoading || themesLoading || personasLoading;
   const canSubmit = message.trim().length >= 5 && !isGenerating;
@@ -47,6 +60,7 @@ export default function CreateText() {
           personaId: personaId || undefined,
           platform: platform || undefined,
           tone: tone || undefined,
+          selectedThesis: selectedThesisId ? getThesisById(selectedThesisId) : undefined,
         },
       });
 
@@ -145,6 +159,13 @@ export default function CreateText() {
               />
               <p className="text-xs text-muted-foreground text-right">{message.length}/2000</p>
             </div>
+
+            {/* Thesis selector */}
+            <ThesisSelector
+              selectedThesisId={selectedThesisId}
+              onSelect={setSelectedThesisId}
+              recommendedThesesIds={recommendedThesesIds}
+            />
 
             {/* Optional selectors */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
