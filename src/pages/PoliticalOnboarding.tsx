@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Building2, MapPin, Target, Share2,
-  ChevronRight, ChevronLeft, Check, Sparkles
+  ChevronRight, ChevronLeft, Check, Sparkles, LocateFixed, Loader2
 } from 'lucide-react';
 import logoCreator from '@/assets/logoCreatorPreta.png';
 
