@@ -696,7 +696,7 @@ export default function CreateImage() {
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       
-      if (!formData.brand || !uuidRegex.test(formData.brand)) {
+      if (formData.brand && !uuidRegex.test(formData.brand)) {
         toast.error("Por favor, selecione uma marca válida", { id: toastId });
         return;
       }
