@@ -710,14 +710,15 @@ export default function CreateImage() {
         throw new Error(`Erro ao gerar imagem: ${errorText}`);
       }
 
-      const { imageUrl, attempt } = await imageResponse.json();
+      const imageResult = await imageResponse.json();
+      const { imageUrl, imageUrls } = imageResult;
       
       setGenerationStep(GenerationStep.GENERATING_CAPTION);
       setGenerationProgress(60);
       
       toast.loading("✍️ Gerando legenda profissional...", {
         id: toastId,
-        description: `Imagem criada em ${attempt} tentativa(s) | Escrevendo copy criativa (60%)`,
+        description: `${(imageUrls?.length || 1)} imagem(ns) criada(s) | Escrevendo copy criativa (60%)`,
       });
 
       const captionResponse = await fetch(
@@ -808,6 +809,7 @@ export default function CreateImage() {
       const generatedContent = {
         type: "image" as const,
         mediaUrl: imageUrl,
+        mediaUrls: imageUrls || [imageUrl],
         platform: formData.platform,
         brand: selectedBrand?.name || formData.brand,
         title: captionData.title,
@@ -817,7 +819,7 @@ export default function CreateImage() {
           ...requestData,
           brandId: formData.brand,
         },
-        actionId: undefined,
+        actionId: imageResult.actionId,
         isLocalFallback,
       };
       
@@ -828,9 +830,10 @@ export default function CreateImage() {
       setGenerationStep(GenerationStep.COMPLETE);
       setGenerationProgress(100);
       
+      const imageCount = imageUrls?.length || 1;
       toast.success("✅ Conteúdo gerado com sucesso!", {
         id: toastId,
-        description: "Imagem e legenda criados com Gemini 3 Pro 🚀",
+        description: `${imageCount} imagem(ns) e legenda criados com Gemini 3 Pro 🚀`,
         duration: 1500,
       });
       

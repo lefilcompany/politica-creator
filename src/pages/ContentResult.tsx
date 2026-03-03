@@ -17,16 +17,17 @@ import { CREDIT_COSTS } from "@/lib/creditCosts";
 interface ContentResultData {
   type: "image" | "video";
   mediaUrl: string;
-  caption?: string; // Opcional, para compatibilidade com formato antigo
+  mediaUrls?: string[]; // Multiple images (2 options side by side)
+  caption?: string;
   platform: string;
   brand: string;
   title?: string;
-  body?: string; // Novo campo estruturado
+  body?: string;
   hashtags?: string[];
   originalFormData?: any;
   actionId?: string;
-  isLocalFallback?: boolean; // Indica se usou fallback local
-  isProcessing?: boolean; // Flag para indicar que o vídeo está sendo processado
+  isLocalFallback?: boolean;
+  isProcessing?: boolean;
 }
 export default function ContentResult() {
   const navigate = useNavigate();
@@ -47,6 +48,8 @@ export default function ContentResult() {
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
   const [imageHistory, setImageHistory] = useState<string[]>([]);
   const [imageHistoryIndex, setImageHistoryIndex] = useState(-1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [allImageUrls, setAllImageUrls] = useState<string[]>([]);
   useEffect(() => {
     const loadContent = async () => {
       // Limpar imagens antigas do sessionStorage (mais de 1 hora)
@@ -71,6 +74,12 @@ export default function ContentResult() {
         // ✅ ETAPA 1: Definir contentData IMEDIATAMENTE (antes de qualquer validação)
         setContentData(data);
         setIsLoading(false);
+        if (data.mediaUrls && data.mediaUrls.length > 1) {
+          setAllImageUrls(data.mediaUrls);
+          setSelectedImageIndex(0);
+        } else if (data.mediaUrl && data.type === "image") {
+          setAllImageUrls([data.mediaUrl]);
+        }
         if (data.mediaUrl && data.type === "image") {
           setImageHistory([data.mediaUrl]);
           setImageHistoryIndex(0);
@@ -706,36 +715,85 @@ export default function ContentResult() {
           animationDelay: "100ms"
         }}>
             <CardContent className="p-0">
-              <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
-                {isReviewing && reviewType === "image" && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader className="h-10 w-10 animate-spin text-primary" />
-                      <span className="text-sm font-medium text-muted-foreground">Editando imagem...</span>
-                    </div>
+              {/* Dual Image Selector - show 2 images side by side when available */}
+              {allImageUrls.length > 1 ? (
+                <div className="p-3 sm:p-4">
+                  <p className="text-sm font-medium text-muted-foreground mb-3 text-center">
+                    🎨 Escolha a imagem que prefere — clique para selecionar
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {allImageUrls.map((url, index) => (
+                      <button
+                        key={url}
+                        onClick={() => {
+                          setSelectedImageIndex(index);
+                          setContentData(prev => prev ? { ...prev, mediaUrl: url } : prev);
+                          if (!imageHistory.includes(url)) {
+                            setImageHistory(prev => [...prev, url]);
+                          }
+                          setImageHistoryIndex(imageHistory.indexOf(url) >= 0 ? imageHistory.indexOf(url) : imageHistory.length);
+                        }}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 group ${
+                          selectedImageIndex === index
+                            ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30'
+                            : 'border-border/30 hover:border-primary/50 hover:shadow-md'
+                        }`}
+                      >
+                        <img
+                          src={url}
+                          alt={`Opção ${index + 1}`}
+                          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className={`absolute top-2 left-2 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                          selectedImageIndex === index
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-background/80 text-foreground backdrop-blur-sm'
+                        }`}>
+                          {selectedImageIndex === index ? '✓ Selecionada' : `Opção ${index + 1}`}
+                        </div>
+                        {isReviewing && reviewType === "image" && selectedImageIndex === index && (
+                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                            <div className="flex flex-col items-center gap-2">
+                              <Loader className="h-8 w-8 animate-spin text-primary" />
+                              <span className="text-xs font-medium text-muted-foreground">Editando...</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                      </button>
+                    ))}
                   </div>
-                )}
-                {contentData.isProcessing ? <div className="flex items-center justify-center h-full">
-                    <div className="text-center space-y-4">
-                      <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
-                      <div className="space-y-2">
-                        <p className="text-lg font-semibold text-foreground">Gerando vídeo...</p>
-                        <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+                </div>
+              ) : (
+                <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
+                  {isReviewing && reviewType === "image" && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader className="h-10 w-10 animate-spin text-primary" />
+                        <span className="text-sm font-medium text-muted-foreground">Editando imagem...</span>
                       </div>
                     </div>
-                  </div> : contentData.mediaUrl ? contentData.type === "video" ? <video src={contentData.mediaUrl} controls className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" autoPlay loop muted>
-                      Seu navegador não suporta vídeos.
-                    </video> : <img key={contentData.mediaUrl} // Force re-render when URL changes
-              src={contentData.mediaUrl} alt="Conteúdo gerado" className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" /> : <div className="flex items-center justify-center h-full">
-                    <div className="text-center space-y-2">
-                      <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
-                      <p className="text-sm sm:text-base text-muted-foreground">Mídia não disponível</p>
-                    </div>
-                  </div>}
-
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-              </div>
+                  )}
+                  {contentData.isProcessing ? <div className="flex items-center justify-center h-full">
+                      <div className="text-center space-y-4">
+                        <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
+                        <div className="space-y-2">
+                          <p className="text-lg font-semibold text-foreground">Gerando vídeo...</p>
+                          <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+                        </div>
+                      </div>
+                    </div> : contentData.mediaUrl ? contentData.type === "video" ? <video src={contentData.mediaUrl} controls className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" autoPlay loop muted>
+                        Seu navegador não suporta vídeos.
+                      </video> : <img key={contentData.mediaUrl}
+                src={contentData.mediaUrl} alt="Conteúdo gerado" className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" /> : <div className="flex items-center justify-center h-full">
+                      <div className="text-center space-y-2">
+                        <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
+                        <p className="text-sm sm:text-base text-muted-foreground">Mídia não disponível</p>
+                      </div>
+                    </div>}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                </div>
+              )}
 
               {/* Action buttons */}
               <div className="p-3 sm:p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">

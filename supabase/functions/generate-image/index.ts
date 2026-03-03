@@ -799,165 +799,180 @@ serve(async (req) => {
 
     console.log(`📦 Total message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
 
-    // Retry logic
-    const MAX_RETRIES = 3;
-    let lastError: any = null;
-    let imageUrl: string | null = null;
-    let description = 'Imagem gerada com sucesso';
+    // =====================================
+    // GENERATE 2 IMAGES IN PARALLEL
+    // =====================================
+    async function generateSingleImage(imageIndex: number): Promise<{ imageUrl: string | null; description: string }> {
+      const MAX_RETRIES = 3;
+      let lastError: any = null;
+      let imageUrl: string | null = null;
+      let description = 'Imagem gerada com sucesso';
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        console.log(`🖼️ Image generation attempt ${attempt}/${MAX_RETRIES} via Nano Banana Pro (Gemini 3 Pro)...`);
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          console.log(`🖼️ Image ${imageIndex} generation attempt ${attempt}/${MAX_RETRIES} via Nano Banana Pro...`);
 
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-3-pro-image-preview',
-            messages: [{ role: 'user', content: messageContent }],
-            modalities: ['image', 'text'],
-          }),
-        });
+          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-3-pro-image-preview',
+              messages: [{ role: 'user', content: messageContent }],
+              modalities: ['image', 'text'],
+            }),
+          });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Gateway error (attempt ${attempt}):`, response.status, errorText);
-          
-          if (response.status === 429) {
-            return new Response(
-              JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
-              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Gateway error (image ${imageIndex}, attempt ${attempt}):`, response.status, errorText);
+            
+            if (response.status === 429 || response.status === 402) {
+              lastError = new Error(`Gateway error: ${response.status}`);
+              break; // Don't retry rate limits
+            }
+            
+            lastError = new Error(`Gateway error: ${response.status}`);
+            if (attempt < MAX_RETRIES) {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              continue;
+            }
+            break;
           }
-          if (response.status === 402) {
-            return new Response(
-              JSON.stringify({ error: 'Créditos da plataforma esgotados. Entre em contato com o suporte.' }),
-              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-          
-          lastError = new Error(`Gateway error: ${response.status}`);
-          if (attempt < MAX_RETRIES) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            continue;
-          }
-          throw lastError;
-        }
 
-        const data = await response.json();
-        console.log('Gateway response received');
+          const data = await response.json();
 
-        // Extract image - check the `images` field first (Lovable AI Gateway format)
-        const message = data.choices?.[0]?.message;
-        if (message?.images?.length > 0) {
-          const img = message.images[0];
-          if (img?.image_url?.url) {
-            imageUrl = img.image_url.url;
-            console.log('Image extracted from message.images[]');
+          // Extract image - check the `images` field first (Lovable AI Gateway format)
+          const message = data.choices?.[0]?.message;
+          if (message?.images?.length > 0) {
+            const img = message.images[0];
+            if (img?.image_url?.url) {
+              imageUrl = img.image_url.url;
+            }
+            if (message.content && typeof message.content === 'string') {
+              description = message.content;
+            }
           }
-          if (message.content && typeof message.content === 'string') {
-            description = message.content;
-          }
-        }
 
-        // Fallback: check content array format
-        if (!imageUrl && message?.content) {
-          const content = message.content;
-          if (Array.isArray(content)) {
-            for (const part of content) {
-              if (part.type === 'image_url' && part.image_url?.url) {
-                imageUrl = part.image_url.url;
-                console.log('Image extracted from content array');
+          // Fallback: check content array format
+          if (!imageUrl && message?.content) {
+            const content = message.content;
+            if (Array.isArray(content)) {
+              for (const part of content) {
+                if (part.type === 'image_url' && part.image_url?.url) {
+                  imageUrl = part.image_url.url;
+                  break;
+                }
+                if (part.type === 'text' && part.text) {
+                  description = part.text;
+                }
+              }
+            } else if (typeof content === 'string') {
+              description = content;
+            }
+          }
+
+          // Fallback: inline_data style (Gemini native format)
+          if (!imageUrl && data.candidates?.[0]?.content?.parts) {
+            const parts = data.candidates[0].content.parts;
+            for (const part of parts) {
+              if (part.inlineData?.data) {
+                const mimeType = part.inlineData.mimeType || 'image/png';
+                imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
                 break;
               }
-              if (part.type === 'text' && part.text) {
+              if (part.text) {
                 description = part.text;
               }
             }
-          } else if (typeof content === 'string') {
-            description = content;
           }
-        }
 
-        // Fallback: inline_data style (Gemini native format)
-        if (!imageUrl && data.candidates?.[0]?.content?.parts) {
-          const parts = data.candidates[0].content.parts;
-          for (const part of parts) {
-            if (part.inlineData?.data) {
-              const mimeType = part.inlineData.mimeType || 'image/png';
-              imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
-              console.log('Image extracted from Gemini native format');
-              break;
-            }
-            if (part.text) {
-              description = part.text;
-            }
+          if (imageUrl) break;
+
+          lastError = new Error('No image found in response');
+          if (attempt < MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
-        }
-
-        if (!imageUrl) {
-          console.error('Response structure:', JSON.stringify(Object.keys(data)), JSON.stringify(Object.keys(message || {})));
-          throw new Error('No image found in response');
-        }
-
-        break;
-      } catch (error) {
-        console.error(`Attempt ${attempt} failed:`, error);
-        lastError = error;
-        if (attempt < MAX_RETRIES) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (error) {
+          console.error(`Image ${imageIndex} attempt ${attempt} failed:`, error);
+          lastError = error;
+          if (attempt < MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
         }
       }
+
+      return { imageUrl, description };
     }
 
-    if (!imageUrl) {
-      console.error('Failed after all retries:', lastError);
+    console.log('🖼️🖼️ Generating 2 images in parallel...');
+    const [result1, result2] = await Promise.all([
+      generateSingleImage(1),
+      generateSingleImage(2),
+    ]);
+
+    // We need at least one image
+    const successfulResults = [result1, result2].filter(r => r.imageUrl);
+    if (successfulResults.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Falha ao gerar imagem após múltiplas tentativas' }),
+        JSON.stringify({ error: 'Falha ao gerar imagens após múltiplas tentativas' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log(`✅ ${successfulResults.length} image(s) generated successfully`);
+
     // =====================================
-    // UPLOAD TO STORAGE
+    // UPLOAD ALL IMAGES TO STORAGE
     // =====================================
-    console.log('Uploading image to storage...');
     const timestamp = Date.now();
-    const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
-    
-    let binaryData: Uint8Array;
-    if (imageUrl.startsWith('data:')) {
-      const base64Data = imageUrl.split(',')[1];
-      binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    } else {
-      const imgResp = await fetch(imageUrl);
-      const arrayBuf = await imgResp.arrayBuffer();
-      binaryData = new Uint8Array(arrayBuf);
-    }
-    
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('content-images')
-      .upload(fileName, binaryData, {
-        contentType: 'image/png',
-        upsert: false
-      });
+    const uploadResults: { publicUrl: string; fileName: string; description: string }[] = [];
 
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError);
+    for (let i = 0; i < successfulResults.length; i++) {
+      const result = successfulResults[i];
+      const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}_${i + 1}.png`;
+      
+      let binaryData: Uint8Array;
+      if (result.imageUrl!.startsWith('data:')) {
+        const base64Data = result.imageUrl!.split(',')[1];
+        binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      } else {
+        const imgResp = await fetch(result.imageUrl!);
+        const arrayBuf = await imgResp.arrayBuffer();
+        binaryData = new Uint8Array(arrayBuf);
+      }
+      
+      const { error: uploadError } = await supabase.storage
+        .from('content-images')
+        .upload(fileName, binaryData, {
+          contentType: 'image/png',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error(`Storage upload error for image ${i + 1}:`, uploadError);
+        continue;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('content-images')
+        .getPublicUrl(fileName);
+
+      uploadResults.push({ publicUrl, fileName, description: result.description });
+      console.log(`Image ${i + 1} uploaded successfully:`, publicUrl);
+    }
+
+    if (uploadResults.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Erro ao fazer upload da imagem' }),
+        JSON.stringify({ error: 'Erro ao fazer upload das imagens' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('content-images')
-      .getPublicUrl(fileName);
-
-    console.log('Image uploaded successfully:', publicUrl);
+    const primaryImage = uploadResults[0];
+    const description = primaryImage.description;
 
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
@@ -970,7 +985,7 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem (Pipeline Político Premium)',
+      description: 'Geração de imagem (Pipeline Político Premium - 2 opções)',
       metadata: { 
         platform: formData.platform, 
         vibeStyle: formData.vibeStyle || formData.visualStyle,
@@ -979,10 +994,11 @@ serve(async (req) => {
         model: 'gemini-3-pro-image-preview',
         enriched: enrichedDescription !== formData.description,
         hasHeadline: !!headline,
+        imagesGenerated: uploadResults.length,
       }
     });
 
-    // Save to actions
+    // Save to actions (use primary image)
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
@@ -992,8 +1008,8 @@ serve(async (req) => {
         brand_id: formData.brandId || null,
         status: 'Aprovado',
         approved: true,
-        asset_path: fileName,
-        thumb_path: fileName,
+        asset_path: primaryImage.fileName,
+        thumb_path: primaryImage.fileName,
         details: {
           description: formData.description,
           brandId: formData.brandId,
@@ -1009,7 +1025,8 @@ serve(async (req) => {
           pipeline: 'political_premium_v3',
         },
         result: {
-          imageUrl: publicUrl,
+          imageUrl: primaryImage.publicUrl,
+          imageUrls: uploadResults.map(r => r.publicUrl),
           description: description,
           headline: headline || null,
           subtexto: subtexto || null,
@@ -1024,7 +1041,8 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        imageUrl: publicUrl,
+        imageUrl: primaryImage.publicUrl,
+        imageUrls: uploadResults.map(r => r.publicUrl),
         description: description,
         headline: headline || null,
         subtexto: subtexto || null,
