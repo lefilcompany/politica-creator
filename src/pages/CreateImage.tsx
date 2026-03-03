@@ -1145,7 +1145,7 @@ export default function CreateImage() {
                   {isLoadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
                       <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                        Identidade <span className="text-destructive">*</span>
+                        Identidade
                       </Label>
                       <NativeSelect
                         value={formData.brand}
