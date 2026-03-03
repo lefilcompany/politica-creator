@@ -62,7 +62,7 @@ export default function CreateVideo() {
     videoVisualStyle: 'cinematic',
     videoAspectRatio: '9:16',
     videoResolution: '1080p',
-    videoDuration: 8,
+    videoDuration: 5,
     videoModel: 'sora',
   });
 
@@ -226,14 +226,10 @@ export default function CreateVideo() {
 
       let preserveImages: string[] = [];
       if (referenceImage) {
-        if (formData.videoModel === 'sora') {
-          // Sora 2 exige que a imagem tenha exatamente a resolução do vídeo
-          const [w, h] = formData.videoAspectRatio === '9:16' ? [720, 1280] : [1280, 720];
-          const resized = await resizeImageToDataUrl(referenceImage, w, h);
-          preserveImages = [resized];
-        } else {
-          preserveImages = [referenceImage];
-        }
+        // Sora 2 exige que a imagem tenha exatamente a resolução do vídeo
+        const [w, h] = formData.videoAspectRatio === '9:16' ? [720, 1280] : [1280, 720];
+        const resized = await resizeImageToDataUrl(referenceImage, w, h);
+        preserveImages = [resized];
       }
 
       const { data: responseData, error: invokeError } = await supabase.functions.invoke('generate-video', {
