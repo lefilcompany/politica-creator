@@ -710,7 +710,8 @@ export default function CreateImage() {
         throw new Error(`Erro ao gerar imagem: ${errorText}`);
       }
 
-      const { imageUrl, attempt } = await imageResponse.json();
+      const imageResult = await imageResponse.json();
+      const { imageUrl, imageUrls } = imageResult;
       
       setGenerationStep(GenerationStep.GENERATING_CAPTION);
       setGenerationProgress(60);
