@@ -47,6 +47,7 @@ export default function ContentResult() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
   const [imageHistory, setImageHistory] = useState<string[]>([]);
+  const [imageHistoryIndex, setImageHistoryIndex] = useState(-1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [allImageUrls, setAllImageUrls] = useState<string[]>([]);
   useEffect(() => {
