@@ -985,7 +985,7 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem (Pipeline Político Premium)',
+      description: 'Geração de imagem (Pipeline Político Premium - 2 opções)',
       metadata: { 
         platform: formData.platform, 
         vibeStyle: formData.vibeStyle || formData.visualStyle,
@@ -994,10 +994,11 @@ serve(async (req) => {
         model: 'gemini-3-pro-image-preview',
         enriched: enrichedDescription !== formData.description,
         hasHeadline: !!headline,
+        imagesGenerated: uploadResults.length,
       }
     });
 
-    // Save to actions
+    // Save to actions (use primary image)
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
@@ -1007,8 +1008,8 @@ serve(async (req) => {
         brand_id: formData.brandId || null,
         status: 'Aprovado',
         approved: true,
-        asset_path: fileName,
-        thumb_path: fileName,
+        asset_path: primaryImage.fileName,
+        thumb_path: primaryImage.fileName,
         details: {
           description: formData.description,
           brandId: formData.brandId,
@@ -1024,7 +1025,8 @@ serve(async (req) => {
           pipeline: 'political_premium_v3',
         },
         result: {
-          imageUrl: publicUrl,
+          imageUrl: primaryImage.publicUrl,
+          imageUrls: uploadResults.map(r => r.publicUrl),
           description: description,
           headline: headline || null,
           subtexto: subtexto || null,
@@ -1039,7 +1041,8 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        imageUrl: publicUrl,
+        imageUrl: primaryImage.publicUrl,
+        imageUrls: uploadResults.map(r => r.publicUrl),
         description: description,
         headline: headline || null,
         subtexto: subtexto || null,
