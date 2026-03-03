@@ -15,6 +15,7 @@ export const CREDIT_COSTS = {
   CAMPAIGN_PACKAGE: 50,
   ANALYZE_REPERCUSSION: 2,
   CRISIS_ANALYSIS: 3,
+  GENERATE_TEXT: 3,
 } as const;
 
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
@@ -35,6 +36,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     CAMPAIGN_PACKAGE: "Pacote de campanha",
     ANALYZE_REPERCUSSION: "Análise de repercussão",
     CRISIS_ANALYSIS: "Análise de crise",
+    GENERATE_TEXT: "Geração de texto",
   };
   return labels[action];
 };

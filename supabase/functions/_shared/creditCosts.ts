@@ -14,6 +14,7 @@ export const CREDIT_COSTS = {
   CAMPAIGN_PACKAGE: 50,     // Pacote de campanha completo
   ANALYZE_REPERCUSSION: 2,  // Análise de repercussão
   CRISIS_ANALYSIS: 3,       // Análise de crise (sala de situação)
+  GENERATE_TEXT: 3,          // Geração de texto político (10 variações)
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {

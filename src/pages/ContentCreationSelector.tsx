@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone, Activity } from "lucide-react";
+import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone, Activity, Type } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { useImageLimit } from "@/hooks/useImageLimit";
@@ -14,7 +14,7 @@ import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps"
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import createBanner from "@/assets/create-banner.jpg";
 
-type CreationType = "image" | "video" | "campaign" | "repercussion";
+type CreationType = "text" | "image" | "video" | "campaign" | "repercussion";
 
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
@@ -48,6 +48,7 @@ export default function ContentCreationSelector() {
         return;
       }
       const routes: Record<CreationType, string> = {
+        text: "/create/text",
         image: "/create/image",
         video: "/create/video",
         campaign: "/create/campaign",
@@ -158,7 +159,33 @@ export default function ContentCreationSelector() {
           onValueChange={(value) => setCreationType(value as CreationType)}
           className="h-full"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 h-full max-w-7xl mx-auto">
+            {/* Criação de Texto */}
+            <label htmlFor="text" className="cursor-pointer h-full" onClick={() => setCreationType("text")}>
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                  <RadioGroupItem value="text" id="text" className="sr-only" />
+                  <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                    <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                      <Type className="h-8 w-8 text-emerald-600" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="font-semibold text-lg">Criar Texto</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Diga o que quer falar e receba 10 opções profissionais
+                      </p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                    <Type className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm font-bold text-emerald-600">
+                      {CREDIT_COSTS.GENERATE_TEXT} créditos
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </label>
+
             {/* Criação de Imagem */}
             <label htmlFor="image" className="cursor-pointer h-full" onClick={() => setCreationType("image")}>
               <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
