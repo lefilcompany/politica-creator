@@ -86,15 +86,13 @@ export function useHistoryActions(filters: HistoryFilters) {
       const totalCount = count || 0;
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-      const storageBase = supabaseUrl
-        ? `${supabaseUrl}/storage/v1/object/public/`
-        : '';
 
       const actions: ActionSummary[] = (rows || []).map((row: any) => {
         let imageUrl: string | undefined;
-        if (row.thumb_path && storageBase) {
-          // thumb_path already includes bucket name (e.g. "content-images/...")
-          imageUrl = `${storageBase}${row.thumb_path}`;
+        if (row.thumb_path && supabaseUrl) {
+          // thumb_path is the object name within the bucket (e.g. "content-images/teamId/file.png")
+          // The bucket is "content-images", so the public URL needs bucket + object name
+          imageUrl = `${supabaseUrl}/storage/v1/object/public/content-images/${row.thumb_path}`;
         } else if (row.result?.imageUrl) {
           imageUrl = row.result.imageUrl;
         } else if (row.result?.originalImage) {
