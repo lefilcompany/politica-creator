@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
-import { UserRoundPen, Loader2 } from 'lucide-react';
+import { UserRoundPen, Loader2, LocateFixed } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import ChangePasswordDialog from './ChangePasswordDialog';
@@ -34,11 +34,71 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
   const [formData, setFormData] = useState(initialData);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [loadingStates, setLoadingStates] = useState(true);
   const [loadingCities, setLoadingCities] = useState(false);
+
+  const handleGetLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error('Seu navegador não suporta geolocalização');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`
+          );
+          const geo = await res.json();
+          const stateName = geo?.address?.state || '';
+          const cityName = geo?.address?.city || geo?.address?.town || geo?.address?.municipality || '';
+          
+          // Match state name to sigla
+          const matchedState = states.find(s => 
+            s.nome.toLowerCase() === stateName.toLowerCase()
+          );
+          
+          if (matchedState) {
+            setFormData(prev => ({ ...prev, state: matchedState.sigla, city: '' }));
+            // After state is set, cities will load via useEffect, then set city
+            if (cityName) {
+              // Wait for cities to load then set city
+              const citiesRes = await fetch(
+                `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${matchedState.sigla}/municipios`
+              );
+              const citiesData: City[] = await citiesRes.json();
+              setCities(citiesData);
+              const matchedCity = citiesData.find(c => 
+                c.nome.toLowerCase() === cityName.toLowerCase()
+              );
+              if (matchedCity) {
+                setFormData(prev => ({ ...prev, city: matchedCity.nome }));
+              }
+            }
+            toast.success(`Localização detectada: ${matchedState.nome}${cityName ? `, ${cityName}` : ''}`);
+          } else if (stateName) {
+            toast.error(`Estado "${stateName}" não encontrado na lista`);
+          } else {
+            toast.error('Não foi possível detectar a localização');
+          }
+        } catch {
+          toast.error('Erro ao detectar localização');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      () => {
+        toast.error('Permissão de localização negada');
+        setIsLocating(false);
+      },
+      { timeout: 10000 }
+    );
+  };
 
   // Update formData when initialData changes
   useEffect(() => {
@@ -262,6 +322,21 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
             </div>
           </div>
           
+          {/* Botão de Localização */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGetLocation}
+              disabled={isLocating || loadingStates}
+              className="gap-2"
+            >
+              {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+              {isLocating ? 'Detectando...' : 'Usar minha localização'}
+            </Button>
+          </div>
+
           {/* Botões de Ação */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-5 border-t border-primary/10">
             <Button 

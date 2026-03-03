@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Building2, MapPin, Target, Share2,
-  ChevronRight, ChevronLeft, Check, Sparkles
+  ChevronRight, ChevronLeft, Check, Sparkles, LocateFixed, Loader2
 } from 'lucide-react';
 import logoCreator from '@/assets/logoCreatorPreta.png';
 
@@ -76,6 +76,7 @@ export default function PoliticalOnboarding() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     political_role: '',
     political_party: '',
@@ -87,6 +88,38 @@ export default function PoliticalOnboarding() {
     state: '',
     city: '',
   });
+
+  const handleGetLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error('Seu navegador não suporta geolocalização');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`
+          );
+          const geo = await res.json();
+          const state = geo?.address?.state || '';
+          setData(prev => ({ ...prev, state }));
+          if (state) toast.success(`Localização detectada: ${state}`);
+          else toast.error('Não foi possível detectar o estado');
+        } catch {
+          toast.error('Erro ao detectar localização');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      () => {
+        toast.error('Permissão de localização negada');
+        setIsLocating(false);
+      },
+      { timeout: 10000 }
+    );
+  };
 
   const progress = ((currentStep + 1) / TOTAL_STEPS) * 100;
 
@@ -269,6 +302,17 @@ export default function PoliticalOnboarding() {
             value={data.state}
             onChange={e => setData(prev => ({ ...prev, state: e.target.value }))}
           />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGetLocation}
+            disabled={isLocating}
+            className="w-full gap-2"
+          >
+            {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+            {isLocating ? 'Detectando...' : 'Usar minha localização'}
+          </Button>
         </div>
       </div>
 
