@@ -74,6 +74,12 @@ export default function ContentResult() {
         // ✅ ETAPA 1: Definir contentData IMEDIATAMENTE (antes de qualquer validação)
         setContentData(data);
         setIsLoading(false);
+        if (data.mediaUrls && data.mediaUrls.length > 1) {
+          setAllImageUrls(data.mediaUrls);
+          setSelectedImageIndex(0);
+        } else if (data.mediaUrl && data.type === "image") {
+          setAllImageUrls([data.mediaUrl]);
+        }
         if (data.mediaUrl && data.type === "image") {
           setImageHistory([data.mediaUrl]);
           setImageHistoryIndex(0);
