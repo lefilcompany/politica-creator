@@ -17,16 +17,17 @@ import { CREDIT_COSTS } from "@/lib/creditCosts";
 interface ContentResultData {
   type: "image" | "video";
   mediaUrl: string;
-  caption?: string; // Opcional, para compatibilidade com formato antigo
+  mediaUrls?: string[]; // Multiple images (2 options side by side)
+  caption?: string;
   platform: string;
   brand: string;
   title?: string;
-  body?: string; // Novo campo estruturado
+  body?: string;
   hashtags?: string[];
   originalFormData?: any;
   actionId?: string;
-  isLocalFallback?: boolean; // Indica se usou fallback local
-  isProcessing?: boolean; // Flag para indicar que o vídeo está sendo processado
+  isLocalFallback?: boolean;
+  isProcessing?: boolean;
 }
 export default function ContentResult() {
   const navigate = useNavigate();
