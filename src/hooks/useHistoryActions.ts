@@ -85,9 +85,9 @@ export function useHistoryActions(filters: HistoryFilters) {
 
       const totalCount = count || 0;
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || '';
-      const storageBase = projectId
-        ? `https://${projectId}.supabase.co/storage/v1/object/public/`
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const storageBase = supabaseUrl
+        ? `${supabaseUrl}/storage/v1/object/public/`
         : '';
 
       const actions: ActionSummary[] = (rows || []).map((row: any) => {
