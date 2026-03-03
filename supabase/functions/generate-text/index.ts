@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { getKnowledgeBaseContext } from '../_shared/knowledgeBase.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -96,7 +97,12 @@ serve(async (req) => {
     const toneInstruction = tone ? `O tom deve ser "${tone}".` : '';
     const platformInstruction = platform ? `Otimizado para ${platform}.` : '';
 
+    const knowledgeBase = getKnowledgeBaseContext();
+
     const systemPrompt = `Você é um Redator Político Sênior e Estrategista de Comunicação. Sua tarefa é transformar a ideia bruta do candidato em 10 versões profissionais de texto para comunicação política.
+
+## BASE DE CONHECIMENTO ESTRATÉGICA
+${knowledgeBase.substring(0, 3000)}
 
 ## DADOS DO CANDIDATO
 ${contextParts.join('\n')}
@@ -113,6 +119,7 @@ ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 150
 7. NÃO inclua hashtags nos textos (serão adicionadas separadamente)
 8. O texto deve soar AUTÊNTICO e HUMANO, nunca robótico
 9. Adapte a linguagem ao público-alvo e à região do candidato
+10. USE os conceitos da base de conhecimento ("A Próxima Democracia") para enriquecer os textos com fundamento estratégico: mundo figital, política como fluxo, empatia radical, desacordo produtivo, transparência estrutural, etc.
 
 ## COMPLIANCE TSE (Eleições 2026)
 - Todo conteúdo deve respeitar a legislação eleitoral vigente
