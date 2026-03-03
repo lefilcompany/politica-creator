@@ -99,10 +99,25 @@ serve(async (req) => {
 
     const knowledgeBase = getKnowledgeBaseContext();
 
-    const systemPrompt = `Você é um Redator Político Sênior e Estrategista de Comunicação. Sua tarefa é transformar a ideia bruta do candidato em 10 versões profissionais de texto para comunicação política.
+    // Fetch user's recommended theses
+    const { data: profileTheses } = await supabase
+      .from('profiles')
+      .select('recommended_theses')
+      .eq('id', userId)
+      .single();
 
-## BASE DE CONHECIMENTO ESTRATÉGICA
-${knowledgeBase.substring(0, 3000)}
+    const recommendedTheses = profileTheses?.recommended_theses;
+    const thesesContext = recommendedTheses 
+      ? `\n## TESES RECOMENDADAS PARA ESTE CANDIDATO\nEstas são as teses do livro "A Próxima Democracia" mais alinhadas ao perfil deste político. USE-AS como fundamento conceitual dos textos:\n${JSON.stringify(recommendedTheses, null, 2)}`
+      : '';
+
+    const systemPrompt = `Você é um Redator Político Sênior e Estrategista de Comunicação, especializado no framework conceitual do livro "A Próxima Democracia — 32 Teses para o Futuro da Política no Mundo Figital" (Silvio Meira & Rosário Pompéia, 2025).
+
+Sua tarefa é transformar a ideia bruta do candidato em 10 versões profissionais de texto para comunicação política, FUNDAMENTADAS nas teses do livro.
+
+## BASE DE CONHECIMENTO — AS 32 TESES
+${knowledgeBase.substring(0, 4000)}
+${thesesContext}
 
 ## DADOS DO CANDIDATO
 ${contextParts.join('\n')}
@@ -119,7 +134,13 @@ ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 150
 7. NÃO inclua hashtags nos textos (serão adicionadas separadamente)
 8. O texto deve soar AUTÊNTICO e HUMANO, nunca robótico
 9. Adapte a linguagem ao público-alvo e à região do candidato
-10. USE os conceitos da base de conhecimento ("A Próxima Democracia") para enriquecer os textos com fundamento estratégico: mundo figital, política como fluxo, empatia radical, desacordo produtivo, transparência estrutural, etc.
+
+## INSTRUÇÃO CRÍTICA: FUNDAMENTAÇÃO NAS TESES
+- CADA texto DEVE se inspirar em pelo menos uma tese do livro
+- Traduza os conceitos acadêmicos em linguagem acessível e política prática
+- Conceitos-chave a incorporar naturalmente: mundo figital, política como fluxo contínuo, empatia radical, desacordo produtivo, transparência estrutural, governança líquida, micropolítica, cidadania expandida, imaginação cívica, antifragilidade institucional
+- NÃO cite o livro diretamente — incorpore os conceitos de forma orgânica no discurso político
+- Identifique no campo "thesis_reference" qual tese inspirou cada texto
 
 ## COMPLIANCE TSE (Eleições 2026)
 - Todo conteúdo deve respeitar a legislação eleitoral vigente
@@ -135,7 +156,8 @@ ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 150
       "style": "Nome do estilo",
       "text": "O texto gerado aqui",
       "character_count": 123,
-      "best_for": "Onde usar: stories, feed, WhatsApp, etc."
+      "best_for": "Onde usar: stories, feed, WhatsApp, etc.",
+      "thesis_reference": "Tese X — Nome da tese que inspirou este texto"
     }
   ]
 }`;

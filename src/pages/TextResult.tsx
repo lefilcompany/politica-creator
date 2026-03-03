@@ -14,6 +14,7 @@ interface TextOption {
   text: string;
   character_count?: number;
   best_for?: string;
+  thesis_reference?: string;
 }
 
 export default function TextResult() {
@@ -163,6 +164,12 @@ export default function TextResult() {
                 <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                   {item.text}
                 </p>
+
+                {item.thesis_reference && (
+                  <p className="text-xs text-primary/80 italic">
+                    📖 {item.thesis_reference}
+                  </p>
+                )}
 
                 {item.best_for && (
                   <p className="text-xs text-muted-foreground">
