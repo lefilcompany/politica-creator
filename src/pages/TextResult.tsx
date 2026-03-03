@@ -1,0 +1,208 @@
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { Check, Copy, ImageIcon, RefreshCw, ArrowLeft, Type, Pencil } from "lucide-react";
+import { toast } from "sonner";
+import createBanner from "@/assets/create-banner.jpg";
+
+interface TextOption {
+  id: number;
+  style: string;
+  text: string;
+  character_count?: number;
+  best_for?: string;
+}
+
+export default function TextResult() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const state = location.state as {
+    texts: TextOption[];
+    originalMessage: string;
+    brandId?: string;
+    themeId?: string;
+    personaId?: string;
+    platform?: string;
+    tone?: string;
+  } | null;
+
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  if (!state?.texts) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Type className="h-12 w-12 text-muted-foreground" />
+        <p className="text-muted-foreground">Nenhum texto gerado. Volte e tente novamente.</p>
+        <Button variant="outline" onClick={() => navigate("/create/text")}>
+          <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+        </Button>
+      </div>
+    );
+  }
+
+  const handleCopy = async (text: string, id: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      toast.success("Texto copiado!");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      toast.error("Erro ao copiar");
+    }
+  };
+
+  const handleUseForImage = (text: string) => {
+    navigate("/create/image", { state: { prefillText: text } });
+  };
+
+  const handleRefine = () => {
+    navigate("/create/text", {
+      state: {
+        prefillMessage: state.originalMessage,
+        brandId: state.brandId,
+        themeId: state.themeId,
+        personaId: state.personaId,
+        platform: state.platform,
+        tone: state.tone,
+      },
+    });
+  };
+
+  const styleColors: Record<string, string> = {
+    formal: "bg-blue-500/15 text-blue-700 border-blue-500/30",
+    informal: "bg-green-500/15 text-green-700 border-green-500/30",
+    emotivo: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+    "didático": "bg-cyan-500/15 text-cyan-700 border-cyan-500/30",
+    combativo: "bg-red-500/15 text-red-700 border-red-500/30",
+    institucional: "bg-indigo-500/15 text-indigo-700 border-indigo-500/30",
+    narrativo: "bg-purple-500/15 text-purple-700 border-purple-500/30",
+    inspirador: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+    urgente: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+    "comunitário": "bg-teal-500/15 text-teal-700 border-teal-500/30",
+  };
+
+  const getStyleColor = (style: string) => {
+    const lower = style.toLowerCase();
+    for (const [key, val] of Object.entries(styleColors)) {
+      if (lower.includes(key)) return val;
+    }
+    return "bg-muted text-muted-foreground";
+  };
+
+  return (
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
+      {/* Banner */}
+      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+        <PageBreadcrumb
+          items={[
+            { label: "Criar Conteúdo", href: "/create" },
+            { label: "Criar Texto", href: "/create/text" },
+            { label: "Resultados" },
+          ]}
+          variant="overlay"
+        />
+        <img src={createBanner} alt="" className="w-full h-full object-cover object-[center_55%]" loading="lazy" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+      </div>
+
+      {/* Header */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0">
+        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
+          <div className="flex items-center gap-4">
+            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-3">
+              <Type className="h-8 w-8 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-foreground">10 Opções de Texto</h1>
+              <p className="text-sm text-muted-foreground">
+                Escolha, copie ou use como base para criar uma imagem
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleRefine} className="gap-1.5">
+                <RefreshCw className="h-4 w-4" /> Gerar novamente
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate("/create")} className="gap-1.5">
+                <ArrowLeft className="h-4 w-4" /> Voltar
+              </Button>
+            </div>
+          </div>
+          {/* Original message */}
+          <div className="mt-3 p-3 bg-muted/50 rounded-xl">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Sua ideia original:</p>
+            <p className="text-sm text-foreground italic">"{state.originalMessage}"</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Text cards */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-6 pb-8 max-w-4xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {state.texts.map((item) => (
+            <Card
+              key={item.id}
+              className={`border shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl cursor-pointer ${
+                selectedId === item.id ? "ring-2 ring-primary border-primary" : ""
+              }`}
+              onClick={() => setSelectedId(selectedId === item.id ? null : item.id)}
+            >
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className={`text-xs ${getStyleColor(item.style)}`}>
+                    {item.style}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    #{item.id}
+                  </span>
+                </div>
+
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                  {item.text}
+                </p>
+
+                {item.best_for && (
+                  <p className="text-xs text-muted-foreground">
+                    📌 Ideal para: {item.best_for}
+                  </p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(item.text, item.id);
+                    }}
+                  >
+                    {copiedId === item.id ? (
+                      <><Check className="h-3.5 w-3.5" /> Copiado</>
+                    ) : (
+                      <><Copy className="h-3.5 w-3.5" /> Copiar</>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUseForImage(item.text);
+                    }}
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" /> Criar Imagem
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}

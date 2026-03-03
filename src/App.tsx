@@ -44,6 +44,8 @@ const CampaignResult = lazy(() => import("./pages/CampaignResult"));
 const CreateVideo = lazy(() => import("./pages/CreateVideo"));
 const AnimateImage = lazy(() => import("./pages/AnimateImage"));
 const ContentCreationSelector = lazy(() => import("./pages/ContentCreationSelector"));
+const CreateText = lazy(() => import("./pages/CreateText"));
+const TextResult = lazy(() => import("./pages/TextResult"));
 const ContentResult = lazy(() => import("./pages/ContentResult"));
 const VideoResult = lazy(() => import("./pages/VideoResult"));
 const ReviewContent = lazy(() => import("./pages/ReviewContent"));
@@ -131,6 +133,8 @@ const App = () => (
                         <Route path="history" element={<SuspenseRoute><History /></SuspenseRoute>} />
                         <Route path="create" element={<SuspenseRoute><ContentCreationSelector /></SuspenseRoute>} />
                         <Route path="create/quick" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
+                        <Route path="create/text" element={<SuspenseRoute><CreateText /></SuspenseRoute>} />
+                        <Route path="text-result" element={<SuspenseRoute><TextResult /></SuspenseRoute>} />
                         <Route path="create/image" element={<SuspenseRoute><CreateImage /></SuspenseRoute>} />
                         <Route path="create/campaign" element={<SuspenseRoute><CreateCampaign /></SuspenseRoute>} />
                         <Route path="campaign-result" element={<SuspenseRoute><CampaignResult /></SuspenseRoute>} />
