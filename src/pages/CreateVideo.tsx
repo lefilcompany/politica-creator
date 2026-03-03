@@ -39,7 +39,7 @@ interface FormData {
   videoAspectRatio: '16:9' | '9:16';
   videoResolution: '720p' | '1080p';
   videoDuration: number;
-  videoModel: 'veo' | 'sora';
+  videoModel: 'sora';
 }
 
 const toneOptions = ["inspirador", "motivacional", "profissional", "casual", "elegante", "moderno", "tradicional", "divertido", "sério"];
@@ -63,7 +63,7 @@ export default function CreateVideo() {
     videoAspectRatio: '9:16',
     videoResolution: '1080p',
     videoDuration: 8,
-    videoModel: 'veo',
+    videoModel: 'sora',
   });
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -541,30 +541,11 @@ export default function CreateVideo() {
                 {/* Modelo de IA */}
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-foreground">Modelo de IA</Label>
-                  <NativeSelect
-                    value={formData.videoModel}
-                    onValueChange={(value) => {
-                      const newModel = value as 'veo' | 'sora';
-                    setFormData(prev => ({
-                        ...prev,
-                        videoModel: newModel,
-                        // Ajustar duração para limites do modelo
-                        videoDuration: newModel === 'sora' 
-                          ? (prev.videoDuration > 10 ? 10 : prev.videoDuration < 5 ? 5 : prev.videoDuration)
-                          : (prev.videoDuration > 8 ? 8 : prev.videoDuration < 4 ? 4 : prev.videoDuration),
-                      }));
-                    }}
-                    options={[
-                      { value: "veo", label: "Google Veo 3 (Padrão)" },
-                      { value: "sora", label: "OpenAI Sora 2" },
-                    ]}
-                    placeholder="Selecione o modelo"
-                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                  />
+                  <div className="h-10 rounded-lg border-2 border-border/50 bg-background/50 px-3 flex items-center">
+                    <span className="text-sm">OpenAI Sora 2</span>
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    {formData.videoModel === 'sora' 
-                      ? 'Sora 2: vídeos com áudio sincronizado e imagem de referência'
-                      : 'Veo 3: suporta imagem-para-vídeo'}
+                    Sora 2: vídeos com áudio sincronizado e imagem de referência
                   </p>
                 </div>
                 <div className="space-y-1.5">
@@ -616,19 +597,12 @@ export default function CreateVideo() {
                   <NativeSelect
                     value={String(formData.videoDuration)}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))}
-                    options={formData.videoModel === 'sora' 
-                      ? [
-                          { value: "5", label: "5 segundos" },
-                          { value: "10", label: "10 segundos" },
-                          { value: "15", label: "15 segundos" },
-                          { value: "20", label: "20 segundos" },
-                        ]
-                      : [
-                          { value: "4", label: "4 segundos" },
-                          { value: "6", label: "6 segundos" },
-                          { value: "8", label: "8 segundos" },
-                        ]
-                    }
+                    options={[
+                      { value: "5", label: "5 segundos" },
+                      { value: "10", label: "10 segundos" },
+                      { value: "15", label: "15 segundos" },
+                      { value: "20", label: "20 segundos" },
+                    ]}
                     placeholder="Selecione a duração"
                     triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                   />
