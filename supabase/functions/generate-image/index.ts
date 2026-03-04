@@ -287,31 +287,22 @@ REGRAS:
 
   try {
     console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Político...');
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Transforme esta Descrição Visual Bruta num Briefing Visual cinematográfico completo:\n\n"${rawDescription}"\n\n${params?.promptContext ? `CONTEXTO CONSOLIDADO DO FORMULÁRIO:\n${params.promptContext}` : ''}` },
-        ],
-      }),
+    const { callGemini } = await import('../_shared/geminiClient.ts');
+    
+    const geminiResult = await callGemini({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Transforme esta Descrição Visual Bruta num Briefing Visual cinematográfico completo:\n\n"${rawDescription}"\n\n${params?.promptContext ? `CONTEXTO CONSOLIDADO DO FORMULÁRIO:\n${params.promptContext}` : ''}` },
+      ],
     });
 
-    if (!response.ok) {
-      const status = response.status;
-      console.error(`Flash enrichment failed with status ${status}`);
-      if (status === 429) console.warn('Rate limited on enrichment, using original');
-      if (status === 402) console.warn('Payment required on enrichment, using original');
+    if (!geminiResult.ok) {
+      console.error(`Flash enrichment failed with status ${geminiResult.status}`);
       return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
     }
 
-    const data = await response.json();
-    const enriched = data.choices?.[0]?.message?.content?.trim();
+    const enriched = geminiResult.content?.trim();
     if (enriched && enriched.length > 20) {
       console.log(`✅ LLM Refiner output: ${enriched.length} chars`);
       
