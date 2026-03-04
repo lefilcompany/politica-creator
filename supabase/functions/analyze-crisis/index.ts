@@ -148,37 +148,23 @@ Responda EXCLUSIVAMENTE em JSON válido com esta estrutura:
   "o_que_nao_fazer": ["Lista de erros comuns a evitar neste tipo de crise"]
 }`;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY não configurada");
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.4,
-        response_format: { type: "json_object" },
-      }),
+    const aiResult = await callGemini(GEMINI_API_KEY, {
+      model: 'google/gemini-2.5-flash',
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4,
+      maxOutputTokens: 8192,
     });
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("AI error:", errText);
-      throw new Error("Falha na análise de crise");
-    }
-
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content;
+    const content = aiResult.content;
     if (!content) throw new Error("Resposta vazia da IA");
 
     let result;
     try {
-      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      result = JSON.parse(cleaned);
+      result = extractJSON(content);
+      if (!result) throw new Error('No JSON found');
     } catch {
       throw new Error("Falha ao interpretar resposta da IA");
     }
