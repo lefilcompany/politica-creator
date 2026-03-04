@@ -166,9 +166,9 @@ async function enrichPromptWithFlash(
   politicalProfile: any,
   params?: { textContent?: string; headline?: string; promptContext?: string }
 ): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) {
-    console.warn('LOVABLE_API_KEY not found, skipping enrichment');
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  if (!GEMINI_API_KEY) {
+    console.warn('GEMINI_API_KEY not found, skipping enrichment');
     return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
   }
 
@@ -756,9 +756,9 @@ serve(async (req) => {
     // =====================================
     // STEP 3: GENERATE IMAGE WITH GEMINI 3 PRO (Nano Banana Pro)
     // =====================================
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
     // Build message content with images

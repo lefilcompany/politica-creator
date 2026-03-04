@@ -71,8 +71,7 @@ serve(async (req) => {
       candidateContext.push(`Identidade: "${brandData.name}" | Valores: ${brandData.values || 'N/A'} | Promessa: ${brandData.promise || 'N/A'}`);
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    // Gemini API key is checked by geminiClient.ts
 
     const systemPrompt = `Você é um analista de comunicação política sênior especializado em repercussão de conteúdo digital.
 

@@ -53,10 +53,7 @@ serve(async (req) => {
     const politicalProfile = await fetchPoliticalProfile(supabase, user.id);
     const politicalContext = buildPoliticalContext(politicalProfile);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'AI not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    // Gemini API key is checked by geminiClient.ts
 
     const nameForSearch = politicianName || politicalProfile?.political_role || 'político';
     const partyForSearch = party || politicalProfile?.political_party || '';

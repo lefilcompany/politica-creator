@@ -258,12 +258,7 @@ serve(async (req) => {
     console.log('   - Aspect Ratio:', aspectRatio || 'não especificado');
     console.log('   - Ajuste solicitado:', reviewPrompt.substring(0, 100) + '...');
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!LOVABLE_API_KEY) {
-      console.error('❌ LOVABLE_API_KEY não configurada');
-      return new Response(
-        JSON.stringify({ error: 'API key não configurada' }),
+    // GEMINI_API_KEY is checked inline below
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

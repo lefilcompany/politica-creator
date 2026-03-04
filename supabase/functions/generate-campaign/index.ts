@@ -66,8 +66,7 @@ serve(async (req) => {
       if (polParts.length) contextParts.push(`PERFIL POLÍTICO: ${polParts.join(' | ')}`);
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    // Gemini API key is checked by geminiClient.ts
 
     const systemPrompt = `Você é um Estrategista de Marketing Político Sênior e Diretor de Campanha experiente. 
 Sua missão é gerar um PACOTE COMPLETO DE CAMPANHA com base nos dados do formulário.
