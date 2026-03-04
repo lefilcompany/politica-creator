@@ -801,31 +801,39 @@ serve(async (req) => {
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          console.log(`🖼️ Image ${imageIndex} generation attempt ${attempt}/${MAX_RETRIES} via Nano Banana Pro...`);
+          console.log(`🖼️ Image ${imageIndex} generation attempt ${attempt}/${MAX_RETRIES} via Gemini Image...`);
 
-          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+          if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              model: 'google/gemini-3-pro-image-preview',
-              messages: [{ role: 'user', content: messageContent }],
-              modalities: ['image', 'text'],
+              contents: [{ parts: messageContent.map((item: any) => {
+                if (item.type === 'text') return { text: item.text };
+                if (item.type === 'image_url' && item.image_url?.url?.startsWith('data:')) {
+                  const match = item.image_url.url.match(/^data:([^;]+);base64,(.+)$/);
+                  if (match) return { inlineData: { mimeType: match[1], data: match[2] } };
+                }
+                return { text: JSON.stringify(item) };
+              }) }],
+              generationConfig: {
+                responseModalities: ['TEXT', 'IMAGE'],
+              },
             }),
           });
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.error(`Gateway error (image ${imageIndex}, attempt ${attempt}):`, response.status, errorText);
+            console.error(`Gemini error (image ${imageIndex}, attempt ${attempt}):`, response.status, errorText);
             
-            if (response.status === 429 || response.status === 402) {
-              lastError = new Error(`Gateway error: ${response.status}`);
-              break; // Don't retry rate limits
+            if (response.status === 429) {
+              lastError = new Error(`Gemini error: ${response.status}`);
+              break;
             }
             
-            lastError = new Error(`Gateway error: ${response.status}`);
+            lastError = new Error(`Gemini error: ${response.status}`);
             if (attempt < MAX_RETRIES) {
               await new Promise(resolve => setTimeout(resolve, 2000));
               continue;
