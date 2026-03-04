@@ -106,38 +106,23 @@ IMPORTANTE:
 - Marque claramente rumores como "nao_verificado".
 - Se não houver notícias relevantes, retorne lista vazia com resumo explicando.`;
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'API key não configurada' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const { callGemini } = await import('../_shared/geminiClient.ts');
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.4,
-      }),
+    const geminiResult = await callGemini({
+      model: 'google/gemini-2.5-flash',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.4,
     });
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error('AI API error:', errText);
+    if (!geminiResult.ok) {
+      console.error('Gemini API error:', geminiResult.status);
       return new Response(JSON.stringify({ error: 'Erro ao consultar IA' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content || '';
+    const content = geminiResult.content || '';
 
     // Parse JSON from response
     let result;
