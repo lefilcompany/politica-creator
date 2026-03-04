@@ -71,8 +71,7 @@ serve(async (req) => {
       candidateContext.push(`Identidade: "${brandData.name}" | Valores: ${brandData.values || 'N/A'} | Promessa: ${brandData.promise || 'N/A'}`);
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    // Gemini API key is checked by geminiClient.ts
 
     const systemPrompt = `Você é um analista de comunicação política sênior especializado em repercussão de conteúdo digital.
 
@@ -129,128 +128,59 @@ Para cada dimensão com score ≤ 3, forneça UMA sugestão concreta e acionáve
 
     console.log('🔍 Analyzing repercussion...');
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Analise o seguinte conteúdo político:\n\n---\n${content}\n---` },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "analyze_repercussion",
-            description: "Analisa a probabilidade de repercussão com substância de um conteúdo político",
-            parameters: {
-              type: "object",
-              properties: {
-                dimensoes: {
-                  type: "object",
-                  properties: {
-                    substancia_publica: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    conexao_local: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    novidade_legitima: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    polarizacao_risco: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    aderencia_identidade: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    }
-                  },
-                  required: ["substancia_publica", "conexao_local", "novidade_legitima", "polarizacao_risco", "aderencia_identidade"]
+    const { callGemini } = await import('../_shared/geminiClient.ts');
+
+    const geminiResult = await callGemini({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Analise o seguinte conteúdo político:\n\n---\n${content}\n---` },
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "analyze_repercussion",
+          description: "Analisa a probabilidade de repercussão com substância de um conteúdo político",
+          parameters: {
+            type: "object",
+            properties: {
+              dimensoes: {
+                type: "object",
+                properties: {
+                  substancia_publica: { type: "object", properties: { score: { type: "number" }, justificativa: { type: "string" } }, required: ["score", "justificativa"] },
+                  conexao_local: { type: "object", properties: { score: { type: "number" }, justificativa: { type: "string" } }, required: ["score", "justificativa"] },
+                  novidade_legitima: { type: "object", properties: { score: { type: "number" }, justificativa: { type: "string" } }, required: ["score", "justificativa"] },
+                  polarizacao_risco: { type: "object", properties: { score: { type: "number" }, justificativa: { type: "string" } }, required: ["score", "justificativa"] },
+                  aderencia_identidade: { type: "object", properties: { score: { type: "number" }, justificativa: { type: "string" } }, required: ["score", "justificativa"] }
                 },
-                classificacao: {
-                  type: "string",
-                  enum: ["repercussao_positiva", "risco_negativo", "ruido_efemero"]
-                },
-                resumo: {
-                  type: "string",
-                  description: "Resumo executivo de 2-3 frases sobre o potencial de repercussão"
-                },
-                sugestoes: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      dimensao: { type: "string" },
-                      sugestao: { type: "string" }
-                    },
-                    required: ["dimensao", "sugestao"]
-                  }
-                }
+                required: ["substancia_publica", "conexao_local", "novidade_legitima", "polarizacao_risco", "aderencia_identidade"]
               },
-              required: ["dimensoes", "classificacao", "resumo", "sugestoes"]
-            }
+              classificacao: { type: "string", enum: ["repercussao_positiva", "risco_negativo", "ruido_efemero"] },
+              resumo: { type: "string" },
+              sugestoes: { type: "array", items: { type: "object", properties: { dimensao: { type: "string" }, sugestao: { type: "string" } }, required: ["dimensao", "sugestao"] } }
+            },
+            required: ["dimensoes", "classificacao", "resumo", "sugestoes"]
           }
-        }],
-        tool_choice: { type: "function", function: { name: "analyze_repercussion" } },
-      }),
+        }
+      }],
+      tool_choice: { type: "function", function: { name: "analyze_repercussion" } },
     });
 
-    if (!response.ok) {
-      const status = response.status;
-      const errorText = await response.text();
-      console.error(`AI gateway error: ${status}`, errorText);
-      if (status === 429) {
+    if (!geminiResult.ok) {
+      console.error(`Gemini error: ${geminiResult.status}`);
+      if (geminiResult.status === 429) {
         return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }), {
           status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos da plataforma esgotados.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error(`AI gateway error: ${status}`);
+      throw new Error(`Gemini API error: ${geminiResult.status}`);
     }
 
-    const aiData = await response.json();
-
     let analysis;
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      analysis = typeof toolCall.function.arguments === 'string'
-        ? JSON.parse(toolCall.function.arguments)
-        : toolCall.function.arguments;
+    if (geminiResult.toolCall) {
+      analysis = geminiResult.toolCall.args;
     } else {
-      const content2 = aiData.choices?.[0]?.message?.content || '';
-      const jsonMatch = content2.match(/\{[\s\S]*\}/);
+      const jsonMatch = geminiResult.content?.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
       } else {

@@ -258,17 +258,9 @@ serve(async (req) => {
     console.log('   - Aspect Ratio:', aspectRatio || 'não especificado');
     console.log('   - Ajuste solicitado:', reviewPrompt.substring(0, 100) + '...');
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!LOVABLE_API_KEY) {
-      console.error('❌ LOVABLE_API_KEY não configurada');
-      return new Response(
-        JSON.stringify({ error: 'API key não configurada' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // GEMINI_API_KEY is checked inline below
 
-    console.log('🤖 Chamando Lovable AI Gateway para edição de imagem...');
+    console.log('🤖 Chamando Gemini API para edição de imagem...');
 
     // Preparar imagem como data URL para o gateway
     let imageDataUrl: string;
@@ -299,30 +291,33 @@ serve(async (req) => {
       console.log('✅ Imagem convertida para base64, tipo:', contentType);
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+
+    const geminiParts: any[] = [{ text: detailedPrompt }];
+    if (imageDataUrl.startsWith('data:')) {
+      const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        geminiParts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+      }
+    }
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: detailedPrompt },
-            { type: 'image_url', image_url: { url: imageDataUrl } }
-          ]
-        }],
-        modalities: ['image', 'text']
-      })
+        contents: [{ parts: geminiParts }],
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE'],
+        },
+      }),
     });
 
-    console.log('📡 Status da resposta Gateway:', response.status);
+    console.log('📡 Status da resposta Gemini:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erro no Gateway:', errorText);
+      console.error('❌ Erro no Gemini:', errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -337,13 +332,19 @@ serve(async (req) => {
     const aiData = await response.json();
     console.log('✅ Resposta da AI recebida');
 
-    // Extrair imagem da resposta do gateway (message.images[])
-    const message = aiData.choices?.[0]?.message;
+    // Extrair imagem da resposta Gemini (inline_data)
     let editedImageDataUrl: string | null = null;
 
-    if (message?.images?.length > 0) {
-      editedImageDataUrl = message.images[0].image_url?.url;
-      console.log('✅ Image extracted from message.images[]');
+    const candidates = aiData.candidates?.[0]?.content?.parts;
+    if (candidates) {
+      for (const part of candidates) {
+        if (part.inlineData?.data) {
+          const mimeType = part.inlineData.mimeType || 'image/png';
+          editedImageDataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+          console.log('✅ Image extracted from Gemini inlineData');
+          break;
+        }
+      }
     }
     
     if (!editedImageDataUrl) {
