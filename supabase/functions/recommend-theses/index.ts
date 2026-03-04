@@ -93,6 +93,12 @@ RETORNE APENAS O JSON.`;
       if (!response.ok) {
         const errText = await response.text();
         console.error("❌ [THESES] AI error:", errText);
+        if (response.status === 402 || response.status === 429) {
+          // Return empty result so frontend uses local fallback
+          return new Response(JSON.stringify({ theses: [], fallback: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
         throw new Error(`AI API error: ${response.status}`);
       }
 
