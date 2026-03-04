@@ -18,68 +18,23 @@ serve(async (req) => {
       });
     }
 
-    console.log('🧪 Testing Gemini image generation...');
-
-    const model = 'gemini-2.5-flash-preview-image-generation';
-    console.log('Using model:', model);
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: 'Generate a simple image of a blue circle on a white background.' }] }],
-        generationConfig: {
-          responseModalities: ['TEXT', 'IMAGE'],
-        },
-      }),
-    });
-
-    console.log('📡 Gemini status:', response.status);
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('❌ Gemini error:', errText);
-      return new Response(JSON.stringify({ 
-        error: `Gemini API error: ${response.status}`,
-        details: errText 
-      }), {
-        status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const data = await response.json();
-    const parts = data.candidates?.[0]?.content?.parts || [];
+    // List available models
+    const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+    const listData = await listResp.json();
     
-    let hasImage = false;
-    let hasText = false;
-    let imageMimeType = '';
-    let imageDataLength = 0;
-    let textContent = '';
+    const imageModels = (listData.models || [])
+      .filter((m: any) => m.name?.includes('image') || m.name?.includes('flash-exp') || m.name?.includes('flash-preview'))
+      .map((m: any) => ({ name: m.name, displayName: m.displayName, supportedMethods: m.supportedGenerationMethods }));
 
-    for (const part of parts) {
-      if (part.inlineData?.data) {
-        hasImage = true;
-        imageMimeType = part.inlineData.mimeType || 'unknown';
-        imageDataLength = part.inlineData.data.length;
-      }
-      if (part.text) {
-        hasText = true;
-        textContent = part.text.substring(0, 200);
-      }
-    }
-
-    console.log('✅ Results:', { hasImage, hasText, imageMimeType, imageDataLength });
-
-    return new Response(JSON.stringify({
-      success: true,
-      hasImage,
-      hasText,
-      imageMimeType,
-      imageDataLengthBase64: imageDataLength,
-      textPreview: textContent,
-      partsCount: parts.length,
-    }), {
+    return new Response(JSON.stringify({ imageModels, totalModels: listData.models?.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+});
 
   } catch (error) {
     console.error('❌ Error:', error);
