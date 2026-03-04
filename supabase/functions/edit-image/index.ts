@@ -340,13 +340,19 @@ serve(async (req) => {
     const aiData = await response.json();
     console.log('✅ Resposta da AI recebida');
 
-    // Extrair imagem da resposta do gateway (message.images[])
-    const message = aiData.choices?.[0]?.message;
+    // Extrair imagem da resposta Gemini (inline_data)
     let editedImageDataUrl: string | null = null;
 
-    if (message?.images?.length > 0) {
-      editedImageDataUrl = message.images[0].image_url?.url;
-      console.log('✅ Image extracted from message.images[]');
+    const candidates = aiData.candidates?.[0]?.content?.parts;
+    if (candidates) {
+      for (const part of candidates) {
+        if (part.inlineData?.data) {
+          const mimeType = part.inlineData.mimeType || 'image/png';
+          editedImageDataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+          console.log('✅ Image extracted from Gemini inlineData');
+          break;
+        }
+      }
     }
     
     if (!editedImageDataUrl) {
