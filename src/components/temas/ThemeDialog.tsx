@@ -320,20 +320,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
     }
   };
 
-  const isFormValid = () => {
-    const requiredFields = [
-      { field: 'title', label: 'Título' },
-      { field: 'brandId', label: 'Identidade' },
-    ];
-    const missingFields = requiredFields.filter(({ field }) =>
-      !formData[field as keyof typeof formData]?.toString().trim()
-    );
-    if (missingFields.length > 0) {
-      toast.error(`Campos obrigatórios: ${missingFields.map(f => f.label).join(', ')}`);
-      return false;
-    }
-    return true;
-  };
+  const isFormValid = () => true;
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
@@ -418,7 +405,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
               {/* Col 1 */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="brandId">Identidade <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="brandId">Identidade</Label>
                   <div className="relative">
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     <select
@@ -445,7 +432,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="title">Sobre o que você quer que fale? <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="title">Sobre o que você quer que fale?</Label>
                   <Input
                     id="title"
                     value={formData.title}
