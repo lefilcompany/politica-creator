@@ -18,14 +18,58 @@ serve(async (req) => {
       });
     }
 
-    const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
-    const listData = await listResp.json();
+    // Test with gemini-2.5-flash-image (Nano Banana)
+    const model = 'gemini-2.5-flash-image';
+    console.log('Testing model:', model);
     
-    const imageModels = (listData.models || [])
-      .filter((m: any) => m.name?.includes('image') || m.name?.includes('flash-exp') || m.name?.includes('flash-preview'))
-      .map((m: any) => ({ name: m.name, displayName: m.displayName, supportedMethods: m.supportedGenerationMethods }));
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Generate a simple image of a blue circle on a white background.' }] }],
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE'],
+        },
+      }),
+    });
 
-    return new Response(JSON.stringify({ imageModels, totalModels: listData.models?.length }), {
+    console.log('Status:', response.status);
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return new Response(JSON.stringify({ error: `${response.status}`, details: errText }), {
+        status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const data = await response.json();
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    
+    let hasImage = false;
+    let imageMimeType = '';
+    let imageDataLength = 0;
+    let textContent = '';
+
+    for (const part of parts) {
+      if (part.inlineData?.data) {
+        hasImage = true;
+        imageMimeType = part.inlineData.mimeType || 'unknown';
+        imageDataLength = part.inlineData.data.length;
+      }
+      if (part.text) {
+        textContent = part.text.substring(0, 200);
+      }
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      model,
+      hasImage,
+      imageMimeType,
+      imageDataLengthBase64: imageDataLength,
+      textPreview: textContent,
+      partsCount: parts.length,
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
