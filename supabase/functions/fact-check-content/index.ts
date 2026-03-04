@@ -88,11 +88,8 @@ Responda APENAS com JSON:
         searchQueries = parsed.searchQueries || [];
         extractedClaims = parsed.claims || [];
       }
-      } catch {
-        console.warn('Failed to parse extraction response');
-      }
-    } else {
-      await extractionResponse.text(); // consume body
+    } catch {
+      console.warn('Failed to parse extraction response');
     }
 
     // Fallback: extract key terms manually if AI extraction failed
