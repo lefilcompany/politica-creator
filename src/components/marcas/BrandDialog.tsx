@@ -233,22 +233,6 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
   const handleSaveClick = async () => {
     try {
       // Validar todos os campos obrigatórios antes de salvar
-      const requiredFields = [
-        { field: 'name', label: 'Nome da identidade' },
-        { field: 'responsible', label: 'Responsável' },
-        { field: 'segment', label: 'Esfera de atuação' },
-      ];
-
-      const missingFields = requiredFields.filter(({ field }) => {
-        return !formData[field as keyof BrandFormData]?.toString().trim();
-      });
-
-      if (missingFields.length > 0) {
-        const fieldsList = missingFields.map(({ label }) => label).join(', ');
-        toast.error(`${t.common.fieldRequired}: ${fieldsList}`);
-        return;
-      }
-
       await onSave(formData);
       clearDraft(); // Limpa o rascunho após salvar com sucesso
       onOpenChange(false);
@@ -258,15 +242,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
     }
   };
 
-  const isFormValid = () => {
-    const requiredFields = ['name', 'responsible', 'segment'];
-
-    const allTextFieldsValid = requiredFields.every(field =>
-      formData[field as keyof BrandFormData]?.toString().trim() !== ''
-    );
-
-    return allTextFieldsValid;
-  };
+  const isFormValid = () => true;
 
   // Função para lidar com o fechamento do diálogo
   const handleDialogClose = (open: boolean) => {
@@ -303,7 +279,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             {/* Coluna 1 */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t.brands.brandName} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="name">{t.brands.brandName}</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -417,7 +393,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             {/* Coluna 2 */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="responsible">{t.brands.responsible} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="responsible">{t.brands.responsible}</Label>
                 {/* Select nativo para evitar conflitos com extensões de navegador */}
                 <div className="relative">
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -438,7 +414,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="segment">{t.brands.segment} <span className="text-red-500">*</span></Label>
+                <Label htmlFor="segment">{t.brands.segment}</Label>
                 <Textarea
                   id="segment"
                   value={formData.segment}
