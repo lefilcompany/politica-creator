@@ -147,21 +147,31 @@ Responda EXCLUSIVAMENTE em JSON válido com esta estrutura:
   "o_que_nao_fazer": ["Lista de erros comuns a evitar neste tipo de crise"]
 }`;
 
-    const { callGemini } = await import('../_shared/geminiClient.ts');
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
 
-    const geminiResult = await callGemini({
-      model: 'google/gemini-2.5-flash',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.4,
-      response_format: { type: 'json_object' },
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.4,
+        response_format: { type: "json_object" },
+      }),
     });
 
-    if (!geminiResult.ok) {
-      console.error("Gemini error:", geminiResult.status);
+    if (!aiResponse.ok) {
+      const errText = await aiResponse.text();
+      console.error("AI error:", errText);
       throw new Error("Falha na análise de crise");
     }
 
-    const content = geminiResult.content;
+    const aiData = await aiResponse.json();
+    const content = aiData.choices?.[0]?.message?.content;
     if (!content) throw new Error("Resposta vazia da IA");
 
     let result;

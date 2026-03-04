@@ -53,7 +53,10 @@ serve(async (req) => {
     const politicalProfile = await fetchPoliticalProfile(supabase, user.id);
     const politicalContext = buildPoliticalContext(politicalProfile);
 
-    // Gemini API key is checked by geminiClient.ts
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: 'AI not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const nameForSearch = politicianName || politicalProfile?.political_role || 'político';
     const partyForSearch = party || politicalProfile?.political_party || '';
@@ -103,59 +106,73 @@ IMPORTANTE:
 - Se não houver notícias relevantes, retorne uma lista vazia com uma mensagem explicativa.
 - Gere entre 0 e ${Math.min(articles.length, 10)} resultados.`;
 
-    const { callGemini } = await import('../_shared/geminiClient.ts');
-
-    const geminiResult = await callGemini({
-      model: 'google/gemini-2.5-flash',
-      messages: [{ role: "user", content: prompt }],
-      tools: [{
-        type: "function",
-        function: {
-          name: "monitor_results",
-          description: "Return fake news monitoring results based on real news articles",
-          parameters: {
-            type: "object",
-            properties: {
-              results: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    title: { type: "string" },
-                    summary: { type: "string" },
-                    classification: { type: "string", enum: ["fake_news", "ataque_infundado", "critica_legitima", "alerta"] },
-                    urgency: { type: "string", enum: ["alta", "media", "baixa"] },
-                    suggestedAction: { type: "string" },
-                    source: { type: "string" },
-                    publishedAt: { type: "string" },
-                    url: { type: "string" },
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [{ role: "user", content: prompt }],
+        tools: [{
+          type: "function",
+          function: {
+            name: "monitor_results",
+            description: "Return fake news monitoring results based on real news articles",
+            parameters: {
+              type: "object",
+              properties: {
+                results: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: { type: "string", description: "Título resumido da menção" },
+                      summary: { type: "string", description: "Resumo do conteúdo encontrado" },
+                      classification: { type: "string", enum: ["fake_news", "ataque_infundado", "critica_legitima", "alerta"] },
+                      urgency: { type: "string", enum: ["alta", "media", "baixa"] },
+                      suggestedAction: { type: "string", description: "Ação sugerida para lidar com essa menção" },
+                      source: { type: "string", description: "Nome do veículo / fonte da notícia" },
+                      publishedAt: { type: "string", description: "Data de publicação" },
+                      url: { type: "string", description: "URL da notícia original (se disponível)" },
+                    },
+                    required: ["title", "summary", "classification", "urgency", "suggestedAction"],
+                    additionalProperties: false,
                   },
-                  required: ["title", "summary", "classification", "urgency", "suggestedAction"],
                 },
+                summary: { type: "string", description: "Resumo geral do cenário encontrado nas últimas 24h" },
               },
-              summary: { type: "string" },
+              required: ["results", "summary"],
+              additionalProperties: false,
             },
-            required: ["results", "summary"],
           },
-        },
-      }],
-      tool_choice: { type: "function", function: { name: "monitor_results" } },
+        }],
+        tool_choice: { type: "function", function: { name: "monitor_results" } },
+      }),
     });
 
-    if (!geminiResult.ok) {
-      if (geminiResult.status === 429) {
+    if (!response.ok) {
+      if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      console.error("Gemini error:", geminiResult.status);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Créditos de IA esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const t = await response.text();
+      console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: 'Erro na IA' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    const data = await response.json();
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let results = [];
     let monitorSummary = '';
     
-    if (geminiResult.toolCall) {
-      results = geminiResult.toolCall.args.results || [];
-      monitorSummary = geminiResult.toolCall.args.summary || '';
+    if (toolCall?.function?.arguments) {
+      const parsed = JSON.parse(toolCall.function.arguments);
+      results = parsed.results || [];
+      monitorSummary = parsed.summary || '';
     }
 
     // Deduct credits

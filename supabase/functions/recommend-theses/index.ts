@@ -70,54 +70,45 @@ RESPONDA EXCLUSIVAMENTE em JSON válido com esta estrutura:
 
 RETORNE APENAS O JSON.`;
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
     let responseContent: string;
-
-    if (geminiApiKey) {
-      console.log("🔄 [THESES] Calling Gemini API directly...");
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+    
+    if (lovableApiKey) {
+      console.log("🔄 [THESES] Calling Lovable AI...");
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { 
-            temperature: 0.5, 
-            maxOutputTokens: 2000,
-            responseMimeType: 'application/json',
-          },
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.5,
+          max_tokens: 2000,
         }),
       });
 
       if (!response.ok) {
         const errText = await response.text();
-        console.error("❌ [THESES] Gemini error:", errText);
-        // Return empty fallback instead of crashing
-        return new Response(JSON.stringify({ theses: [], fallback: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        console.error("❌ [THESES] AI error:", errText);
+        throw new Error(`AI API error: ${response.status}`);
       }
 
       const data = await response.json();
-      responseContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      responseContent = data.choices?.[0]?.message?.content || '';
     } else {
-      throw new Error('No AI API key configured (GEMINI_API_KEY)');
+      throw new Error('No AI API key configured');
     }
 
-    // Parse JSON from response - try direct parse first, then regex fallback
-    let parsed: any;
-    try {
-      parsed = JSON.parse(responseContent);
-    } catch {
-      const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.error('❌ [THESES] Could not parse response:', responseContent.substring(0, 500));
-        return new Response(JSON.stringify({ theses: [], fallback: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      parsed = JSON.parse(jsonMatch[0]);
+    // Parse JSON from response
+    const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Invalid AI response format');
     }
+
+    const parsed = JSON.parse(jsonMatch[0]);
 
     console.log("✅ [THESES] Recommended", parsed.theses?.length, "theses");
 

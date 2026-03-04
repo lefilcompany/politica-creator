@@ -166,9 +166,9 @@ async function enrichPromptWithFlash(
   politicalProfile: any,
   params?: { textContent?: string; headline?: string; promptContext?: string }
 ): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
-  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) {
-    console.warn('GEMINI_API_KEY not found, skipping enrichment');
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    console.warn('LOVABLE_API_KEY not found, skipping enrichment');
     return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
   }
 
@@ -287,22 +287,31 @@ REGRAS:
 
   try {
     console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Político...');
-    const { callGemini } = await import('../_shared/geminiClient.ts');
-    
-    const geminiResult = await callGemini({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Transforme esta Descrição Visual Bruta num Briefing Visual cinematográfico completo:\n\n"${rawDescription}"\n\n${params?.promptContext ? `CONTEXTO CONSOLIDADO DO FORMULÁRIO:\n${params.promptContext}` : ''}` },
-      ],
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3-flash-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Transforme esta Descrição Visual Bruta num Briefing Visual cinematográfico completo:\n\n"${rawDescription}"\n\n${params?.promptContext ? `CONTEXTO CONSOLIDADO DO FORMULÁRIO:\n${params.promptContext}` : ''}` },
+        ],
+      }),
     });
 
-    if (!geminiResult.ok) {
-      console.error(`Flash enrichment failed with status ${geminiResult.status}`);
+    if (!response.ok) {
+      const status = response.status;
+      console.error(`Flash enrichment failed with status ${status}`);
+      if (status === 429) console.warn('Rate limited on enrichment, using original');
+      if (status === 402) console.warn('Payment required on enrichment, using original');
       return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
     }
 
-    const enriched = geminiResult.content?.trim();
+    const data = await response.json();
+    const enriched = data.choices?.[0]?.message?.content?.trim();
     if (enriched && enriched.length > 20) {
       console.log(`✅ LLM Refiner output: ${enriched.length} chars`);
       
@@ -756,9 +765,9 @@ serve(async (req) => {
     // =====================================
     // STEP 3: GENERATE IMAGE WITH GEMINI 3 PRO (Nano Banana Pro)
     // =====================================
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Build message content with images
@@ -801,39 +810,31 @@ serve(async (req) => {
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          console.log(`🖼️ Image ${imageIndex} generation attempt ${attempt}/${MAX_RETRIES} via Gemini Image...`);
+          console.log(`🖼️ Image ${imageIndex} generation attempt ${attempt}/${MAX_RETRIES} via Nano Banana Pro...`);
 
-          const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-          if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
-
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`, {
+          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
             body: JSON.stringify({
-              contents: [{ parts: messageContent.map((item: any) => {
-                if (item.type === 'text') return { text: item.text };
-                if (item.type === 'image_url' && item.image_url?.url?.startsWith('data:')) {
-                  const match = item.image_url.url.match(/^data:([^;]+);base64,(.+)$/);
-                  if (match) return { inlineData: { mimeType: match[1], data: match[2] } };
-                }
-                return { text: JSON.stringify(item) };
-              }) }],
-              generationConfig: {
-                responseModalities: ['TEXT', 'IMAGE'],
-              },
+              model: 'google/gemini-3-pro-image-preview',
+              messages: [{ role: 'user', content: messageContent }],
+              modalities: ['image', 'text'],
             }),
           });
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.error(`Gemini error (image ${imageIndex}, attempt ${attempt}):`, response.status, errorText);
+            console.error(`Gateway error (image ${imageIndex}, attempt ${attempt}):`, response.status, errorText);
             
-            if (response.status === 429) {
-              lastError = new Error(`Gemini error: ${response.status}`);
-              break;
+            if (response.status === 429 || response.status === 402) {
+              lastError = new Error(`Gateway error: ${response.status}`);
+              break; // Don't retry rate limits
             }
             
-            lastError = new Error(`Gemini error: ${response.status}`);
+            lastError = new Error(`Gateway error: ${response.status}`);
             if (attempt < MAX_RETRIES) {
               await new Promise(resolve => setTimeout(resolve, 2000));
               continue;

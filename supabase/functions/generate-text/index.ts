@@ -5,7 +5,6 @@ import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 import { getKnowledgeBaseContext } from '../_shared/knowledgeBase.ts';
-import { callGemini } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -180,24 +179,38 @@ ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 150
   ]
 }`;
 
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+
     console.log('📝 Generating 10 text variations...');
 
-    const geminiResult = await callGemini({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Transforme esta ideia em 10 textos profissionais para comunicação política:\n\n"${message.trim()}"` },
-      ],
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3-flash-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Transforme esta ideia em 10 textos profissionais para comunicação política:\n\n"${message.trim()}"` },
+        ],
+      }),
     });
 
-    if (!geminiResult.ok) {
-      if (geminiResult.status === 429) {
+    if (!response.ok) {
+      if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      throw new Error(`Gemini API error: ${geminiResult.status}`);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Créditos da plataforma esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const content = geminiResult.content?.trim();
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
 
     let texts: any[] = [];
     try {

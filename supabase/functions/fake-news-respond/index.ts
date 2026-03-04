@@ -57,7 +57,10 @@ serve(async (req) => {
     const politicalProfile = await fetchPoliticalProfile(supabase, user.id);
     const politicalContext = buildPoliticalContext(politicalProfile);
 
-    // Gemini API key is checked by geminiClient.ts
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: 'AI not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const prompt = `${politicalContext}
 
@@ -83,43 +86,59 @@ IMPORTANTE:
 - Promova transparência e autenticidade
 - Use linguagem que promova deliberação, não polarização`;
 
-    const { callGemini } = await import('../_shared/geminiClient.ts');
-
-    const geminiResult = await callGemini({
-      model: 'google/gemini-2.5-flash',
-      messages: [{ role: "user", content: prompt }],
-      tools: [{
-        type: "function",
-        function: {
-          name: "generate_responses",
-          description: "Generate 3 response versions to counter fake news",
-          parameters: {
-            type: "object",
-            properties: {
-              officialNote: { type: "string" },
-              socialMediaResponse: { type: "string" },
-              keyArguments: { type: "array", items: { type: "string" } },
-              analysis: { type: "string" },
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [{ role: "user", content: prompt }],
+        tools: [{
+          type: "function",
+          function: {
+            name: "generate_responses",
+            description: "Generate 3 response versions to counter fake news",
+            parameters: {
+              type: "object",
+              properties: {
+                officialNote: { type: "string", description: "Nota oficial formal" },
+                socialMediaResponse: { type: "string", description: "Resposta para redes sociais com hashtags" },
+                keyArguments: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "Lista de pontos-chave para argumentação",
+                },
+                analysis: { type: "string", description: "Breve análise da fake news (tipo de desinformação, possível origem, nível de perigo)" },
+              },
+              required: ["officialNote", "socialMediaResponse", "keyArguments", "analysis"],
+              additionalProperties: false,
             },
-            required: ["officialNote", "socialMediaResponse", "keyArguments", "analysis"],
           },
-        },
-      }],
-      tool_choice: { type: "function", function: { name: "generate_responses" } },
+        }],
+        tool_choice: { type: "function", function: { name: "generate_responses" } },
+      }),
     });
 
-    if (!geminiResult.ok) {
-      if (geminiResult.status === 429) {
+    if (!response.ok) {
+      if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Limite de requisições excedido.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      console.error("Gemini error:", geminiResult.status);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Créditos de IA esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const t = await response.text();
+      console.error("AI error:", response.status, t);
       return new Response(JSON.stringify({ error: 'Erro na IA' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    const data = await response.json();
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let result = { officialNote: '', socialMediaResponse: '', keyArguments: [], analysis: '' };
 
-    if (geminiResult.toolCall) {
-      result = geminiResult.toolCall.args;
+    if (toolCall?.function?.arguments) {
+      result = JSON.parse(toolCall.function.arguments);
     }
 
     // Deduct credits
