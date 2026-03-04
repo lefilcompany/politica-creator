@@ -99,9 +99,13 @@ RETORNE APENAS O JSON.`;
     const data = await response.json();
     responseContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    // Parse JSON from response
-    const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
+    // Parse JSON from response - strip markdown code blocks if present
+    let cleanedResponse = responseContent.trim();
+    cleanedResponse = cleanedResponse.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+    
+    const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error("❌ [THESES] Raw response:", responseContent);
       throw new Error('Invalid AI response format');
     }
 
