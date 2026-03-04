@@ -558,9 +558,8 @@ serve(async (req) => {
     console.log('Calling Gemini API with', requestParts.length, 'parts (including', imageInputs.length, 'images)');
 
     // Use improved model with high quality settings
-    // Note: gemini-2.0-flash-exp-image-generation generates high-res images by default
     // Aspect ratio is controlled via prompt context
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`, {
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
