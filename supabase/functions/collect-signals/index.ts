@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 import { fetchNewsArticles, formatArticlesForPrompt } from '../_shared/newsapi.ts';
+import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

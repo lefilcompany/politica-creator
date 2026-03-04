@@ -4,6 +4,7 @@ import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 import { fetchNewsMultiQuery, formatArticlesForPrompt } from '../_shared/newsapi.ts';
+import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
