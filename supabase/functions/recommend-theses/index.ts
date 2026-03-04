@@ -85,7 +85,7 @@ RETORNE APENAS O JSON.`;
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.5,
-          maxOutputTokens: 2000,
+          maxOutputTokens: 4096,
         },
       }),
     });
