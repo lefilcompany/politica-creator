@@ -18,7 +18,6 @@ serve(async (req) => {
       });
     }
 
-    // List available models
     const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
     const listData = await listResp.json();
     
@@ -31,16 +30,6 @@ serve(async (req) => {
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-});
-
-  } catch (error) {
-    console.error('❌ Error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
