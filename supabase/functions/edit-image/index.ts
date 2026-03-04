@@ -259,11 +259,8 @@ serve(async (req) => {
     console.log('   - Ajuste solicitado:', reviewPrompt.substring(0, 100) + '...');
 
     // GEMINI_API_KEY is checked inline below
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
-    console.log('🤖 Chamando Lovable AI Gateway para edição de imagem...');
+    console.log('🤖 Chamando Gemini API para edição de imagem...');
 
     // Preparar imagem como data URL para o gateway
     let imageDataUrl: string;
