@@ -161,88 +161,71 @@ ${newsContext}
 
 IMPORTANTE: O score deve refletir a REALIDADE. Não infle o score. Se não há fontes para verificar, o score deve ser na faixa 50-69 (incerteza), NÃO 90+.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [{ role: "user", content: prompt }],
-        tools: [{
-          type: "function",
-          function: {
-            name: "fact_check_result",
-            description: "Return fact-check analysis results with real sources",
-            parameters: {
-              type: "object",
-              properties: {
-                score: { type: "number", description: "Score de confiabilidade 0-100 baseado em evidências reais" },
-                verdict: { type: "string", enum: ["excelente", "bom", "atencao", "critico"], description: "Veredicto geral" },
-                alerts: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      type: { type: "string", enum: ["imprecisao", "sem_fonte", "exagero", "risco_imagem", "desinformacao", "confirmado"] },
-                      severity: { type: "string", enum: ["alta", "media", "baixa"] },
-                      text: { type: "string", description: "Trecho EXATO do conteúdo analisado" },
-                      explanation: { type: "string", description: "Explicação detalhada com base factual" },
-                      suggestion: { type: "string", description: "Sugestão concreta de correção ou validação" },
-                      source: { type: "string", description: "Nome do veículo/fonte que comprova ou contradiz" },
-                      sourceUrl: { type: "string", description: "URL da fonte" },
-                      sourceDate: { type: "string", description: "Data da publicação da fonte" },
-                    },
-                    required: ["type", "severity", "text", "explanation", "suggestion"],
-                    additionalProperties: false,
+    const factCheckResult = await callGemini({
+      model: "google/gemini-2.5-flash",
+      messages: [{ role: "user", content: prompt }],
+      tools: [{
+        type: "function",
+        function: {
+          name: "fact_check_result",
+          description: "Return fact-check analysis results with real sources",
+          parameters: {
+            type: "object",
+            properties: {
+              score: { type: "number" },
+              verdict: { type: "string", enum: ["excelente", "bom", "atencao", "critico"] },
+              alerts: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    type: { type: "string", enum: ["imprecisao", "sem_fonte", "exagero", "risco_imagem", "desinformacao", "confirmado"] },
+                    severity: { type: "string", enum: ["alta", "media", "baixa"] },
+                    text: { type: "string" },
+                    explanation: { type: "string" },
+                    suggestion: { type: "string" },
+                    source: { type: "string" },
+                    sourceUrl: { type: "string" },
+                    sourceDate: { type: "string" },
                   },
+                  required: ["type", "severity", "text", "explanation", "suggestion"],
                 },
-                overallSuggestion: { type: "string", description: "Recomendação geral detalhada para melhorar o conteúdo" },
-                sources: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      name: { type: "string", description: "Nome do veículo" },
-                      url: { type: "string", description: "URL da notícia" },
-                      title: { type: "string", description: "Título da notícia" },
-                      date: { type: "string", description: "Data de publicação" },
-                    },
-                    required: ["name", "title"],
-                    additionalProperties: false,
-                  },
-                  description: "Lista de TODAS as fontes reais consultadas",
-                },
-                verificationSummary: { type: "string", description: "Resumo de 2-3 frases sobre o que foi possível verificar e o que não foi" },
               },
-              required: ["score", "verdict", "alerts", "overallSuggestion", "sources", "verificationSummary"],
-              additionalProperties: false,
+              overallSuggestion: { type: "string" },
+              sources: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string" },
+                    url: { type: "string" },
+                    title: { type: "string" },
+                    date: { type: "string" },
+                  },
+                  required: ["name", "title"],
+                },
+              },
+              verificationSummary: { type: "string" },
             },
+            required: ["score", "verdict", "alerts", "overallSuggestion", "sources", "verificationSummary"],
           },
-        }],
-        tool_choice: { type: "function", function: { name: "fact_check_result" } },
-      }),
+        },
+      }],
+      tool_choice: { type: "function", function: { name: "fact_check_result" } },
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (!factCheckResult.ok) {
+      if (factCheckResult.status === 429) {
         return new Response(JSON.stringify({ error: 'Limite de requisições excedido.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos de IA esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      const t = await response.text();
-      console.error("AI error:", response.status, t);
+      console.error("Gemini error:", factCheckResult.status);
       return new Response(JSON.stringify({ error: 'Erro na IA' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let result: any = { score: 0, verdict: 'critico', alerts: [], overallSuggestion: '', sources: [], verificationSummary: '' };
 
-    if (toolCall?.function?.arguments) {
-      result = JSON.parse(toolCall.function.arguments);
+    if (factCheckResult.toolCall) {
+      result = factCheckResult.toolCall.args;
     }
 
     // ---- Step 4: Auto-verification pass — validate the AI's own response ----
