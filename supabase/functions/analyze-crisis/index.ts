@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { CREDIT_COSTS } from "../_shared/creditCosts.ts";
 import { deductUserCredits, recordUserCreditUsage } from "../_shared/userCredits.ts";
 import { fetchNewsArticles } from "../_shared/newsapi.ts";
+import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
