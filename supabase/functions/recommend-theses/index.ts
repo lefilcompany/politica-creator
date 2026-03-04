@@ -97,19 +97,32 @@ RETORNE APENAS O JSON.`;
     }
 
     const data = await response.json();
+    console.log("📝 [THESES] Gemini response status:", data.candidates?.[0]?.finishReason);
     responseContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    if (!responseContent) {
+      console.error("❌ [THESES] Empty response from Gemini. Full response:", JSON.stringify(data).substring(0, 500));
+      throw new Error('Empty AI response');
+    }
 
     // Parse JSON from response - strip markdown code blocks if present
     let cleanedResponse = responseContent.trim();
-    cleanedResponse = cleanedResponse.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+    // Remove all markdown code block wrappers
+    cleanedResponse = cleanedResponse.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
     
     const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("❌ [THESES] Raw response:", responseContent);
+      console.error("❌ [THESES] Raw response:", responseContent.substring(0, 500));
       throw new Error('Invalid AI response format');
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error("❌ [THESES] JSON parse error:", parseErr.message, "Content:", jsonMatch[0].substring(0, 300));
+      throw new Error('Failed to parse AI response JSON');
+    }
 
     console.log("✅ [THESES] Recommended", parsed.theses?.length, "theses");
 
