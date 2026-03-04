@@ -129,116 +129,103 @@ Cada um com:
 
     console.log('🎯 Generating campaign package...');
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Gere o pacote completo de campanha. Responda APENAS com JSON válido no formato:
+    const { callGemini, toOpenAIFormat } = await import('../_shared/geminiClient.ts');
+
+    const geminiResult = await callGemini({
+      model: 'google/gemini-2.5-pro',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Gere o pacote completo de campanha. Responda APENAS com JSON válido no formato:
 {
   "micro_narrativas": [...],
   "propostas_acao": [...],
   "discursos": [...],
   "anuncios": [...]
 }` },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "generate_campaign_package",
-            description: "Gera um pacote completo de campanha política",
-            parameters: {
-              type: "object",
-              properties: {
-                micro_narrativas: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      titulo: { type: "string" },
-                      texto: { type: "string" },
-                      angulo: { type: "string" },
-                      briefing_visual: { type: "string" },
-                      hashtags: { type: "array", items: { type: "string" } }
-                    },
-                    required: ["titulo", "texto", "angulo", "briefing_visual", "hashtags"]
-                  }
-                },
-                propostas_acao: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      titulo: { type: "string" },
-                      descricao: { type: "string" },
-                      como_executar: { type: "string" },
-                      custo_politico: { type: "string" },
-                      dependencias: { type: "string" },
-                      impacto_esperado: { type: "string" }
-                    },
-                    required: ["titulo", "descricao", "como_executar", "custo_politico", "dependencias", "impacto_esperado"]
-                  }
-                },
-                discursos: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      tipo_evento: { type: "string" },
-                      titulo: { type: "string" },
-                      texto_completo: { type: "string" },
-                      notas_orador: { type: "string" }
-                    },
-                    required: ["tipo_evento", "titulo", "texto_completo", "notas_orador"]
-                  }
-                },
-                anuncios: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      formato: { type: "string" },
-                      titulo: { type: "string" },
-                      roteiro: { type: "string" },
-                      cta: { type: "string" },
-                      briefing_visual: { type: "string" }
-                    },
-                    required: ["formato", "titulo", "roteiro", "cta", "briefing_visual"]
-                  }
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "generate_campaign_package",
+          description: "Gera um pacote completo de campanha política",
+          parameters: {
+            type: "object",
+            properties: {
+              micro_narrativas: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    titulo: { type: "string" },
+                    texto: { type: "string" },
+                    angulo: { type: "string" },
+                    briefing_visual: { type: "string" },
+                    hashtags: { type: "array", items: { type: "string" } }
+                  },
+                  required: ["titulo", "texto", "angulo", "briefing_visual", "hashtags"]
                 }
               },
-              required: ["micro_narrativas", "propostas_acao", "discursos", "anuncios"]
-            }
+              propostas_acao: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    titulo: { type: "string" },
+                    descricao: { type: "string" },
+                    como_executar: { type: "string" },
+                    custo_politico: { type: "string" },
+                    dependencias: { type: "string" },
+                    impacto_esperado: { type: "string" }
+                  },
+                  required: ["titulo", "descricao", "como_executar", "custo_politico", "dependencias", "impacto_esperado"]
+                }
+              },
+              discursos: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    tipo_evento: { type: "string" },
+                    titulo: { type: "string" },
+                    texto_completo: { type: "string" },
+                    notas_orador: { type: "string" }
+                  },
+                  required: ["tipo_evento", "titulo", "texto_completo", "notas_orador"]
+                }
+              },
+              anuncios: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    formato: { type: "string" },
+                    titulo: { type: "string" },
+                    roteiro: { type: "string" },
+                    cta: { type: "string" },
+                    briefing_visual: { type: "string" }
+                  },
+                  required: ["formato", "titulo", "roteiro", "cta", "briefing_visual"]
+                }
+              }
+            },
+            required: ["micro_narrativas", "propostas_acao", "discursos", "anuncios"]
           }
-        }],
-        tool_choice: { type: "function", function: { name: "generate_campaign_package" } },
-      }),
+        }
+      }],
+      tool_choice: { type: "function", function: { name: "generate_campaign_package" } },
     });
 
-    if (!response.ok) {
-      const status = response.status;
-      const errorText = await response.text();
-      console.error(`AI gateway error: ${status}`, errorText);
-      
-      if (status === 429) {
+    if (!geminiResult.ok) {
+      console.error(`Gemini error: ${geminiResult.status}`);
+      if (geminiResult.status === 429) {
         return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }), {
           status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos da plataforma esgotados.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error(`AI gateway error: ${status}`);
+      throw new Error(`Gemini API error: ${geminiResult.status}`);
     }
 
-    const aiData = await response.json();
+    const aiData = toOpenAIFormat(geminiResult);
     
     // Extract from tool call response
     let campaignPackage;
