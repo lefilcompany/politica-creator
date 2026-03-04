@@ -11,8 +11,8 @@ const MODEL_MAP: Record<string, string> = {
   'google/gemini-2.5-flash': 'gemini-2.5-flash',
   'google/gemini-2.5-flash-lite': 'gemini-2.5-flash-lite-preview-06-17',
   'google/gemini-3-flash-preview': 'gemini-2.5-flash',
-  'google/gemini-3-pro-image-preview': 'gemini-2.0-flash-exp',
-  'google/gemini-2.5-flash-image': 'gemini-2.0-flash-exp',
+  'google/gemini-3-pro-image-preview': 'gemini-3-pro-image-preview',
+  'google/gemini-2.5-flash-image': 'gemini-2.5-flash-image',
 };
 
 function resolveModel(model: string): string {
