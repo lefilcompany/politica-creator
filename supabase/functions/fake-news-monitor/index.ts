@@ -4,6 +4,7 @@ import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 import { fetchNewsMultiQuery, formatArticlesForPrompt } from '../_shared/newsapi.ts';
+import { callGemini } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,8 +54,8 @@ serve(async (req) => {
     const politicalProfile = await fetchPoliticalProfile(supabase, user.id);
     const politicalContext = buildPoliticalContext(politicalProfile);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
       return new Response(JSON.stringify({ error: 'AI not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -106,73 +107,49 @@ IMPORTANTE:
 - Se não houver notícias relevantes, retorne uma lista vazia com uma mensagem explicativa.
 - Gere entre 0 e ${Math.min(articles.length, 10)} resultados.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "user", content: prompt }],
-        tools: [{
-          type: "function",
-          function: {
-            name: "monitor_results",
-            description: "Return fake news monitoring results based on real news articles",
-            parameters: {
-              type: "object",
-              properties: {
-                results: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      title: { type: "string", description: "Título resumido da menção" },
-                      summary: { type: "string", description: "Resumo do conteúdo encontrado" },
-                      classification: { type: "string", enum: ["fake_news", "ataque_infundado", "critica_legitima", "alerta"] },
-                      urgency: { type: "string", enum: ["alta", "media", "baixa"] },
-                      suggestedAction: { type: "string", description: "Ação sugerida para lidar com essa menção" },
-                      source: { type: "string", description: "Nome do veículo / fonte da notícia" },
-                      publishedAt: { type: "string", description: "Data de publicação" },
-                      url: { type: "string", description: "URL da notícia original (se disponível)" },
-                    },
-                    required: ["title", "summary", "classification", "urgency", "suggestedAction"],
-                    additionalProperties: false,
+    const result = await callGemini(GEMINI_API_KEY, {
+      model: 'google/gemini-3-flash-preview',
+      messages: [{ role: "user", content: prompt }],
+      tools: [{
+        type: "function",
+        function: {
+          name: "monitor_results",
+          description: "Return fake news monitoring results based on real news articles",
+          parameters: {
+            type: "object",
+            properties: {
+              results: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string", description: "Título resumido da menção" },
+                    summary: { type: "string", description: "Resumo do conteúdo encontrado" },
+                    classification: { type: "string", enum: ["fake_news", "ataque_infundado", "critica_legitima", "alerta"] },
+                    urgency: { type: "string", enum: ["alta", "media", "baixa"] },
+                    suggestedAction: { type: "string", description: "Ação sugerida para lidar com essa menção" },
+                    source: { type: "string", description: "Nome do veículo / fonte da notícia" },
+                    publishedAt: { type: "string", description: "Data de publicação" },
+                    url: { type: "string", description: "URL da notícia original (se disponível)" },
                   },
+                  required: ["title", "summary", "classification", "urgency", "suggestedAction"],
                 },
-                summary: { type: "string", description: "Resumo geral do cenário encontrado nas últimas 24h" },
               },
-              required: ["results", "summary"],
-              additionalProperties: false,
+              summary: { type: "string", description: "Resumo geral do cenário encontrado nas últimas 24h" },
             },
+            required: ["results", "summary"],
           },
-        }],
-        tool_choice: { type: "function", function: { name: "monitor_results" } },
-      }),
+        },
+      }],
+      tool_choice: { type: "function", function: { name: "monitor_results" } },
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos de IA esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: 'Erro na IA' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let results = [];
     let monitorSummary = '';
     
-    if (toolCall?.function?.arguments) {
-      const parsed = JSON.parse(toolCall.function.arguments);
-      results = parsed.results || [];
-      monitorSummary = parsed.summary || '';
+    if (result.toolCall) {
+      results = result.toolCall.args.results || [];
+      monitorSummary = result.toolCall.args.summary || '';
     }
 
     // Deduct credits

@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { callGemini } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,8 +67,8 @@ serve(async (req) => {
       if (polParts.length) contextParts.push(`PERFIL POLÍTICO: ${polParts.join(' | ')}`);
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
     const systemPrompt = `Você é um Estrategista de Marketing Político Sênior e Diretor de Campanha experiente. 
 Sua missão é gerar um PACOTE COMPLETO DE CAMPANHA com base nos dados do formulário.
@@ -129,130 +130,97 @@ Cada um com:
 
     console.log('🎯 Generating campaign package...');
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Gere o pacote completo de campanha. Responda APENAS com JSON válido no formato:
+    const result = await callGemini(GEMINI_API_KEY, {
+      model: 'google/gemini-2.5-pro',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Gere o pacote completo de campanha. Responda APENAS com JSON válido no formato:
 {
   "micro_narrativas": [...],
   "propostas_acao": [...],
   "discursos": [...],
   "anuncios": [...]
 }` },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "generate_campaign_package",
-            description: "Gera um pacote completo de campanha política",
-            parameters: {
-              type: "object",
-              properties: {
-                micro_narrativas: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      titulo: { type: "string" },
-                      texto: { type: "string" },
-                      angulo: { type: "string" },
-                      briefing_visual: { type: "string" },
-                      hashtags: { type: "array", items: { type: "string" } }
-                    },
-                    required: ["titulo", "texto", "angulo", "briefing_visual", "hashtags"]
-                  }
-                },
-                propostas_acao: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      titulo: { type: "string" },
-                      descricao: { type: "string" },
-                      como_executar: { type: "string" },
-                      custo_politico: { type: "string" },
-                      dependencias: { type: "string" },
-                      impacto_esperado: { type: "string" }
-                    },
-                    required: ["titulo", "descricao", "como_executar", "custo_politico", "dependencias", "impacto_esperado"]
-                  }
-                },
-                discursos: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      tipo_evento: { type: "string" },
-                      titulo: { type: "string" },
-                      texto_completo: { type: "string" },
-                      notas_orador: { type: "string" }
-                    },
-                    required: ["tipo_evento", "titulo", "texto_completo", "notas_orador"]
-                  }
-                },
-                anuncios: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      formato: { type: "string" },
-                      titulo: { type: "string" },
-                      roteiro: { type: "string" },
-                      cta: { type: "string" },
-                      briefing_visual: { type: "string" }
-                    },
-                    required: ["formato", "titulo", "roteiro", "cta", "briefing_visual"]
-                  }
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "generate_campaign_package",
+          description: "Gera um pacote completo de campanha política",
+          parameters: {
+            type: "object",
+            properties: {
+              micro_narrativas: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    titulo: { type: "string" },
+                    texto: { type: "string" },
+                    angulo: { type: "string" },
+                    briefing_visual: { type: "string" },
+                    hashtags: { type: "array", items: { type: "string" } }
+                  },
+                  required: ["titulo", "texto", "angulo", "briefing_visual", "hashtags"]
                 }
               },
-              required: ["micro_narrativas", "propostas_acao", "discursos", "anuncios"]
-            }
+              propostas_acao: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    titulo: { type: "string" },
+                    descricao: { type: "string" },
+                    como_executar: { type: "string" },
+                    custo_politico: { type: "string" },
+                    dependencias: { type: "string" },
+                    impacto_esperado: { type: "string" }
+                  },
+                  required: ["titulo", "descricao", "como_executar", "custo_politico", "dependencias", "impacto_esperado"]
+                }
+              },
+              discursos: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    tipo_evento: { type: "string" },
+                    titulo: { type: "string" },
+                    texto_completo: { type: "string" },
+                    notas_orador: { type: "string" }
+                  },
+                  required: ["tipo_evento", "titulo", "texto_completo", "notas_orador"]
+                }
+              },
+              anuncios: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    formato: { type: "string" },
+                    titulo: { type: "string" },
+                    roteiro: { type: "string" },
+                    cta: { type: "string" },
+                    briefing_visual: { type: "string" }
+                  },
+                  required: ["formato", "titulo", "roteiro", "cta", "briefing_visual"]
+                }
+              }
+            },
+            required: ["micro_narrativas", "propostas_acao", "discursos", "anuncios"]
           }
-        }],
-        tool_choice: { type: "function", function: { name: "generate_campaign_package" } },
-      }),
+        }
+      }],
+      tool_choice: { type: "function", function: { name: "generate_campaign_package" } },
     });
 
-    if (!response.ok) {
-      const status = response.status;
-      const errorText = await response.text();
-      console.error(`AI gateway error: ${status}`, errorText);
-      
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos da plataforma esgotados.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error(`AI gateway error: ${status}`);
-    }
-
-    const aiData = await response.json();
-    
-    // Extract from tool call response
     let campaignPackage;
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      campaignPackage = typeof toolCall.function.arguments === 'string' 
-        ? JSON.parse(toolCall.function.arguments)
-        : toolCall.function.arguments;
+    if (result.toolCall) {
+      campaignPackage = result.toolCall.args;
     } else {
-      // Fallback: try parsing from content
-      const content = aiData.choices?.[0]?.message?.content || '';
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        campaignPackage = JSON.parse(jsonMatch[0]);
+      const parsed = extractJSON(result.content);
+      if (parsed) {
+        campaignPackage = parsed;
       } else {
         throw new Error('Failed to parse campaign package from AI response');
       }

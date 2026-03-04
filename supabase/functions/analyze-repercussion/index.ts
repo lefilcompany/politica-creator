@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -71,8 +72,8 @@ serve(async (req) => {
       candidateContext.push(`Identidade: "${brandData.name}" | Valores: ${brandData.values || 'N/A'} | Promessa: ${brandData.promise || 'N/A'}`);
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
     const systemPrompt = `Você é um analista de comunicação política sênior especializado em repercussão de conteúdo digital.
 
@@ -129,130 +130,89 @@ Para cada dimensão com score ≤ 3, forneça UMA sugestão concreta e acionáve
 
     console.log('🔍 Analyzing repercussion...');
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Analise o seguinte conteúdo político:\n\n---\n${content}\n---` },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "analyze_repercussion",
-            description: "Analisa a probabilidade de repercussão com substância de um conteúdo político",
-            parameters: {
-              type: "object",
-              properties: {
-                dimensoes: {
-                  type: "object",
-                  properties: {
-                    substancia_publica: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    conexao_local: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    novidade_legitima: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    polarizacao_risco: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    },
-                    aderencia_identidade: {
-                      type: "object",
-                      properties: {
-                        score: { type: "number", minimum: 0, maximum: 5 },
-                        justificativa: { type: "string" }
-                      },
-                      required: ["score", "justificativa"]
-                    }
-                  },
-                  required: ["substancia_publica", "conexao_local", "novidade_legitima", "polarizacao_risco", "aderencia_identidade"]
-                },
-                classificacao: {
-                  type: "string",
-                  enum: ["repercussao_positiva", "risco_negativo", "ruido_efemero"]
-                },
-                resumo: {
-                  type: "string",
-                  description: "Resumo executivo de 2-3 frases sobre o potencial de repercussão"
-                },
-                sugestoes: {
-                  type: "array",
-                  items: {
+    const result = await callGemini(GEMINI_API_KEY, {
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Analise o seguinte conteúdo político:\n\n---\n${content}\n---` },
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "analyze_repercussion",
+          description: "Analisa a probabilidade de repercussão com substância de um conteúdo político",
+          parameters: {
+            type: "object",
+            properties: {
+              dimensoes: {
+                type: "object",
+                properties: {
+                  substancia_publica: {
                     type: "object",
                     properties: {
-                      dimensao: { type: "string" },
-                      sugestao: { type: "string" }
+                      score: { type: "number" },
+                      justificativa: { type: "string" }
                     },
-                    required: ["dimensao", "sugestao"]
+                    required: ["score", "justificativa"]
+                  },
+                  conexao_local: {
+                    type: "object",
+                    properties: {
+                      score: { type: "number" },
+                      justificativa: { type: "string" }
+                    },
+                    required: ["score", "justificativa"]
+                  },
+                  clareza_propositiva: {
+                    type: "object",
+                    properties: {
+                      score: { type: "number" },
+                      justificativa: { type: "string" }
+                    },
+                    required: ["score", "justificativa"]
+                  },
+                  potencial_deliberativo: {
+                    type: "object",
+                    properties: {
+                      score: { type: "number" },
+                      justificativa: { type: "string" }
+                    },
+                    required: ["score", "justificativa"]
+                  },
+                  autenticidade: {
+                    type: "object",
+                    properties: {
+                      score: { type: "number" },
+                      justificativa: { type: "string" }
+                    },
+                    required: ["score", "justificativa"]
                   }
-                }
+                },
+                required: ["substancia_publica", "conexao_local", "clareza_propositiva", "potencial_deliberativo", "autenticidade"]
               },
-              required: ["dimensoes", "classificacao", "resumo", "sugestoes"]
-            }
+              score_geral: { type: "number" },
+              classificacao: { type: "string" },
+              analise_geral: { type: "string" },
+              pontos_fortes: { type: "array", items: { type: "string" } },
+              pontos_fracos: { type: "array", items: { type: "string" } },
+              sugestoes_melhoria: { type: "array", items: { type: "string" } },
+              risco_crise: { type: "string" },
+              potencial_viral: { type: "string" }
+            },
+            required: ["dimensoes", "score_geral", "classificacao", "analise_geral", "pontos_fortes", "pontos_fracos", "sugestoes_melhoria", "risco_crise", "potencial_viral"]
           }
-        }],
-        tool_choice: { type: "function", function: { name: "analyze_repercussion" } },
-      }),
+        }
+      }],
+      tool_choice: { type: "function", function: { name: "analyze_repercussion" } },
     });
 
-    if (!response.ok) {
-      const status = response.status;
-      const errorText = await response.text();
-      console.error(`AI gateway error: ${status}`, errorText);
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos da plataforma esgotados.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error(`AI gateway error: ${status}`);
-    }
-
-    const aiData = await response.json();
-
     let analysis;
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      analysis = typeof toolCall.function.arguments === 'string'
-        ? JSON.parse(toolCall.function.arguments)
-        : toolCall.function.arguments;
+    if (result.toolCall) {
+      analysis = result.toolCall.args;
     } else {
-      const content2 = aiData.choices?.[0]?.message?.content || '';
-      const jsonMatch = content2.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0]);
+      const parsed = extractJSON(result.content);
+      if (parsed) {
+        analysis = parsed;
       } else {
         throw new Error('Failed to parse analysis from AI response');
       }
