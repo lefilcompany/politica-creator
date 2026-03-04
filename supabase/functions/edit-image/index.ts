@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { callGemini } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -258,19 +259,19 @@ serve(async (req) => {
     console.log('   - Aspect Ratio:', aspectRatio || 'não especificado');
     console.log('   - Ajuste solicitado:', reviewPrompt.substring(0, 100) + '...');
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      console.error('❌ LOVABLE_API_KEY não configurada');
+    if (!GEMINI_API_KEY) {
+      console.error('❌ GEMINI_API_KEY não configurada');
       return new Response(
         JSON.stringify({ error: 'API key não configurada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('🤖 Chamando Lovable AI Gateway para edição de imagem...');
+    console.log('🤖 Chamando Gemini API para edição de imagem...');
 
-    // Preparar imagem como data URL para o gateway
+    // Preparar imagem como data URL para o Gemini
     let imageDataUrl: string;
     
     if (imageUrl.startsWith('data:')) {
@@ -299,56 +300,29 @@ serve(async (req) => {
       console.log('✅ Imagem convertida para base64, tipo:', contentType);
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: detailedPrompt },
-            { type: 'image_url', image_url: { url: imageDataUrl } }
-          ]
-        }],
-        modalities: ['image', 'text']
-      })
+    const result = await callGemini(GEMINI_API_KEY, {
+      model: 'google/gemini-2.5-flash-image',
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: detailedPrompt },
+          { type: 'image_url', image_url: { url: imageDataUrl } }
+        ]
+      }],
+      modalities: ['image'],
     });
 
-    console.log('📡 Status da resposta Gateway:', response.status);
+    console.log('✅ Resposta da Gemini API recebida');
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Erro no Gateway:', errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`API error: ${response.status} - ${errorText}`);
-    }
-
-    const aiData = await response.json();
-    console.log('✅ Resposta da AI recebida');
-
-    // Extrair imagem da resposta do gateway (message.images[])
-    const message = aiData.choices?.[0]?.message;
     let editedImageDataUrl: string | null = null;
 
-    if (message?.images?.length > 0) {
-      editedImageDataUrl = message.images[0].image_url?.url;
-      console.log('✅ Image extracted from message.images[]');
+    if (result.images.length > 0) {
+      editedImageDataUrl = result.images[0].image_url.url;
+      console.log('✅ Image extracted from Gemini response');
     }
     
     if (!editedImageDataUrl) {
       console.error('❌ Imagem editada não foi retornada pela API');
-      console.error('📊 Keys:', JSON.stringify(Object.keys(aiData), null, 2));
       throw new Error('A IA não conseguiu processar sua solicitação. Tente reformular o pedido de edição de forma mais específica.');
     }
 

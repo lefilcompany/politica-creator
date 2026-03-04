@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -166,9 +167,9 @@ async function enrichPromptWithFlash(
   politicalProfile: any,
   params?: { textContent?: string; headline?: string; promptContext?: string }
 ): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) {
-    console.warn('LOVABLE_API_KEY not found, skipping enrichment');
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  if (!GEMINI_API_KEY) {
+    console.warn('GEMINI_API_KEY not found, skipping enrichment');
     return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
   }
 
@@ -287,47 +288,26 @@ REGRAS:
 
   try {
     console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Político...');
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Transforme esta Descrição Visual Bruta num Briefing Visual cinematográfico completo:\n\n"${rawDescription}"\n\n${params?.promptContext ? `CONTEXTO CONSOLIDADO DO FORMULÁRIO:\n${params.promptContext}` : ''}` },
-        ],
-      }),
+    const result = await callGemini(GEMINI_API_KEY, {
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Transforme esta Descrição Visual Bruta num Briefing Visual cinematográfico completo:\n\n"${rawDescription}"\n\n${params?.promptContext ? `CONTEXTO CONSOLIDADO DO FORMULÁRIO:\n${params.promptContext}` : ''}` },
+      ],
     });
 
-    if (!response.ok) {
-      const status = response.status;
-      console.error(`Flash enrichment failed with status ${status}`);
-      if (status === 429) console.warn('Rate limited on enrichment, using original');
-      if (status === 402) console.warn('Payment required on enrichment, using original');
-      return { enrichedDescription: rawDescription, briefingVisual: '', headline: '', subtexto: '' };
-    }
-
-    const data = await response.json();
-    const enriched = data.choices?.[0]?.message?.content?.trim();
+    const enriched = result.content?.trim();
     if (enriched && enriched.length > 20) {
       console.log(`✅ LLM Refiner output: ${enriched.length} chars`);
       
-      try {
-        const jsonMatch = enriched.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          return {
-            enrichedDescription: parsed.briefing_visual || rawDescription,
-            briefingVisual: parsed.briefing_visual || '',
-            headline: parsed.headline || '',
-            subtexto: parsed.subtexto || '',
-          };
-        }
-      } catch (parseErr) {
-        console.warn('Could not parse enrichment as JSON, using raw text');
+      const parsed = extractJSON(enriched);
+      if (parsed) {
+        return {
+          enrichedDescription: parsed.briefing_visual || rawDescription,
+          briefingVisual: parsed.briefing_visual || '',
+          headline: parsed.headline || '',
+          subtexto: parsed.subtexto || '',
+        };
       }
       
       return { enrichedDescription: enriched, briefingVisual: '', headline: '', subtexto: '' };
@@ -765,9 +745,9 @@ serve(async (req) => {
     // =====================================
     // STEP 3: GENERATE IMAGE WITH GEMINI 3 PRO (Nano Banana Pro)
     // =====================================
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
     // Build message content with images
@@ -810,83 +790,20 @@ serve(async (req) => {
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          console.log(`🖼️ Image ${imageIndex} generation attempt ${attempt}/${MAX_RETRIES} via Nano Banana Pro...`);
+          console.log(`🖼️ Image ${imageIndex} generation attempt ${attempt}/${MAX_RETRIES} via Gemini API...`);
 
-          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'google/gemini-3-pro-image-preview',
-              messages: [{ role: 'user', content: messageContent }],
-              modalities: ['image', 'text'],
-            }),
+          const result = await callGemini(GEMINI_API_KEY, {
+            model: 'google/gemini-3-pro-image-preview',
+            messages: [{ role: 'user', content: messageContent }],
+            modalities: ['image'],
           });
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`Gateway error (image ${imageIndex}, attempt ${attempt}):`, response.status, errorText);
-            
-            if (response.status === 429 || response.status === 402) {
-              lastError = new Error(`Gateway error: ${response.status}`);
-              break; // Don't retry rate limits
-            }
-            
-            lastError = new Error(`Gateway error: ${response.status}`);
-            if (attempt < MAX_RETRIES) {
-              await new Promise(resolve => setTimeout(resolve, 2000));
-              continue;
-            }
-            break;
+          if (result.content) {
+            description = result.content;
           }
 
-          const data = await response.json();
-
-          // Extract image - check the `images` field first (Lovable AI Gateway format)
-          const message = data.choices?.[0]?.message;
-          if (message?.images?.length > 0) {
-            const img = message.images[0];
-            if (img?.image_url?.url) {
-              imageUrl = img.image_url.url;
-            }
-            if (message.content && typeof message.content === 'string') {
-              description = message.content;
-            }
-          }
-
-          // Fallback: check content array format
-          if (!imageUrl && message?.content) {
-            const content = message.content;
-            if (Array.isArray(content)) {
-              for (const part of content) {
-                if (part.type === 'image_url' && part.image_url?.url) {
-                  imageUrl = part.image_url.url;
-                  break;
-                }
-                if (part.type === 'text' && part.text) {
-                  description = part.text;
-                }
-              }
-            } else if (typeof content === 'string') {
-              description = content;
-            }
-          }
-
-          // Fallback: inline_data style (Gemini native format)
-          if (!imageUrl && data.candidates?.[0]?.content?.parts) {
-            const parts = data.candidates[0].content.parts;
-            for (const part of parts) {
-              if (part.inlineData?.data) {
-                const mimeType = part.inlineData.mimeType || 'image/png';
-                imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
-                break;
-              }
-              if (part.text) {
-                description = part.text;
-              }
-            }
+          if (result.images.length > 0) {
+            imageUrl = result.images[0].image_url.url;
           }
 
           if (imageUrl) break;
