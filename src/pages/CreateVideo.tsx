@@ -39,7 +39,7 @@ interface FormData {
   videoAspectRatio: '16:9' | '9:16';
   videoResolution: '720p' | '1080p';
   videoDuration: number;
-  videoModel: 'veo';
+  videoModel: 'sora';
 }
 
 const toneOptions = ["inspirador", "motivacional", "profissional", "casual", "elegante", "moderno", "tradicional", "divertido", "sério"];
@@ -63,7 +63,7 @@ export default function CreateVideo() {
     videoAspectRatio: '9:16',
     videoResolution: '1080p',
     videoDuration: 5,
-    videoModel: 'veo',
+    videoModel: 'sora',
   });
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -226,7 +226,10 @@ export default function CreateVideo() {
 
       let preserveImages: string[] = [];
       if (referenceImage) {
-        preserveImages = [referenceImage];
+        // Sora 2 exige que a imagem tenha exatamente a resolução do vídeo
+        const [w, h] = formData.videoAspectRatio === '9:16' ? [720, 1280] : [1280, 720];
+        const resized = await resizeImageToDataUrl(referenceImage, w, h);
+        preserveImages = [resized];
       }
 
       const { data: responseData, error: invokeError } = await supabase.functions.invoke('generate-video', {
@@ -535,10 +538,10 @@ export default function CreateVideo() {
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-foreground">Modelo de IA</Label>
                   <div className="h-10 rounded-lg border-2 border-border/50 bg-background/50 px-3 flex items-center">
-                    <span className="text-sm">Google Veo 3</span>
+                    <span className="text-sm">OpenAI Sora 2</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Veo 3: vídeos cinematográficos de alta qualidade com áudio
+                    Sora 2: vídeos com áudio sincronizado e imagem de referência
                   </p>
                 </div>
                 <div className="space-y-1.5">
