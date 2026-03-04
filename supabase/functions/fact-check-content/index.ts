@@ -257,84 +257,68 @@ Resumo: ${result.verificationSummary || ''}
 Retorne a versão CORRIGIDA.`;
 
     try {
-      const validationResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [{ role: "user", content: validationPrompt }],
-          tools: [{
-            type: "function",
-            function: {
-              name: "validated_fact_check",
-              description: "Return the validated and corrected fact-check results",
-              parameters: {
-                type: "object",
-                properties: {
-                  score: { type: "number" },
-                  verdict: { type: "string", enum: ["excelente", "bom", "atencao", "critico"] },
-                  alerts: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        type: { type: "string", enum: ["imprecisao", "sem_fonte", "exagero", "risco_imagem", "desinformacao", "confirmado"] },
-                        severity: { type: "string", enum: ["alta", "media", "baixa"] },
-                        text: { type: "string" },
-                        explanation: { type: "string" },
-                        suggestion: { type: "string" },
-                        source: { type: "string" },
-                        sourceUrl: { type: "string" },
-                        sourceDate: { type: "string" },
-                      },
-                      required: ["type", "severity", "text", "explanation", "suggestion"],
-                      additionalProperties: false,
+      const validationResult = await callGemini({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [{ role: "user", content: validationPrompt }],
+        tools: [{
+          type: "function",
+          function: {
+            name: "validated_fact_check",
+            description: "Return the validated and corrected fact-check results",
+            parameters: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                verdict: { type: "string", enum: ["excelente", "bom", "atencao", "critico"] },
+                alerts: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      type: { type: "string", enum: ["imprecisao", "sem_fonte", "exagero", "risco_imagem", "desinformacao", "confirmado"] },
+                      severity: { type: "string", enum: ["alta", "media", "baixa"] },
+                      text: { type: "string" },
+                      explanation: { type: "string" },
+                      suggestion: { type: "string" },
+                      source: { type: "string" },
+                      sourceUrl: { type: "string" },
+                      sourceDate: { type: "string" },
                     },
+                    required: ["type", "severity", "text", "explanation", "suggestion"],
                   },
-                  overallSuggestion: { type: "string" },
-                  sources: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: { type: "string" },
-                        url: { type: "string" },
-                        title: { type: "string" },
-                        date: { type: "string" },
-                      },
-                      required: ["name", "title"],
-                      additionalProperties: false,
-                    },
-                  },
-                  verificationSummary: { type: "string" },
-                  corrections: { type: "string", description: "Resumo das correções feitas na auditoria" },
                 },
-                required: ["score", "verdict", "alerts", "overallSuggestion", "sources", "verificationSummary"],
-                additionalProperties: false,
+                overallSuggestion: { type: "string" },
+                sources: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      url: { type: "string" },
+                      title: { type: "string" },
+                      date: { type: "string" },
+                    },
+                    required: ["name", "title"],
+                  },
+                },
+                verificationSummary: { type: "string" },
+                corrections: { type: "string" },
               },
+              required: ["score", "verdict", "alerts", "overallSuggestion", "sources", "verificationSummary"],
             },
-          }],
-          tool_choice: { type: "function", function: { name: "validated_fact_check" } },
-        }),
+          },
+        }],
+        tool_choice: { type: "function", function: { name: "validated_fact_check" } },
       });
 
-      if (validationResponse.ok) {
-        const valData = await validationResponse.json();
-        const valToolCall = valData.choices?.[0]?.message?.tool_calls?.[0];
-        if (valToolCall?.function?.arguments) {
-          const validated = JSON.parse(valToolCall.function.arguments);
-          console.log('Validation corrections:', validated.corrections || 'none');
-          // Replace result with validated version (keep corrections info)
-          const corrections = validated.corrections;
-          delete validated.corrections;
-          result = { ...validated, auditApplied: true, auditCorrections: corrections || null };
-        }
+      if (validationResult.ok && validationResult.toolCall) {
+        const validated = validationResult.toolCall.args;
+        console.log('Validation corrections:', validated.corrections || 'none');
+        const corrections = validated.corrections;
+        delete validated.corrections;
+        result = { ...validated, auditApplied: true, auditCorrections: corrections || null };
       } else {
         console.warn('Validation pass failed, using original result');
-        await validationResponse.text();
       }
     } catch (valError) {
       console.warn('Validation pass error, using original result:', valError);
