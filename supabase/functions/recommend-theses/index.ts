@@ -81,14 +81,21 @@ RETORNE APENAS O JSON.`;
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.5, maxOutputTokens: 2000 },
+          generationConfig: { 
+            temperature: 0.5, 
+            maxOutputTokens: 2000,
+            responseMimeType: 'application/json',
+          },
         }),
       });
 
       if (!response.ok) {
         const errText = await response.text();
         console.error("❌ [THESES] Gemini error:", errText);
-        throw new Error(`Gemini API error: ${response.status}`);
+        // Return empty fallback instead of crashing
+        return new Response(JSON.stringify({ theses: [], fallback: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
       const data = await response.json();
@@ -97,13 +104,20 @@ RETORNE APENAS O JSON.`;
       throw new Error('No AI API key configured (GEMINI_API_KEY)');
     }
 
-    // Parse JSON from response
-    const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Invalid AI response format');
+    // Parse JSON from response - try direct parse first, then regex fallback
+    let parsed: any;
+    try {
+      parsed = JSON.parse(responseContent);
+    } catch {
+      const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('❌ [THESES] Could not parse response:', responseContent.substring(0, 500));
+        return new Response(JSON.stringify({ theses: [], fallback: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      parsed = JSON.parse(jsonMatch[0]);
     }
-
-    const parsed = JSON.parse(jsonMatch[0]);
 
     console.log("✅ [THESES] Recommended", parsed.theses?.length, "theses");
 
