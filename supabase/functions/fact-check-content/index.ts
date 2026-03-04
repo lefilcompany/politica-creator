@@ -58,39 +58,28 @@ serve(async (req) => {
     const politicalProfile = await fetchPoliticalProfile(supabase, user.id);
     const politicalContext = buildPoliticalContext(politicalProfile);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'AI not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    const { callGemini } = await import('../_shared/geminiClient.ts');
 
     // ---- Step 1: Use AI to extract key claims and search queries ----
-    const extractionResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [{
-          role: "user",
-          content: `Extraia do texto abaixo as principais AFIRMAÇÕES FACTUAIS que podem ser verificadas, e gere de 3 a 5 consultas de busca curtas (2-4 palavras cada) em português para pesquisar essas afirmações em notícias reais. Foque em nomes, datas, números, eventos, leis e dados citados.
+    const extractionResult = await callGemini({
+      model: "google/gemini-2.5-flash-lite",
+      messages: [{
+        role: "user",
+        content: `Extraia do texto abaixo as principais AFIRMAÇÕES FACTUAIS que podem ser verificadas, e gere de 3 a 5 consultas de busca curtas (2-4 palavras cada) em português para pesquisar essas afirmações em notícias reais. Foque em nomes, datas, números, eventos, leis e dados citados.
 
 Texto: "${content.trim().substring(0, 2000)}"
 
 Responda APENAS com JSON:
 {"claims": ["afirmação 1", "afirmação 2"], "searchQueries": ["consulta 1", "consulta 2", "consulta 3"]}`
-        }],
-        temperature: 0.1,
-      }),
+      }],
+      temperature: 0.1,
     });
 
     let searchQueries: string[] = [];
     let extractedClaims: string[] = [];
 
-    if (extractionResponse.ok) {
-      const extData = await extractionResponse.json();
-      const extContent = extData.choices?.[0]?.message?.content || '';
+    if (extractionResult.ok) {
+      const extContent = extractionResult.content || '';
       try {
         const jsonMatch = extContent.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
