@@ -299,30 +299,33 @@ serve(async (req) => {
       console.log('✅ Imagem convertida para base64, tipo:', contentType);
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+
+    const geminiParts: any[] = [{ text: detailedPrompt }];
+    if (imageDataUrl.startsWith('data:')) {
+      const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        geminiParts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+      }
+    }
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: detailedPrompt },
-            { type: 'image_url', image_url: { url: imageDataUrl } }
-          ]
-        }],
-        modalities: ['image', 'text']
-      })
+        contents: [{ parts: geminiParts }],
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE'],
+        },
+      }),
     });
 
-    console.log('📡 Status da resposta Gateway:', response.status);
+    console.log('📡 Status da resposta Gemini:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erro no Gateway:', errorText);
+      console.error('❌ Erro no Gemini:', errorText);
       
       if (response.status === 429) {
         return new Response(
