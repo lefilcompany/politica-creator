@@ -1,26 +1,22 @@
 
 
-## Correção: Sala de Crise - Erro de Boot
+# Trocar "linhas vermelhas" por "temas sensíveis"
 
-**Problema**: A edge function `analyze-crisis` falha ao iniciar porque importa funções com nomes errados dos módulos compartilhados.
+Renomear todas as ocorrências visíveis ao usuário e nos prompts internos de IA de "linhas vermelhas" para "temas sensíveis". O campo no banco (`red_lines`) permanece inalterado para evitar migração desnecessária.
 
-**Erros encontrados**:
-1. Importa `deductCredits` de `userCredits.ts` -- o nome correto e `deductUserCredits`
-2. Importa `searchNews` de `newsapi.ts` -- o nome correto e `fetchNewsArticles`
-3. A logica de deducao de creditos usa `deductCredits(supabase, profile.team_id, ...)` (API antiga baseada em teams) em vez de `deductUserCredits(supabase, user.id, ...)` (API atual baseada em usuario)
+## Arquivos a editar (8 arquivos, ~15 pontos de alteração)
 
-**Correcao no arquivo** `supabase/functions/analyze-crisis/index.ts`:
+### Frontend (UI visível)
+1. **`src/components/dashboard/DashboardProfileModal.tsx`** — linhas 343, 346: título e comentário do step
+2. **`src/components/dashboard/PoliticalProfileBanner.tsx`** — linha 269: label "Linhas vermelhas" → "Temas sensíveis"
 
-1. Corrigir imports:
-   - `deductCredits` para `deductUserCredits`
-   - `searchNews` para `fetchNewsArticles`
+### Backend (prompts de IA)
+3. **`supabase/functions/_shared/politicalProfile.ts`** — linha 73: `LINHAS VERMELHAS (RESTRIÇÕES ABSOLUTAS)` → `TEMAS SENSÍVEIS (RESTRIÇÕES ABSOLUTAS)` e texto descritivo
+4. **`supabase/functions/generate-text/index.ts`** — linha 151: "linhas vermelhas do candidato" → "temas sensíveis do candidato"
+5. **`supabase/functions/generate-campaign/index.ts`** — linha 125: idem
+6. **`supabase/functions/fake-news-respond/index.ts`** — linha 85: idem
+7. **`supabase/functions/analyze-repercussion/index.ts`** — linha 69: `LINHAS VERMELHAS` → `TEMAS SENSÍVEIS`
 
-2. Atualizar logica de creditos:
-   - Buscar creditos do usuario via `profiles.credits` em vez de `teams.credits`
-   - Usar `deductUserCredits(supabase, user.id, amount)` para deduzir
-   - Atualizar `recordCreditUsage` com os campos corretos (`creditsBefore`, `creditsAfter`)
+### Documentação
+8. **`public/docs/IMAGE_PIPELINE_DOCUMENTATION.md`** — ~5 ocorrências: atualizar todas
 
-3. Atualizar chamada de busca de noticias:
-   - `searchNews(subject, 5)` para `fetchNewsArticles(subject, { pageSize: 5 })`
-
-**Resultado**: A edge function vai compilar e funcionar corretamente.
