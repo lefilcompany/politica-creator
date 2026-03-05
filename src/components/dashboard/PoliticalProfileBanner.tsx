@@ -266,7 +266,7 @@ export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) 
                         <div className="flex items-start gap-2.5">
                           <ShieldAlert className="h-4 w-4 text-destructive/70 mt-0.5 shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-xs text-muted-foreground">Linhas vermelhas</p>
+                            <p className="text-xs text-muted-foreground">Temas sensíveis</p>
                             <p className="text-sm text-foreground leading-relaxed mt-0.5">{profile.red_lines}</p>
                           </div>
                         </div>

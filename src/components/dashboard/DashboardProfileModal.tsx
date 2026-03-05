@@ -340,10 +340,10 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       <p className="text-xs text-muted-foreground">Mínimo de 10 caracteres</p>
     </div>,
 
-    // Step 2: Linhas vermelhas
+    // Step 2: Temas sensíveis
     <div key="s3" className="space-y-5">
       <div className="text-center space-y-1">
-        <h3 className="text-lg font-bold text-foreground">Linhas vermelhas</h3>
+        <h3 className="text-lg font-bold text-foreground">Temas sensíveis</h3>
         <p className="text-sm text-muted-foreground">O que a IA <strong>nunca</strong> deve dizer, prometer ou abordar?</p>
       </div>
       <Textarea

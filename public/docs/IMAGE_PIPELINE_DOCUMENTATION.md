@@ -591,9 +591,9 @@ COMPLIANCE ÉTICO E LEGAL (CONAR/CDC/TSE):
 ### CONTEXTO POLÍTICO COMPLETO
 [Gerado por buildPoliticalContext() — inclui base de conhecimento + perfil]
 
-### LINHAS VERMELHAS (RESTRIÇÕES ABSOLUTAS)
+### TEMAS SENSÍVEIS (RESTRIÇÕES ABSOLUTAS)
 ${red_lines}
-ATENÇÃO: As linhas vermelhas acima são PROIBIÇÕES. O conteúdo NUNCA deve
+ATENÇÃO: Os temas sensíveis acima são PROIBIÇÕES. O conteúdo NUNCA deve
 violar essas restrições.
 
 ### INFORMAÇÕES ADICIONAIS DO USUÁRIO
@@ -1181,10 +1181,10 @@ function buildPoliticalContext(profile: PoliticalProfile | null): string {
       parts.push(`\n# PERFIL POLÍTICO DO AUTOR\n${lines.join('\n')}\n`);
     }
 
-    // 3. LINHAS VERMELHAS (PROIBIÇÕES ABSOLUTAS)
+    // 3. TEMAS SENSÍVEIS (PROIBIÇÕES ABSOLUTAS)
     if (profile.red_lines) {
-      parts.push(`\n# LINHAS VERMELHAS (RESTRIÇÕES ABSOLUTAS)\n${profile.red_lines}\n
-ATENÇÃO: As linhas vermelhas acima são PROIBIÇÕES.
+      parts.push(`\n# TEMAS SENSÍVEIS (RESTRIÇÕES ABSOLUTAS)\n${profile.red_lines}\n
+ATENÇÃO: Os temas sensíveis acima são PROIBIÇÕES.
 O conteúdo NUNCA deve violar essas restrições.\n`);
     }
 
@@ -1363,7 +1363,7 @@ EDGE FUNCTION: generate-image (Backend)
     ├── DB: fetchBrandData + fetchThemeData + fetchPersonaData (paralelo)
     ├── Context: buildPoliticalContext(politicalProfile)
     │            └── Inclui base de conhecimento (32 Teses)
-    │            └── Inclui linhas vermelhas
+    │            └── Inclui temas sensíveis
     │
     ├── STEP 1: enrichPromptWithFlash()
     │   ├── Modelo: google/gemini-3-flash-preview

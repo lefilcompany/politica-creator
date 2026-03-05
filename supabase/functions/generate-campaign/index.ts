@@ -122,7 +122,7 @@ Cada um com:
 
 ## REGRAS:
 - Todo conteúdo em português brasileiro
-- Respeitar linhas vermelhas do perfil político
+- Respeitar temas sensíveis do perfil político
 - Adequar ao tom selecionado (${politicalTone})
 - Conteúdo factual, ético e alinhado com legislação eleitoral (TSE)
 - Nunca inventar dados ou estatísticas — use referências genéricas se não houver dados reais

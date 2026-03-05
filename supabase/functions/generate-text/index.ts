@@ -148,7 +148,7 @@ ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 150
 3. Cada texto deve ter entre 50 e 280 caracteres (ideal para redes sociais) a menos que o contexto peça algo maior
 4. ${toneInstruction}
 5. ${platformInstruction}
-6. Respeite TODAS as linhas vermelhas do candidato
+6. Respeite TODOS os temas sensíveis do candidato
 7. NÃO inclua hashtags nos textos (serão adicionadas separadamente)
 8. O texto deve soar AUTÊNTICO e HUMANO, nunca robótico
 9. Adapte a linguagem ao público-alvo e à região do candidato
