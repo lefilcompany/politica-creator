@@ -70,7 +70,7 @@ export function buildPoliticalContext(profile: PoliticalProfile | null): string 
     }
 
     if (profile.red_lines) {
-      parts.push(`\n# LINHAS VERMELHAS (RESTRIÇÕES ABSOLUTAS)\n${profile.red_lines}\n\nATENÇÃO: As linhas vermelhas acima são PROIBIÇÕES. O conteúdo NUNCA deve violar essas restrições.\n`);
+      parts.push(`\n# TEMAS SENSÍVEIS (RESTRIÇÕES ABSOLUTAS)\n${profile.red_lines}\n\nATENÇÃO: Os temas sensíveis acima são PROIBIÇÕES. O conteúdo NUNCA deve violar essas restrições.\n`);
     }
 
     if (lines.length > 0) {

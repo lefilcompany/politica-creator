@@ -82,7 +82,7 @@ Gere 3 versões de resposta para combater essa fake news / ataque:
 3. **Pontos-chave para Argumentação** — Lista de argumentos e dados que podem ser usados em entrevistas, debates ou conversas. Formato bullet points.
 
 IMPORTANTE:
-- Todas as respostas devem respeitar o tom de voz e as linhas vermelhas do perfil político
+- Todas as respostas devem respeitar o tom de voz e os temas sensíveis do perfil político
 - Nunca ataque pessoalmente, foque nos fatos
 - Promova transparência e autenticidade
 - Use linguagem que promova deliberação, não polarização`;

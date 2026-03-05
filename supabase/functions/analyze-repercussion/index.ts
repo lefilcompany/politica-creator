@@ -66,7 +66,7 @@ serve(async (req) => {
       if (pp.tone_of_voice) candidateContext.push(`Tom de voz habitual: ${pp.tone_of_voice}`);
       if (pp.focus_areas?.length) candidateContext.push(`Áreas de foco: ${pp.focus_areas.join(', ')}`);
       if (pp.biography) candidateContext.push(`Bio: ${pp.biography.substring(0, 500)}`);
-      if (pp.red_lines) candidateContext.push(`LINHAS VERMELHAS: ${pp.red_lines}`);
+      if (pp.red_lines) candidateContext.push(`TEMAS SENSÍVEIS: ${pp.red_lines}`);
     }
     if (brandData) {
       candidateContext.push(`Identidade: "${brandData.name}" | Valores: ${brandData.values || 'N/A'} | Promessa: ${brandData.promise || 'N/A'}`);
