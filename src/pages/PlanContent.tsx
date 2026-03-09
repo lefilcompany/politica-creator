@@ -95,11 +95,14 @@ const PlanContent = () => {
     loadData();
   }, [user]);
 
-  const filteredThemes = formData.brand ? themes.filter((t) => t.brand_id === formData.brand) : [];
+  // Auto-select single brand
+  useEffect(() => {
+    if (!isLoadingData && brands.length > 0 && !formData.brand) {
+      setFormData(prev => ({ ...prev, brand: brands[0].id }));
+    }
+  }, [isLoadingData, brands, formData.brand]);
 
-  const handleBrandChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, brand: value, theme: [] }));
-  };
+  const filteredThemes = formData.brand ? themes.filter((t) => t.brand_id === formData.brand) : [];
 
   const handleThemeSelect = (value: string) => {
     const theme = themes.find((t) => t.id === value);
@@ -331,32 +334,7 @@ const PlanContent = () => {
           <Card id="plan-filters" className="bg-card border-0 shadow-md rounded-2xl overflow-hidden">
             <CardContent className="p-5 sm:p-7">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-                <div id="plan-brand-field" className="space-y-1.5">
-                  <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                    Identidade <span className="text-destructive">*</span>
-                  </Label>
-                  {isLoadingData ? (
-                    <Skeleton className="h-10 w-full rounded-xl" />
-                  ) : (
-                    <>
-                      <NativeSelect
-                        value={formData.brand}
-                        onValueChange={handleBrandChange}
-                        options={brands.map((brand) => ({ value: brand.id, label: brand.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma identidade cadastrada" : "Nenhuma identidade selecionada"}
-                        disabled={brands.length === 0}
-                        triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors"
-                      />
-                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                         {brands.length === 0 
-                          ? <span>Cadastre uma identidade antes de criar o calendário</span>
-                          : <span>O calendário será baseado na identidade e diretrizes selecionadas</span>
-                        }
-                      </p>
-                    </>
-                  )}
-                </div>
+                {/* Brand auto-selected */}
 
                 <div id="plan-platform-field" className="space-y-1.5">
                   <Label htmlFor="platform" className="text-sm font-bold text-foreground">
@@ -401,8 +379,8 @@ const PlanContent = () => {
                         options={filteredThemes
                           .filter((t) => !formData.theme.includes(t.id))
                           .map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : formData.theme.length > 0 ? "Adicionar mais itens..." : "Adicionar item da agenda"}
-                        disabled={!formData.brand || filteredThemes.filter((t) => !formData.theme.includes(t.id)).length === 0}
+                        placeholder={formData.theme.length > 0 ? "Adicionar mais itens..." : "Adicionar item da agenda"}
+                        disabled={filteredThemes.filter((t) => !formData.theme.includes(t.id)).length === 0}
                         triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors disabled:opacity-50"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrands } from "@/hooks/useBrands";
@@ -70,20 +70,25 @@ export default function CreateCampaign() {
     additionalInfo: "",
   });
 
+  // Auto-select single brand
+
   const filteredThemes = themes.filter((t) => !formData.brand || t.brand_id === formData.brand);
   const filteredPersonas = personas.filter((p) => !formData.brand || p.brand_id === formData.brand);
 
-  const handleChange = (field: string, value: string) => {
-    if (field === "brand") {
-      setFormData((prev) => ({ ...prev, brand: value, theme: "", persona: "" }));
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: value }));
+  // Auto-select single brand
+  React.useEffect(() => {
+    if (!brandsQuery.isLoading && brands.length > 0 && !formData.brand) {
+      setFormData(prev => ({ ...prev, brand: brands[0].id }));
     }
+  }, [brandsQuery.isLoading, brands, formData.brand]);
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleGenerate = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
-    if (!formData.brand) return toast.error("Selecione uma Identidade.");
+    if (!formData.brand) return toast.error("Cadastre uma Identidade primeiro.");
     if (!formData.description.trim()) return toast.error("Descreva o contexto da campanha.");
 
     const credits = user.credits || 0;
@@ -198,18 +203,7 @@ export default function CreateCampaign() {
       {/* Form */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* Identidade */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Identidade *</Label>
-            {isLoading ? <Skeleton className="h-10 w-full" /> : (
-              <NativeSelect
-                options={brandOptions}
-                placeholder="Selecione..."
-                value={formData.brand}
-                onValueChange={(v) => handleChange("brand", v)}
-              />
-            )}
-          </div>
+          {/* Brand auto-selected */}
 
           {/* Agenda + Audiência */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -220,7 +214,7 @@ export default function CreateCampaign() {
                 placeholder="Opcional"
                 value={formData.theme}
                 onValueChange={(v) => handleChange("theme", v)}
-                disabled={!formData.brand}
+                disabled={false}
               />
             </div>
             <div className="space-y-2">
@@ -230,7 +224,7 @@ export default function CreateCampaign() {
                 placeholder="Opcional"
                 value={formData.persona}
                 onValueChange={(v) => handleChange("persona", v)}
-                disabled={!formData.brand}
+                disabled={false}
               />
             </div>
           </div>

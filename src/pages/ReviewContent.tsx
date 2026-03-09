@@ -111,6 +111,13 @@ const ReviewContent = () => {
     setTheme("");
   };
 
+  // Auto-select single brand
+  useEffect(() => {
+    if (!isLoadingBrands && brands.length > 0 && !brand) {
+      setBrand(brands[0].id);
+    }
+  }, [isLoadingBrands, brands, brand]);
+
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -135,7 +142,7 @@ const ReviewContent = () => {
 
   const handleSubmit = async () => {
     if (!user) return;
-    if (!brand) return setError("Por favor, selecione uma marca");
+    if (!brand) return setError("Cadastre uma identidade primeiro");
 
     if ((user.credits || 0) <= 0) {
       return toast.error("Seus créditos para revisões de conteúdo acabaram.");
@@ -456,22 +463,7 @@ const ReviewContent = () => {
                 </CardHeader>
                 <CardContent className="p-6 pt-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div id="review-brand-field" className="space-y-3">
-                      <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
-                        Marca <span className="text-destructive">*</span>
-                      </Label>
-                      {isLoadingData ? (
-                        <Skeleton className="h-11 w-full rounded-xl" />
-                      ) : (
-                        <NativeSelect
-                          value={brand}
-                          onValueChange={handleBrandChange}
-                          options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                          placeholder="Selecione a marca"
-                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
-                        />
-                      )}
-                    </div>
+                    {/* Brand auto-selected */}
                     <div id="review-theme-field" className="space-y-3">
                       <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
                         Tema Estratégico (Opcional)
@@ -483,8 +475,8 @@ const ReviewContent = () => {
                           value={theme}
                           onValueChange={setTheme}
                           options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                          placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
-                          disabled={!brand || filteredThemes.length === 0}
+                          placeholder={filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione a agenda"}
+                          disabled={filteredThemes.length === 0}
                           triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
                         />
                       )}

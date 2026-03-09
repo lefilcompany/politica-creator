@@ -1138,32 +1138,7 @@ export default function CreateImage() {
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Marca / Identidade */}
-                  {isLoadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                        Identidade
-                      </Label>
-                      <NativeSelect
-                        value={formData.brand}
-                        onValueChange={(value) => handleSelectChange("brand", value)}
-                        options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma identidade cadastrada" : "Selecione a identidade"}
-                        disabled={brands.length === 0}
-                        triggerClassName={`h-10 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors ${
-                          missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                        }`}
-                      />
-                      {!isLoadingData && brands.length === 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          Cadastre uma identidade antes.{" "}
-                          <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">
-                            Ir para Identidade
-                          </button>
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  {/* Brand auto-selected */}
 
                   {/* Agenda */}
                   {isLoadingData ? <SelectSkeleton /> : (
@@ -1175,8 +1150,8 @@ export default function CreateImage() {
                         value={formData.theme}
                         onValueChange={(value) => handleSelectChange("theme", value)}
                         options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione uma agenda"}
-                        disabled={!formData.brand || filteredThemes.length === 0}
+                        placeholder={filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione uma agenda"}
+                        disabled={filteredThemes.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
@@ -1192,8 +1167,8 @@ export default function CreateImage() {
                         value={formData.persona}
                         onValueChange={(value) => handleSelectChange("persona", value)}
                         options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
-                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredPersonas.length === 0 ? "Nenhuma audiência cadastrada" : "Selecione uma audiência"}
-                        disabled={!formData.brand || filteredPersonas.length === 0}
+                        placeholder={filteredPersonas.length === 0 ? "Nenhuma audiência cadastrada" : "Selecione uma audiência"}
+                        disabled={filteredPersonas.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>

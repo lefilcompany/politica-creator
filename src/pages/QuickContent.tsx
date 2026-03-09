@@ -99,6 +99,13 @@ export default function QuickContent() {
 
   const loadingData = loadingBrands || loadingThemes || loadingPersonas;
 
+  // Auto-select single brand
+  useEffect(() => {
+    if (!loadingBrands && brands.length > 0 && !formData.brandId) {
+      setFormData(prev => ({ ...prev, brandId: brands[0].id }));
+    }
+  }, [loadingBrands, brands]);
+
   // Filtered themes/personas based on brand
   const filteredThemes = formData.brandId
     ? themes.filter((t: any) => t.brand_id === formData.brandId || t.brandId === formData.brandId)
@@ -416,26 +423,7 @@ export default function QuickContent() {
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
               <CardContent className="p-4 md:p-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Marca */}
-                  {loadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                        Marca <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                      </Label>
-                      <NativeSelect
-                        value={formData.brandId}
-                        onValueChange={value => setFormData({ ...formData, brandId: value })}
-                        options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
-                        disabled={brands.length === 0}
-                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                      />
-                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        <span>{brands.length === 0 ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"}</span>
-                      </p>
-                    </div>
-                  )}
+                  {/* Brand auto-selected */}
 
                   {/* Persona */}
                   {loadingData ? <SelectSkeleton /> : (
@@ -447,8 +435,8 @@ export default function QuickContent() {
                         value={formData.personaId}
                         onValueChange={value => setFormData({ ...formData, personaId: value })}
                         options={filteredPersonas.map(persona => ({ value: persona.id, label: persona.name }))}
-                        placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona cadastrada para esta marca" : "Nenhuma persona selecionada"}
-                        disabled={!formData.brandId || filteredPersonas.length === 0}
+                        placeholder={filteredPersonas.length === 0 ? "Nenhuma persona cadastrada" : "Nenhuma persona selecionada"}
+                        disabled={filteredPersonas.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
@@ -468,8 +456,8 @@ export default function QuickContent() {
                         value={formData.themeId}
                         onValueChange={value => setFormData({ ...formData, themeId: value })}
                         options={filteredThemes.map(theme => ({ value: theme.id, label: theme.title }))}
-                        placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema cadastrado para esta marca" : "Nenhum tema selecionado"}
-                        disabled={!formData.brandId || filteredThemes.length === 0}
+                        placeholder={filteredThemes.length === 0 ? "Nenhum tema cadastrado" : "Nenhum tema selecionado"}
+                        disabled={filteredThemes.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
