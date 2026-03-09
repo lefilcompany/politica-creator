@@ -1167,8 +1167,8 @@ export default function CreateImage() {
                         value={formData.persona}
                         onValueChange={(value) => handleSelectChange("persona", value)}
                         options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
-                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredPersonas.length === 0 ? "Nenhuma audiência cadastrada" : "Selecione uma audiência"}
-                        disabled={!formData.brand || filteredPersonas.length === 0}
+                        placeholder={filteredPersonas.length === 0 ? "Nenhuma audiência cadastrada" : "Selecione uma audiência"}
+                        disabled={filteredPersonas.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
