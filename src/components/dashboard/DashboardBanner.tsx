@@ -39,7 +39,7 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
             {firstName}
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm mt-1 max-w-xs sm:max-w-md">
-            Seu gabinete está pronto para trabalhar.
+            Seu creator está pronto para trabalhar.
           </p>
         </div>
       </div>
