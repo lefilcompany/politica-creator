@@ -337,6 +337,11 @@ export default function CreateContent() {
           brandId: persona.brand_id,
           name: persona.name,
           createdAt: persona.created_at,
+          age: persona.age,
+          gender: persona.gender,
+          location: persona.location,
+          mainGoal: persona.main_goal,
+          professionalContext: persona.professional_context,
         }));
 
         // Atualizar todos os estados de uma vez para evitar múltiplas renderizações
