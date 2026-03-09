@@ -533,7 +533,7 @@ const PlanContent = () => {
                   ) : (
                     <>
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>Gerar Planejamento</span>
+                      <span>Gerar Calendário</span>
                       <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1 text-xs">
                         <Coins className="h-3 w-3" />
                         {CREDIT_COSTS.CONTENT_PLAN}
