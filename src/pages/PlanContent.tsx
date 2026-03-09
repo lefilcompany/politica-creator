@@ -95,11 +95,14 @@ const PlanContent = () => {
     loadData();
   }, [user]);
 
-  const filteredThemes = formData.brand ? themes.filter((t) => t.brand_id === formData.brand) : [];
+  // Auto-select single brand
+  useEffect(() => {
+    if (!isLoadingData && brands.length > 0 && !formData.brand) {
+      setFormData(prev => ({ ...prev, brand: brands[0].id }));
+    }
+  }, [isLoadingData, brands, formData.brand]);
 
-  const handleBrandChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, brand: value, theme: [] }));
-  };
+  const filteredThemes = formData.brand ? themes.filter((t) => t.brand_id === formData.brand) : [];
 
   const handleThemeSelect = (value: string) => {
     const theme = themes.find((t) => t.id === value);
