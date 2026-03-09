@@ -363,10 +363,6 @@ export default function MarcasPage() {
           {/* Column 2 */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="segment">{t.brands.segment}</Label>
-              <Textarea id="segment" value={formData.segment} onChange={handleInputChange} placeholder={t.brands.placeholders.segment} />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="keywords">{t.brands.keywords}</Label>
               <Textarea id="keywords" value={formData.keywords} onChange={handleInputChange} placeholder={t.brands.placeholders.keywords} />
             </div>
