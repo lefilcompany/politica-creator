@@ -266,83 +266,8 @@ export default function Defense() {
           </TabsTrigger>
         </TabsList>
 
-        {/* TAB: MONITOR */}
-        <TabsContent value="monitor" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Search className="h-5 w-5 text-primary" />
-                Radar de Notícias
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Busque por menções falsas ou ataques relacionados ao seu perfil político. Custo: {CREDIT_COSTS.FAKE_NEWS_MONITOR} créditos.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                placeholder="Termos de busca (ex: nome do político, partido, tema sensível...)"
-                value={monitorKeywords}
-                onChange={(e) => setMonitorKeywords(e.target.value)}
-                maxLength={200}
-              />
-              <Button
-                onClick={() => setShowMonitorConfirm(true)}
-                disabled={monitorLoading || !monitorKeywords.trim()}
-                className="w-full sm:w-auto"
-              >
-                {monitorLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Buscando...</> : "Buscar Menções"}
-              </Button>
-            </CardContent>
-          </Card>
 
-          {monitorResults && (
-            <div className="space-y-3">
-              {monitorResults.length === 0 ? (
-                <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma menção encontrada.</CardContent></Card>
-              ) : monitorResults.map((r, i) => (
-                <Card key={i} className={`border-l-4 ${urgencyColors[r.urgency]}`}>
-                  <CardContent className="pt-4 space-y-2">
-                    <div className="flex items-start justify-between gap-2 flex-wrap">
-                      <h3 className="font-semibold">{r.title}</h3>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <Badge className={classificationLabels[r.classification]?.color}>
-                          {classificationLabels[r.classification]?.label}
-                        </Badge>
-                        <Badge variant="outline">Urgência: {r.urgency}</Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{r.summary}</p>
-                    <p className="text-sm"><strong>Ação sugerida:</strong> {r.suggestedAction}</p>
-                    {(r.source || r.url) && (
-                      <div className="flex items-center gap-2 pt-1 border-t border-border mt-2">
-                        <Newspaper className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground">
-                          Fonte: <strong>{r.source || 'Não identificada'}</strong>
-                          {r.publishedAt && <> · {new Date(r.publishedAt).toLocaleDateString('pt-BR')}</>}
-                        </span>
-                        {r.url && (
-                          <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 ml-auto">
-                            Ver notícia <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
 
-          <CreditConfirmationDialog
-            isOpen={showMonitorConfirm}
-            onOpenChange={setShowMonitorConfirm}
-            cost={CREDIT_COSTS.FAKE_NEWS_MONITOR}
-            currentBalance={currentCredits}
-            resourceType="busca"
-            title="Buscar Menções?"
-            onConfirm={() => { setShowMonitorConfirm(false); handleMonitor(); }}
-          />
-        </TabsContent>
 
         {/* TAB: RESPOND */}
         <TabsContent value="respond" className="space-y-4 mt-4">
