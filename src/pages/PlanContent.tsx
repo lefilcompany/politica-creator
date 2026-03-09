@@ -267,12 +267,12 @@ const PlanContent = () => {
       {/* Banner */}
       <div className="relative w-full h-48 md:h-64 lg:h-72 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
-          items={[{ label: "Planejar Conteúdo" }]}
+          items={[{ label: "Calendário de Conteúdo" }]}
           variant="overlay"
         />
         <img
           src={planBanner}
-          alt="Planejar Conteúdo"
+          alt="Calendário de Conteúdo"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
