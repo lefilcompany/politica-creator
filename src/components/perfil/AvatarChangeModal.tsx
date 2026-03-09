@@ -129,7 +129,7 @@ export default function AvatarChangeModal({
             </div>
 
             <p className="text-xs text-muted-foreground/70 text-center">
-              JPG, PNG, WebP ou GIF • Máx 5MB
+              JPG, PNG, WebP ou GIF • Máx 10MB
             </p>
           </div>
 

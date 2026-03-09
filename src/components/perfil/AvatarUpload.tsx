@@ -40,9 +40,9 @@ export default function AvatarUpload({
         return;
       }
 
-      // Validar tamanho (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('A imagem deve ter no máximo 5MB');
+      // Validar tamanho (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('A imagem deve ter no máximo 10MB');
         return;
       }
 
