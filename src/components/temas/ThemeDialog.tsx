@@ -371,9 +371,9 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle>{themeToEdit ? 'Editar Pauta da Agenda' : 'Nova Pauta da Agenda'}</DialogTitle>
+              <DialogTitle>{themeToEdit ? 'Editar Item da Agenda' : 'Novo Item da Agenda'}</DialogTitle>
               <DialogDescription>
-                {themeToEdit ? 'Altere as informações da pauta.' : 'Defina o tema, tags e objetivo da sua pauta estratégica.'}
+                {themeToEdit ? 'Altere as informações do item.' : 'Defina o tema, tags e objetivo do item da agenda.'}
               </DialogDescription>
             </div>
             {!themeToEdit && hasDraft() && (
