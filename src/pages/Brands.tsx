@@ -338,10 +338,6 @@ export default function MarcasPage() {
               <Input id="name" value={formData.name} onChange={handleInputChange} placeholder={t.brands.placeholders.name} className="h-9" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="goals">{t.brands.goals}</Label>
-              <Textarea id="goals" value={formData.goals} onChange={handleInputChange} placeholder={t.brands.placeholders.goals} />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="successMetrics">{t.brands.successMetrics}</Label>
               <Textarea id="successMetrics" value={formData.successMetrics} onChange={handleInputChange} placeholder={t.brands.placeholders.successMetrics} />
             </div>
