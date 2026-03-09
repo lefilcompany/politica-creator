@@ -99,6 +99,13 @@ export default function QuickContent() {
 
   const loadingData = loadingBrands || loadingThemes || loadingPersonas;
 
+  // Auto-select single brand
+  useEffect(() => {
+    if (!loadingBrands && brands.length > 0 && !formData.brandId) {
+      setFormData(prev => ({ ...prev, brandId: brands[0].id }));
+    }
+  }, [loadingBrands, brands]);
+
   // Filtered themes/personas based on brand
   const filteredThemes = formData.brandId
     ? themes.filter((t: any) => t.brand_id === formData.brandId || t.brandId === formData.brandId)
