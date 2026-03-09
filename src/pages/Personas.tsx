@@ -200,6 +200,11 @@ export default function PersonasPage() {
           brandId: data.brand_id,
           name: data.name,
           createdAt: data.created_at,
+          age: data.age,
+          gender: data.gender,
+          location: data.location,
+          mainGoal: data.main_goal,
+          professionalContext: data.professional_context,
         };
         
         setPersonas(prev => [...prev, newSummary]);
