@@ -407,7 +407,7 @@ const PlanContent = () => {
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>O planejamento seguirá o tom de voz, público-alvo e objetivos do tema selecionado</span>
+                        <span>O calendário seguirá o tom de voz, público-alvo e objetivos da agenda selecionada</span>
                       </p>
                     </>
                   )}
