@@ -426,7 +426,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                   {brands.length === 0 && (
                     <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
                       <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                      <span>Cadastre uma identidade antes de criar pautas</span>
+                      <span>Cadastre uma identidade antes de criar itens da agenda</span>
                     </p>
                   )}
                 </div>
