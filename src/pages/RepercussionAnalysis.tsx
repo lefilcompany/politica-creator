@@ -177,22 +177,7 @@ export default function RepercussionAnalysis() {
                 </p>
               </div>
 
-              {brands && brands.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-base font-semibold">Identidade (opcional)</Label>
-                  <Select value={brandId} onValueChange={setBrandId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma identidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhuma</SelectItem>
-                      {brands.map((b) => (
-                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              {/* Brand auto-selected */}
 
               <div className="space-y-2">
                 <Label htmlFor="context" className="text-base font-semibold">

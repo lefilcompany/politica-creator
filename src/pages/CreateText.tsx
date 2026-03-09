@@ -183,21 +183,7 @@ export default function CreateText() {
 
             {/* Optional selectors */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Identidade (opcional)</label>
-                {isLoading ? (
-                  <Skeleton className="h-10 w-full" />
-                ) : (
-                  <Select value={brandId} onValueChange={setBrandId}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar identidade" /></SelectTrigger>
-                    <SelectContent>
-                      {brands?.map((b: any) => (
-                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
+              {/* Brand auto-selected */}
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">Agenda (opcional)</label>
