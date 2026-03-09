@@ -502,7 +502,7 @@ const PlanContent = () => {
                   />
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Contexto extra ajuda a IA a criar um planejamento mais preciso e direcionado</span>
+                    <span>Contexto extra ajuda a IA a criar um calendário mais preciso e direcionado</span>
                   </p>
                 </div>
               </div>
