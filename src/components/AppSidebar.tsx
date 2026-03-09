@@ -179,7 +179,7 @@ export function AppSidebar() {
   const navLinks = [
     { id: "nav-dashboard", href: "/dashboard", icon: Home, label: t.sidebar.home },
     { id: "nav-brands", href: "/brands", icon: Landmark, label: t.sidebar.brands },
-    { id: "nav-themes", href: "/tCalendarDaysicon: BookOpen, label: t.sidebar.themes },
+    { id: "nav-themes", href: "/themes", icon: CalendarDays, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
     { id: "nav-defense", href: "/defense", icon: Shield, label: t.sidebar.defense || "Defesa Digital" },
     { id: "nav-history", href: "/history", icon: Archive, label: t.sidebar.history },
