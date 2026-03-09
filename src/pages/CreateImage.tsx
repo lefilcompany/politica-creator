@@ -296,7 +296,7 @@ export default function CreateImage() {
       if (matchedPlatform && platformMap[matchedPlatform]) {
         handleSelectChange('platform', platformMap[matchedPlatform]);
         toast.info("Plataforma preenchida automaticamente", {
-          description: `Usando plataforma da pauta: ${platformMap[matchedPlatform]}`,
+          description: `Usando plataforma da agenda: ${platformMap[matchedPlatform]}`,
           duration: 3000,
         });
       }

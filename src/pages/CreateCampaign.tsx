@@ -268,7 +268,7 @@ export default function CreateCampaign() {
 
           {/* Descrição */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Contexto / Pauta da Campanha *</Label>
+            <Label className="text-sm font-medium">Contexto da Campanha *</Label>
             <Textarea
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
