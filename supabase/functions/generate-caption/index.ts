@@ -41,9 +41,9 @@ function buildCaptionPrompt(formData: any): string {
   const personaDescription = cleanInput(formData.persona);
   const additionalInfo = cleanInput(formData.additionalInfo);
 
-  // Validar campos obrigatórios
-  if (!brandName || !platform || !objective || !imageDescription) {
-    throw new Error("Campos obrigatórios faltando: marca, plataforma, objetivo e descrição da imagem");
+  // Validar campos obrigatórios (marca é opcional)
+  if (!platform || !objective || !imageDescription) {
+    throw new Error("Campos obrigatórios faltando: plataforma, objetivo e descrição da imagem");
   }
 
   // Mapear tipo de conteúdo (orgânico vs anúncios)
