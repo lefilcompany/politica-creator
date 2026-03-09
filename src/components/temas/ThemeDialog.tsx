@@ -469,7 +469,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Tags temáticas</Label>
-                  <p className="text-xs text-muted-foreground">Selecione os temas macro desta pauta</p>
+                  <p className="text-xs text-muted-foreground">Selecione os temas macro desta agenda</p>
                   <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto p-2 rounded-lg border border-border/50 bg-muted/20">
                     {PREDEFINED_TAGS.map(tag => (
                       <button
