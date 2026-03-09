@@ -39,8 +39,8 @@ export default function AvatarChangeModal({
         toast.error('Por favor, selecione uma imagem válida');
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('A imagem deve ter no máximo 5MB');
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('A imagem deve ter no máximo 10MB');
         return;
       }
 
