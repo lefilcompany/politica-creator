@@ -21,7 +21,7 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
       <motion.img
         src={dashboardBannerImg}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover object-bottom"
+        className="absolute inset-0 w-full h-full object-cover object-top"
         animate={{ scale: [1, 1.02, 1] }}
         transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
       />
