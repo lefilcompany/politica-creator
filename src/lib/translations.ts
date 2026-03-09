@@ -40,7 +40,7 @@ export const translations = {
       planContent: "Planejar Campanha",
       team: "Equipe de Criadores",
       plan: "Plano",
-      defense: "Defesa & Crise",
+      defense: "Radar de Imagem",
     },
     
     // Dashboard
