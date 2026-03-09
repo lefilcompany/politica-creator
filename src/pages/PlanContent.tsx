@@ -343,7 +343,7 @@ const PlanContent = () => {
                         value={formData.brand}
                         onValueChange={handleBrandChange}
                         options={brands.map((brand) => ({ value: brand.id, label: brand.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
+                        placeholder={brands.length === 0 ? "Nenhuma identidade cadastrada" : "Nenhuma identidade selecionada"}
                         disabled={brands.length === 0}
                         triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors"
                       />
