@@ -388,7 +388,7 @@ const PlanContent = () => {
 
                 <div id="plan-themes-field" className="space-y-1.5">
                   <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                    Tema Estratégico <span className="text-destructive">*</span>
+                    Agenda <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
