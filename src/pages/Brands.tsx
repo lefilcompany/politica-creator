@@ -371,26 +371,6 @@ export default function MarcasPage() {
           {/* Column 2 */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="responsible">{t.brands.responsible}</Label>
-              <div className="relative">
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <select
-                  id="responsible"
-                  value={formData.responsible}
-                  onChange={(e) => setFormData(prev => ({ ...prev, responsible: e.target.value }))}
-                  className="w-full h-9 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  data-lpignore="true"
-                  data-1p-ignore="true"
-                  autoComplete="off"
-                >
-                  <option value="" disabled>{t.brands.selectMember}</option>
-                  {members.map(m => (
-                    <option key={m.email} value={m.email}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="segment">{t.brands.segment}</Label>
               <Textarea id="segment" value={formData.segment} onChange={handleInputChange} placeholder={t.brands.placeholders.segment} />
             </div>
