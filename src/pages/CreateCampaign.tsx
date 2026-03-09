@@ -224,7 +224,7 @@ export default function CreateCampaign() {
                 placeholder="Opcional"
                 value={formData.persona}
                 onValueChange={(v) => handleChange("persona", v)}
-                disabled={!formData.brand}
+                disabled={false}
               />
             </div>
           </div>
