@@ -193,12 +193,12 @@ export default function CreateText() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Pauta (opcional)</label>
+                <label className="text-sm font-medium text-foreground">Agenda (opcional)</label>
                 {isLoading ? (
                   <Skeleton className="h-10 w-full" />
                 ) : (
                   <Select value={themeId} onValueChange={setThemeId}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar pauta" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Selecionar agenda" /></SelectTrigger>
                     <SelectContent>
                       {themes?.map((t: any) => (
                         <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>

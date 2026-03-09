@@ -84,7 +84,7 @@ export default function CreateCampaign() {
   const handleGenerate = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
     if (!formData.brand) return toast.error("Selecione uma Identidade.");
-    if (!formData.description.trim()) return toast.error("Descreva a pauta/contexto da campanha.");
+    if (!formData.description.trim()) return toast.error("Descreva o contexto da campanha.");
 
     const credits = user.credits || 0;
     if (credits < CREDIT_COSTS.CAMPAIGN_PACKAGE) {
