@@ -1108,7 +1108,7 @@ export default function CreateImage() {
                     )}
                     {contextSummary.theme && (
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="font-semibold text-primary min-w-[80px]">Pauta:</span>
+                        <span className="font-semibold text-primary min-w-[80px]">Agenda:</span>
                         <span className="text-foreground">{(contextSummary.theme as any).title}</span>
                         {(contextSummary.theme as any).objectiveType && (
                           <Badge variant="outline" className="text-[10px] py-0 h-4">{(contextSummary.theme as any).objectiveType}</Badge>
