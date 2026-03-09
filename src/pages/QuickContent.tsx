@@ -423,8 +423,6 @@ export default function QuickContent() {
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
               <CardContent className="p-4 md:p-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Marca */}
-                  {loadingData ? <SelectSkeleton /> : (
                   {/* Brand auto-selected */}
 
                   {/* Persona */}
