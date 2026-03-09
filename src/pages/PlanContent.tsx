@@ -333,7 +333,7 @@ const PlanContent = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                 <div id="plan-brand-field" className="space-y-1.5">
                   <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                    Marca <span className="text-destructive">*</span>
+                    Identidade <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
