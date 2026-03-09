@@ -539,8 +539,8 @@ serve(async (req) => {
         const errorText = await createResponse.text();
         console.error('❌ [Sora 2] Create error:', createResponse.status, errorText);
         
-        // Reembolsar para erros de servidor/quota
-        if (createResponse.status === 429 || createResponse.status >= 500) {
+        // Reembolsar para erros de billing, rate limit ou servidor
+        if (createResponse.status === 400 || createResponse.status === 429 || createResponse.status >= 500) {
           const { data: currentProfile } = await supabase.from('profiles').select('credits').eq('id', actionData.user_id).single();
           if (currentProfile) {
             const refundedAfter = currentProfile.credits + CREDIT_COSTS.VIDEO_GENERATION;
