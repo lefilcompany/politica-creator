@@ -137,11 +137,8 @@ export default function Defense() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Monitor state
-  const [monitorKeywords, setMonitorKeywords] = useState("");
-  const [monitorLoading, setMonitorLoading] = useState(false);
-  const [monitorResults, setMonitorResults] = useState<MonitorResult[] | null>(null);
-  const [showMonitorConfirm, setShowMonitorConfirm] = useState(false);
+
+
 
   // Respond state
   const [fakeNewsText, setFakeNewsText] = useState("");
