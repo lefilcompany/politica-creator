@@ -456,8 +456,8 @@ export default function QuickContent() {
                         value={formData.themeId}
                         onValueChange={value => setFormData({ ...formData, themeId: value })}
                         options={filteredThemes.map(theme => ({ value: theme.id, label: theme.title }))}
-                        placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema cadastrado para esta marca" : "Nenhum tema selecionado"}
-                        disabled={!formData.brandId || filteredThemes.length === 0}
+                        placeholder={filteredThemes.length === 0 ? "Nenhum tema cadastrado" : "Nenhum tema selecionado"}
+                        disabled={filteredThemes.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
