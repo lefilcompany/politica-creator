@@ -142,7 +142,7 @@ const ReviewContent = () => {
 
   const handleSubmit = async () => {
     if (!user) return;
-    if (!brand) return setError("Por favor, selecione uma marca");
+    if (!brand) return setError("Cadastre uma identidade primeiro");
 
     if ((user.credits || 0) <= 0) {
       return toast.error("Seus créditos para revisões de conteúdo acabaram.");
