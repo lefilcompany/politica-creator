@@ -475,8 +475,8 @@ const ReviewContent = () => {
                           value={theme}
                           onValueChange={setTheme}
                           options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                          placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
-                          disabled={!brand || filteredThemes.length === 0}
+                          placeholder={filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione a agenda"}
+                          disabled={filteredThemes.length === 0}
                           triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
                         />
                       )}
