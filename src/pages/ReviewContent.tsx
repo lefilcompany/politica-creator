@@ -463,22 +463,7 @@ const ReviewContent = () => {
                 </CardHeader>
                 <CardContent className="p-6 pt-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div id="review-brand-field" className="space-y-3">
-                      <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
-                        Marca <span className="text-destructive">*</span>
-                      </Label>
-                      {isLoadingData ? (
-                        <Skeleton className="h-11 w-full rounded-xl" />
-                      ) : (
-                        <NativeSelect
-                          value={brand}
-                          onValueChange={handleBrandChange}
-                          options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                          placeholder="Selecione a marca"
-                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
-                        />
-                      )}
-                    </div>
+                    {/* Brand auto-selected */}
                     <div id="review-theme-field" className="space-y-3">
                       <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
                         Tema Estratégico (Opcional)
