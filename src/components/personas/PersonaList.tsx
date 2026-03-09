@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Users, Search, List, LayoutGrid, X, ChevronDown, ChevronRight, Filter } from 'lucide-react';
+import { Users, Search, List, LayoutGrid, X, ChevronDown, ChevronRight, Filter, MapPin, Target, Briefcase } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Table,

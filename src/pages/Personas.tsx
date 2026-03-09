@@ -88,7 +88,7 @@ export default function PersonasPage() {
       try {
         const { data, error } = await supabase
           .from('personas')
-          .select('id, brand_id, name, created_at')
+          .select('id, brand_id, name, created_at, age, gender, location, main_goal, professional_context')
           .order('created_at', { ascending: false })
           .limit(ITEMS_PER_PAGE);
 
@@ -99,6 +99,11 @@ export default function PersonasPage() {
           brandId: p.brand_id,
           name: p.name,
           createdAt: p.created_at,
+          age: p.age,
+          gender: p.gender,
+          location: p.location,
+          mainGoal: p.main_goal,
+          professionalContext: p.professional_context,
         }));
 
         setPersonas(personas);

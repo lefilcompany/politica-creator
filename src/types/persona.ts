@@ -43,4 +43,4 @@ export type Persona = {
 };
 
 // Dados mínimos utilizados nas listagens de personas
-export type PersonaSummary = Pick<Persona, 'id' | 'brandId' | 'name' | 'createdAt'>;
+export type PersonaSummary = Pick<Persona, 'id' | 'brandId' | 'name' | 'createdAt' | 'age' | 'gender' | 'location' | 'mainGoal' | 'professionalContext'>;
