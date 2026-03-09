@@ -71,9 +71,6 @@ export default function CreateCampaign() {
   });
 
   // Auto-select single brand
-  useState(() => {
-    // Will be handled by useEffect below
-  });
 
   const filteredThemes = themes.filter((t) => !formData.brand || t.brand_id === formData.brand);
   const filteredPersonas = personas.filter((p) => !formData.brand || p.brand_id === formData.brand);
