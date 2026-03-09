@@ -165,23 +165,8 @@ export default function Defense() {
     toast({ title: "Copiado!", description: "Texto copiado para a área de transferência" });
   };
 
-  // Monitor handler
-  const handleMonitor = async () => {
-    setMonitorLoading(true);
-    setMonitorResults(null);
-    try {
-      const { data, error } = await supabase.functions.invoke('fake-news-monitor', {
-        body: { keywords: monitorKeywords }
-      });
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
-      setMonitorResults(data.results);
-    } catch (e: any) {
-      toast({ title: "Erro", description: e.message || "Falha ao monitorar", variant: "destructive" });
-    } finally {
-      setMonitorLoading(false);
-    }
-  };
+
+
 
   // Respond handler
   const handleRespond = async () => {
