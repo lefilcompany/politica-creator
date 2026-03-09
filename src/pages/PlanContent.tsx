@@ -257,7 +257,7 @@ const PlanContent = () => {
           {
             tourType: 'plan_content',
             steps: planContentSteps,
-            label: 'Tour de Planejar Conteúdo',
+            label: 'Tour do Calendário de Conteúdo',
             targetElement: '#plan-header'
           }
         ]}
