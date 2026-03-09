@@ -401,7 +401,7 @@ const PlanContent = () => {
                         options={filteredThemes
                           .filter((t) => !formData.theme.includes(t.id))
                           .map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : formData.theme.length > 0 ? "Adicionar mais temas..." : "Adicionar tema estratégico"}
+                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : formData.theme.length > 0 ? "Adicionar mais itens..." : "Adicionar item da agenda"}
                         disabled={!formData.brand || filteredThemes.filter((t) => !formData.theme.includes(t.id)).length === 0}
                         triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors disabled:opacity-50"
                       />
