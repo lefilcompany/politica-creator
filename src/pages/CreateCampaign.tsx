@@ -214,7 +214,7 @@ export default function CreateCampaign() {
                 placeholder="Opcional"
                 value={formData.theme}
                 onValueChange={(v) => handleChange("theme", v)}
-                disabled={!formData.brand}
+                disabled={false}
               />
             </div>
             <div className="space-y-2">
