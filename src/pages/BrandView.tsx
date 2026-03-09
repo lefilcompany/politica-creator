@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Pencil } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, Info, Palette, Pencil } from 'lucide-react';
 import { BrandVisualIdentity } from '@/components/marcas/BrandVisualIdentity';
 import { BrandAvatarEditor } from '@/components/marcas/BrandAvatarEditor';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
@@ -403,15 +403,7 @@ export default function BrandView() {
           <div className="mb-4">
             <PageBreadcrumb
               items={[
-                { 
-                  label: 'Marcas', 
-                  href: '/brands',
-                  state: { viewMode },
-                  icon: viewMode === 'list' 
-                    ? <List className="h-3.5 w-3.5" /> 
-                    : <LayoutGrid className="h-3.5 w-3.5" />
-                },
-                { label: formData.name || brand.name },
+                { label: 'Identidade' },
               ]}
             />
           </div>
