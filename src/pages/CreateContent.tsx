@@ -275,7 +275,7 @@ export default function CreateContent() {
             .order('created_at', { ascending: false }),
           supabase
             .from('personas')
-            .select('id, brand_id, name, created_at')
+            .select('id, brand_id, name, created_at, age, gender, location, main_goal, professional_context')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
         ]);
