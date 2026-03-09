@@ -27,6 +27,13 @@ export default function CreateText() {
 
   const [message, setMessage] = useState("");
   const [brandId, setBrandId] = useState<string>("");
+
+  // Auto-select single brand
+  useEffect(() => {
+    if (!brandsLoading && brands && brands.length > 0 && !brandId) {
+      setBrandId(brands[0].id);
+    }
+  }, [brandsLoading, brands, brandId]);
   const [themeId, setThemeId] = useState<string>("");
   const [personaId, setPersonaId] = useState<string>("");
   const [platform, setPlatform] = useState<string>("");
