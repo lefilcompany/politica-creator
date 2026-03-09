@@ -70,20 +70,28 @@ export default function CreateCampaign() {
     additionalInfo: "",
   });
 
+  // Auto-select single brand
+  useState(() => {
+    // Will be handled by useEffect below
+  });
+
   const filteredThemes = themes.filter((t) => !formData.brand || t.brand_id === formData.brand);
   const filteredPersonas = personas.filter((p) => !formData.brand || p.brand_id === formData.brand);
 
-  const handleChange = (field: string, value: string) => {
-    if (field === "brand") {
-      setFormData((prev) => ({ ...prev, brand: value, theme: "", persona: "" }));
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: value }));
+  // Auto-select single brand
+  React.useEffect(() => {
+    if (!brandsQuery.isLoading && brands.length > 0 && !formData.brand) {
+      setFormData(prev => ({ ...prev, brand: brands[0].id }));
     }
+  }, [brandsQuery.isLoading, brands, formData.brand]);
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleGenerate = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
-    if (!formData.brand) return toast.error("Selecione uma Identidade.");
+    if (!formData.brand) return toast.error("Cadastre uma Identidade primeiro.");
     if (!formData.description.trim()) return toast.error("Descreva o contexto da campanha.");
 
     const credits = user.credits || 0;
