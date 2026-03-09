@@ -225,7 +225,7 @@ export default function PersonasPage() {
           src={personasBanner} 
           alt="" 
           className="w-full h-full object-cover"
-          style={{ objectPosition: 'center 30%' }}
+          style={{ objectPosition: 'center 80%' }}
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
