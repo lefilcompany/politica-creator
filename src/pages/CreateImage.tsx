@@ -1138,32 +1138,7 @@ export default function CreateImage() {
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Marca / Identidade */}
-                  {isLoadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                        Identidade
-                      </Label>
-                      <NativeSelect
-                        value={formData.brand}
-                        onValueChange={(value) => handleSelectChange("brand", value)}
-                        options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma identidade cadastrada" : "Selecione a identidade"}
-                        disabled={brands.length === 0}
-                        triggerClassName={`h-10 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors ${
-                          missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                        }`}
-                      />
-                      {!isLoadingData && brands.length === 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          Cadastre uma identidade antes.{" "}
-                          <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">
-                            Ir para Identidade
-                          </button>
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  {/* Brand auto-selected */}
 
                   {/* Agenda */}
                   {isLoadingData ? <SelectSkeleton /> : (
