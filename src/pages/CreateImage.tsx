@@ -275,7 +275,7 @@ export default function CreateImage() {
       if (themeTones.length > 0) {
         setFormData(prev => ({ ...prev, tone: themeTones }));
         toast.info("Tom de voz preenchido automaticamente", {
-          description: `Usando tom da pauta: ${themeTones.join(', ')}`,
+          description: `Usando tom da agenda: ${themeTones.join(', ')}`,
           duration: 3000,
         });
       }
