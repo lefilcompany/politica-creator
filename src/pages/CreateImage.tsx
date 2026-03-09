@@ -1151,7 +1151,7 @@ export default function CreateImage() {
                         onValueChange={(value) => handleSelectChange("theme", value)}
                         options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
                         placeholder={filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione uma agenda"}
-                        disabled={!formData.brand || filteredThemes.length === 0}
+                        disabled={filteredThemes.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
