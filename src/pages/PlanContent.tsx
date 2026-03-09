@@ -486,7 +486,7 @@ const PlanContent = () => {
                   />
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Descreva o que você espera alcançar com esse planejamento</span>
+                    <span>Descreva o que você espera alcançar com esse calendário</span>
                   </p>
                 </div>
                 <div id="plan-additional-info-field" className="space-y-1.5">
