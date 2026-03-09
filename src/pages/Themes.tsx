@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import ThemeDialog from '@/components/temas/ThemeDialog';
+import themesBanner from '@/assets/themes-banner.jpg';
 import type { StrategicTheme } from '@/types/theme';
 import type { BrandSummary } from '@/types/brand';
 import {
@@ -389,6 +390,11 @@ export default function AgendaPage() {
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
+      <div className="relative w-full h-40 sm:h-48 md:h-56 rounded-b-xl overflow-hidden">
+        <img src={themesBanner} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} loading="lazy" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+      </div>
+
       {/* Header */}
       <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-4">
         <PageBreadcrumb items={[{ label: 'Agenda' }]} />
