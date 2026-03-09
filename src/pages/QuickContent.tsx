@@ -425,24 +425,7 @@ export default function QuickContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Marca */}
                   {loadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                        Marca <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                      </Label>
-                      <NativeSelect
-                        value={formData.brandId}
-                        onValueChange={value => setFormData({ ...formData, brandId: value })}
-                        options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
-                        disabled={brands.length === 0}
-                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                      />
-                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        <span>{brands.length === 0 ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"}</span>
-                      </p>
-                    </div>
-                  )}
+                  {/* Brand auto-selected */}
 
                   {/* Persona */}
                   {loadingData ? <SelectSkeleton /> : (
