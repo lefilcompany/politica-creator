@@ -84,7 +84,7 @@ export default function CreateCampaign() {
   const handleGenerate = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
     if (!formData.brand) return toast.error("Selecione uma Identidade.");
-    if (!formData.description.trim()) return toast.error("Descreva a pauta/contexto da campanha.");
+    if (!formData.description.trim()) return toast.error("Descreva o contexto da campanha.");
 
     const credits = user.credits || 0;
     if (credits < CREDIT_COSTS.CAMPAIGN_PACKAGE) {
@@ -211,10 +211,10 @@ export default function CreateCampaign() {
             )}
           </div>
 
-          {/* Pauta + Audiência */}
+          {/* Agenda + Audiência */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Pauta Estratégica</Label>
+              <Label className="text-sm font-medium">Agenda</Label>
               <NativeSelect
                 options={themeOptions}
                 placeholder="Opcional"
@@ -268,7 +268,7 @@ export default function CreateCampaign() {
 
           {/* Descrição */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Contexto / Pauta da Campanha *</Label>
+            <Label className="text-sm font-medium">Contexto da Campanha *</Label>
             <Textarea
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}

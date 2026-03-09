@@ -275,7 +275,7 @@ export default function CreateImage() {
       if (themeTones.length > 0) {
         setFormData(prev => ({ ...prev, tone: themeTones }));
         toast.info("Tom de voz preenchido automaticamente", {
-          description: `Usando tom da pauta: ${themeTones.join(', ')}`,
+          description: `Usando tom da agenda: ${themeTones.join(', ')}`,
           duration: 3000,
         });
       }
@@ -296,7 +296,7 @@ export default function CreateImage() {
       if (matchedPlatform && platformMap[matchedPlatform]) {
         handleSelectChange('platform', platformMap[matchedPlatform]);
         toast.info("Plataforma preenchida automaticamente", {
-          description: `Usando plataforma da pauta: ${platformMap[matchedPlatform]}`,
+          description: `Usando plataforma da agenda: ${platformMap[matchedPlatform]}`,
           duration: 3000,
         });
       }
@@ -1108,7 +1108,7 @@ export default function CreateImage() {
                     )}
                     {contextSummary.theme && (
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="font-semibold text-primary min-w-[80px]">Pauta:</span>
+                        <span className="font-semibold text-primary min-w-[80px]">Agenda:</span>
                         <span className="text-foreground">{(contextSummary.theme as any).title}</span>
                         {(contextSummary.theme as any).objectiveType && (
                           <Badge variant="outline" className="text-[10px] py-0 h-4">{(contextSummary.theme as any).objectiveType}</Badge>
@@ -1165,17 +1165,17 @@ export default function CreateImage() {
                     </div>
                   )}
 
-                  {/* Pauta Estratégica */}
+                  {/* Agenda */}
                   {isLoadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
                       <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                        Pauta Estratégica <span className="text-muted-foreground font-normal text-xs">(preenche tom e plataforma)</span>
+                        Agenda <span className="text-muted-foreground font-normal text-xs">(preenche tom e plataforma)</span>
                       </Label>
                       <NativeSelect
                         value={formData.theme}
                         onValueChange={(value) => handleSelectChange("theme", value)}
                         options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredThemes.length === 0 ? "Nenhuma pauta disponível" : "Selecione uma pauta"}
+                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione uma agenda"}
                         disabled={!formData.brand || filteredThemes.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />

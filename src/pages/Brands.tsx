@@ -291,7 +291,7 @@ export default function MarcasPage() {
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
                         <li>Preencha os dados do mandato ou campanha</li>
-                        <li>Adicione perfis de eleitor e pautas da agenda</li>
+                        <li>Adicione perfis de eleitor e itens da agenda</li>
                         <li>A identidade será usada automaticamente ao criar conteúdos</li>
                       </ul>
                     </div>

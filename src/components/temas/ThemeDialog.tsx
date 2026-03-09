@@ -371,9 +371,9 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle>{themeToEdit ? 'Editar Pauta da Agenda' : 'Nova Pauta da Agenda'}</DialogTitle>
+              <DialogTitle>{themeToEdit ? 'Editar Item da Agenda' : 'Novo Item da Agenda'}</DialogTitle>
               <DialogDescription>
-                {themeToEdit ? 'Altere as informações da pauta.' : 'Defina o tema, tags e objetivo da sua pauta estratégica.'}
+                {themeToEdit ? 'Altere as informações do item.' : 'Defina o tema, tags e objetivo do item da agenda.'}
               </DialogDescription>
             </div>
             {!themeToEdit && hasDraft() && (
@@ -426,7 +426,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                   {brands.length === 0 && (
                     <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
                       <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                      <span>Cadastre uma identidade antes de criar pautas</span>
+                      <span>Cadastre uma identidade antes de criar itens da agenda</span>
                     </p>
                   )}
                 </div>
@@ -469,7 +469,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Tags temáticas</Label>
-                  <p className="text-xs text-muted-foreground">Selecione os temas macro desta pauta</p>
+                  <p className="text-xs text-muted-foreground">Selecione os temas macro desta agenda</p>
                   <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto p-2 rounded-lg border border-border/50 bg-muted/20">
                     {PREDEFINED_TAGS.map(tag => (
                       <button
@@ -625,7 +625,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="objectives">Objetivos detalhados</Label>
-                  <Textarea id="objectives" value={formData.objectives} onChange={handleInputChange} placeholder="Objetivos específicos desta pauta" />
+                  <Textarea id="objectives" value={formData.objectives} onChange={handleInputChange} placeholder="Objetivos específicos desta agenda" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="platforms">Plataformas</Label>
@@ -683,7 +683,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
               <div className="bg-muted/30 border border-border/50 rounded-xl p-4">
                 <h3 className="font-semibold text-foreground mb-1">O que aconteceu nos últimos dias sobre esse tema?</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  A IA analisa sinais recentes — notícias, dados públicos, releases e rumores — para embasar sua pauta com informações atualizadas.
+                  A IA analisa sinais recentes — notícias, dados públicos, releases e rumores — para embasar sua agenda com informações atualizadas.
                 </p>
                 <Button
                   type="button"
@@ -782,7 +782,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 {themeToEdit ? 'Atualizando...' : 'Criando...'}
               </span>
             ) : (
-              themeToEdit ? 'Atualizar' : 'Criar Pauta'
+              themeToEdit ? 'Atualizar' : 'Criar Item'
             )}
           </Button>
         </DialogFooter>
