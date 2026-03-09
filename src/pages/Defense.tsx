@@ -233,7 +233,7 @@ export default function Defense() {
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb items={[{ label: "Defesa & Crise" }]} />
+      <PageBreadcrumb items={[{ label: "Radar de Imagem" }]} />
 
       {/* Banner */}
       <div className="relative rounded-2xl overflow-hidden h-40 md:h-52">
