@@ -625,7 +625,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="objectives">Objetivos detalhados</Label>
-                  <Textarea id="objectives" value={formData.objectives} onChange={handleInputChange} placeholder="Objetivos específicos desta pauta" />
+                  <Textarea id="objectives" value={formData.objectives} onChange={handleInputChange} placeholder="Objetivos específicos desta agenda" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="platforms">Plataformas</Label>
