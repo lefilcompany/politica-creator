@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import ThemeDialog from '@/components/temas/ThemeDialog';
+import themesBanner from '@/assets/themes-banner.jpg';
 import type { StrategicTheme } from '@/types/theme';
 import type { BrandSummary } from '@/types/brand';
 import {
