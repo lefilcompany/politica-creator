@@ -782,7 +782,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 {themeToEdit ? 'Atualizando...' : 'Criando...'}
               </span>
             ) : (
-              themeToEdit ? 'Atualizar' : 'Criar Pauta'
+              themeToEdit ? 'Atualizar' : 'Criar Item'
             )}
           </Button>
         </DialogFooter>
