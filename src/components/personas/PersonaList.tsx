@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Users, Search, List, LayoutGrid, X, ChevronDown, ChevronRight, Filter } from 'lucide-react';
+import { Users, Search, List, LayoutGrid, X, ChevronDown, ChevronRight, Filter, MapPin, Target, Briefcase } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -80,26 +80,62 @@ function PersonaCard({ persona, brandInfo, onSelect }: { persona: PersonaSummary
   return (
     <div
       onClick={onSelect}
-      className="cursor-pointer bg-card rounded-2xl overflow-hidden transition-all duration-300 group border border-border/30 hover:shadow-lg hover:scale-[1.01] hover:border-border/60 shadow-sm flex"
+      className="cursor-pointer bg-card rounded-2xl overflow-hidden transition-all duration-300 group border border-border/30 hover:shadow-lg hover:scale-[1.01] hover:border-border/60 shadow-md"
     >
-      <div className="w-1.5 flex-shrink-0 rounded-l-2xl transition-all duration-300 group-hover:w-2" style={{ backgroundColor: color }} />
-      
-      <div className="p-4 space-y-3 flex-1 min-w-0">
+      {/* Top color bar */}
+      <div className="h-1.5 w-full" style={{ backgroundColor: color }} />
+
+      <div className="p-5 space-y-4">
+        {/* Avatar + Name */}
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
             style={{ backgroundColor: color }}
           >
             {persona.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="font-semibold text-foreground truncate block text-sm">{persona.name}</span>
+            <span className="font-semibold text-foreground truncate block text-sm leading-tight">{persona.name}</span>
+            {persona.age && persona.gender && (
+              <span className="text-xs text-muted-foreground mt-0.5 block">
+                {persona.gender}, {persona.age}
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-border/20">
-          <span className="text-xs text-muted-foreground/70">
+        {/* Info rows */}
+        <div className="space-y-2">
+          {persona.location && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60" />
+              <span className="truncate">{persona.location}</span>
+            </div>
+          )}
+          {persona.professionalContext && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Briefcase className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60" />
+              <span className="truncate">{persona.professionalContext}</span>
+            </div>
+          )}
+          {persona.mainGoal && (
+            <div className="flex items-start gap-2 text-xs text-muted-foreground">
+              <Target className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60 mt-0.5" />
+              <span className="line-clamp-2">{persona.mainGoal}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-3 border-t border-border/20">
+          <span className="text-[11px] text-muted-foreground/60">
             {formatDate(persona.createdAt)}
+          </span>
+          <span
+            className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: `${color}15`, color }}
+          >
+            {brandInfo?.name}
           </span>
         </div>
       </div>

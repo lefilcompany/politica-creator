@@ -275,7 +275,7 @@ export default function CreateContent() {
             .order('created_at', { ascending: false }),
           supabase
             .from('personas')
-            .select('id, brand_id, name, created_at')
+            .select('id, brand_id, name, created_at, age, gender, location, main_goal, professional_context')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
         ]);
@@ -337,6 +337,11 @@ export default function CreateContent() {
           brandId: persona.brand_id,
           name: persona.name,
           createdAt: persona.created_at,
+          age: persona.age,
+          gender: persona.gender,
+          location: persona.location,
+          mainGoal: persona.main_goal,
+          professionalContext: persona.professional_context,
         }));
 
         // Atualizar todos os estados de uma vez para evitar múltiplas renderizações
