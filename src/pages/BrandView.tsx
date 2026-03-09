@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Pencil } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, Info, Palette, Pencil } from 'lucide-react';
 import { BrandVisualIdentity } from '@/components/marcas/BrandVisualIdentity';
 import { BrandAvatarEditor } from '@/components/marcas/BrandAvatarEditor';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
