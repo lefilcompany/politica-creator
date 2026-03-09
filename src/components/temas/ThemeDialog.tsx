@@ -683,7 +683,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
               <div className="bg-muted/30 border border-border/50 rounded-xl p-4">
                 <h3 className="font-semibold text-foreground mb-1">O que aconteceu nos últimos dias sobre esse tema?</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  A IA analisa sinais recentes — notícias, dados públicos, releases e rumores — para embasar sua pauta com informações atualizadas.
+                  A IA analisa sinais recentes — notícias, dados públicos, releases e rumores — para embasar sua agenda com informações atualizadas.
                 </p>
                 <Button
                   type="button"
