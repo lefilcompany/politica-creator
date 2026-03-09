@@ -1165,17 +1165,17 @@ export default function CreateImage() {
                     </div>
                   )}
 
-                  {/* Pauta Estratégica */}
+                  {/* Agenda */}
                   {isLoadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
                       <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                        Pauta Estratégica <span className="text-muted-foreground font-normal text-xs">(preenche tom e plataforma)</span>
+                        Agenda <span className="text-muted-foreground font-normal text-xs">(preenche tom e plataforma)</span>
                       </Label>
                       <NativeSelect
                         value={formData.theme}
                         onValueChange={(value) => handleSelectChange("theme", value)}
                         options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredThemes.length === 0 ? "Nenhuma pauta disponível" : "Selecione uma pauta"}
+                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione uma agenda"}
                         disabled={!formData.brand || filteredThemes.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
