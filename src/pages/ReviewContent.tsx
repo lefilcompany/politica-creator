@@ -111,6 +111,13 @@ const ReviewContent = () => {
     setTheme("");
   };
 
+  // Auto-select single brand
+  useEffect(() => {
+    if (!isLoadingBrands && brands.length > 0 && !brand) {
+      setBrand(brands[0].id);
+    }
+  }, [isLoadingBrands, brands, brand]);
+
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
