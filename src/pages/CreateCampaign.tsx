@@ -211,10 +211,10 @@ export default function CreateCampaign() {
             )}
           </div>
 
-          {/* Pauta + Audiência */}
+          {/* Agenda + Audiência */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Pauta Estratégica</Label>
+              <Label className="text-sm font-medium">Agenda</Label>
               <NativeSelect
                 options={themeOptions}
                 placeholder="Opcional"
