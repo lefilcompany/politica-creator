@@ -281,7 +281,7 @@ const PlanResult = () => {
             className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary hover:border-primary"
           >
             <ArrowLeft className="h-4 w-4" />
-            Criar Novo Planejamento
+            Criar Novo Calendário
           </Button>
 
           <div className="flex flex-wrap gap-2">
@@ -338,7 +338,7 @@ const PlanResult = () => {
               </div>
               <div>
                 <CardTitle className="text-2xl sm:text-3xl">
-                  Planejamento de Conteúdo
+                   Calendário de Conteúdo
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   Gerado em {new Date().toLocaleDateString('pt-BR', { 

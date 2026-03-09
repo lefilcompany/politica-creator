@@ -257,7 +257,7 @@ const PlanContent = () => {
           {
             tourType: 'plan_content',
             steps: planContentSteps,
-            label: 'Tour de Planejar Conteúdo',
+            label: 'Tour do Calendário de Conteúdo',
             targetElement: '#plan-header'
           }
         ]}
@@ -267,12 +267,12 @@ const PlanContent = () => {
       {/* Banner */}
       <div className="relative w-full h-48 md:h-64 lg:h-72 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
-          items={[{ label: "Planejar Conteúdo" }]}
+          items={[{ label: "Calendário de Conteúdo" }]}
           variant="overlay"
         />
         <img
           src={planBanner}
-          alt="Planejar Conteúdo"
+          alt="Calendário de Conteúdo"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
@@ -290,9 +290,9 @@ const PlanContent = () => {
               <Calendar className="h-8 w-8 lg:h-10 lg:w-10" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Planejar Conteúdo</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Calendário de Conteúdo</h1>
               <p className="text-sm lg:text-base text-muted-foreground">
-                Preencha os campos para gerar seu planejamento de posts
+                Preencha os campos para gerar seu calendário de conteúdo
               </p>
             </div>
           </div>
@@ -333,7 +333,7 @@ const PlanContent = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                 <div id="plan-brand-field" className="space-y-1.5">
                   <Label htmlFor="brand" className="text-sm font-bold text-foreground">
-                    Marca <span className="text-destructive">*</span>
+                    Identidade <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
@@ -343,15 +343,15 @@ const PlanContent = () => {
                         value={formData.brand}
                         onValueChange={handleBrandChange}
                         options={brands.map((brand) => ({ value: brand.id, label: brand.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
+                        placeholder={brands.length === 0 ? "Nenhuma identidade cadastrada" : "Nenhuma identidade selecionada"}
                         disabled={brands.length === 0}
                         triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                          {brands.length === 0 
-                          ? <span>Cadastre uma marca antes de planejar conteúdo</span>
-                          : <span>O planejamento será baseado na identidade e diretrizes dessa marca</span>
+                          ? <span>Cadastre uma identidade antes de criar o calendário</span>
+                          : <span>O calendário será baseado na identidade e diretrizes selecionadas</span>
                         }
                       </p>
                     </>
@@ -380,7 +380,7 @@ const PlanContent = () => {
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>O planejamento será adaptado ao formato e linguagem da plataforma escolhida</span>
+                        <span>O calendário será adaptado ao formato e linguagem da plataforma escolhida</span>
                       </p>
                     </>
                   )}
@@ -388,7 +388,7 @@ const PlanContent = () => {
 
                 <div id="plan-themes-field" className="space-y-1.5">
                   <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                    Tema Estratégico <span className="text-destructive">*</span>
+                    Agenda <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
@@ -401,13 +401,13 @@ const PlanContent = () => {
                         options={filteredThemes
                           .filter((t) => !formData.theme.includes(t.id))
                           .map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : formData.theme.length > 0 ? "Adicionar mais temas..." : "Adicionar tema estratégico"}
+                        placeholder={!formData.brand ? "Selecione uma identidade primeiro" : formData.theme.length > 0 ? "Adicionar mais itens..." : "Adicionar item da agenda"}
                         disabled={!formData.brand || filteredThemes.filter((t) => !formData.theme.includes(t.id)).length === 0}
                         triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors disabled:opacity-50"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>O planejamento seguirá o tom de voz, público-alvo e objetivos do tema selecionado</span>
+                        <span>O calendário seguirá o tom de voz, público-alvo e objetivos da agenda selecionada</span>
                       </p>
                     </>
                   )}
@@ -486,7 +486,7 @@ const PlanContent = () => {
                   />
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Descreva o que você espera alcançar com esse planejamento</span>
+                    <span>Descreva o que você espera alcançar com esse calendário</span>
                   </p>
                 </div>
                 <div id="plan-additional-info-field" className="space-y-1.5">
@@ -502,7 +502,7 @@ const PlanContent = () => {
                   />
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Contexto extra ajuda a IA a criar um planejamento mais preciso e direcionado</span>
+                    <span>Contexto extra ajuda a IA a criar um calendário mais preciso e direcionado</span>
                   </p>
                 </div>
               </div>
@@ -533,7 +533,7 @@ const PlanContent = () => {
                   ) : (
                     <>
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>Gerar Planejamento</span>
+                      <span>Gerar Calendário</span>
                       <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1 text-xs">
                         <Coins className="h-3 w-3" />
                         {CREDIT_COSTS.CONTENT_PLAN}
