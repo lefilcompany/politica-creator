@@ -485,7 +485,7 @@ export default function BrandView() {
           <div className="lg:col-span-2 space-y-6">
             <SectionCard title="Informações Gerais" icon={<Tag className="h-4 w-4" />} accentColor={brandColor}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <EditableField label="Nome da Marca" value={formData.name || ''} onChange={(v) => updateField('name', v)} type="input" />
+                <EditableField label="Nome do Candidato" value={formData.name || ''} onChange={(v) => updateField('name', v)} type="input" />
                 <EditableField label="Responsável" value={formData.responsible || ''} onChange={(v) => updateField('responsible', v)} type="input" />
                 <EditableField label="Segmento" value={formData.segment || ''} onChange={(v) => updateField('segment', v)} />
                 <EditableField label="Promessa Única" value={formData.promise || ''} onChange={(v) => updateField('promise', v)} />
