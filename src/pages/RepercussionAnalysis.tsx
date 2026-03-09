@@ -24,6 +24,13 @@ export default function RepercussionAnalysis() {
   const [content, setContent] = useState(location.state?.content || "");
   const [brandId, setBrandId] = useState(location.state?.brandId || "");
   const [context, setContext] = useState("");
+
+  // Auto-select single brand
+  React.useEffect(() => {
+    if (brands && brands.length > 0 && !brandId) {
+      setBrandId(brands[0].id);
+    }
+  }, [brands, brandId]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showCreditDialog, setShowCreditDialog] = useState(false);
 
