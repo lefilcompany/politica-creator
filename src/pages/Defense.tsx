@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Search, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink, Newspaper, Siren, Radio } from "lucide-react";
+import { Shield, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink, Newspaper, Siren, Radio } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -137,11 +137,8 @@ export default function Defense() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Monitor state
-  const [monitorKeywords, setMonitorKeywords] = useState("");
-  const [monitorLoading, setMonitorLoading] = useState(false);
-  const [monitorResults, setMonitorResults] = useState<MonitorResult[] | null>(null);
-  const [showMonitorConfirm, setShowMonitorConfirm] = useState(false);
+
+
 
   // Respond state
   const [fakeNewsText, setFakeNewsText] = useState("");
@@ -168,23 +165,8 @@ export default function Defense() {
     toast({ title: "Copiado!", description: "Texto copiado para a área de transferência" });
   };
 
-  // Monitor handler
-  const handleMonitor = async () => {
-    setMonitorLoading(true);
-    setMonitorResults(null);
-    try {
-      const { data, error } = await supabase.functions.invoke('fake-news-monitor', {
-        body: { keywords: monitorKeywords }
-      });
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
-      setMonitorResults(data.results);
-    } catch (e: any) {
-      toast({ title: "Erro", description: e.message || "Falha ao monitorar", variant: "destructive" });
-    } finally {
-      setMonitorLoading(false);
-    }
-  };
+
+
 
   // Respond handler
   const handleRespond = async () => {
@@ -251,16 +233,16 @@ export default function Defense() {
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb items={[{ label: "Defesa & Crise" }]} />
+      <PageBreadcrumb items={[{ label: "Radar de Imagem" }]} />
 
       {/* Banner */}
       <div className="relative rounded-2xl overflow-hidden h-40 md:h-52">
-        <img src={defenseBanner} alt="Defesa & Crise" className="w-full h-full object-cover" />
+        <img src={defenseBanner} alt="Radar de Imagem" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30 flex items-center px-8">
           <div className="flex items-center gap-4">
             <Shield className="h-10 w-10 text-white" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">Defesa & Crise</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-white">Radar de Imagem</h1>
               <p className="text-white/80 text-sm md:text-base">Monitore, responda, verifique e gerencie crises</p>
             </div>
           </div>
@@ -268,12 +250,8 @@ export default function Defense() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="monitor" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/60 p-1.5 rounded-lg shadow-inner">
-          <TabsTrigger value="monitor" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
-            <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">Monitorar</span>
-          </TabsTrigger>
+      <Tabs defaultValue="respond" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/60 p-1.5 rounded-lg shadow-inner">
           <TabsTrigger value="respond" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
             <MessageSquareReply className="h-4 w-4" />
             <span className="hidden sm:inline">Responder</span>
@@ -288,83 +266,8 @@ export default function Defense() {
           </TabsTrigger>
         </TabsList>
 
-        {/* TAB: MONITOR */}
-        <TabsContent value="monitor" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Search className="h-5 w-5 text-primary" />
-                Radar de Notícias
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Busque por menções falsas ou ataques relacionados ao seu perfil político. Custo: {CREDIT_COSTS.FAKE_NEWS_MONITOR} créditos.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                placeholder="Termos de busca (ex: nome do político, partido, tema sensível...)"
-                value={monitorKeywords}
-                onChange={(e) => setMonitorKeywords(e.target.value)}
-                maxLength={200}
-              />
-              <Button
-                onClick={() => setShowMonitorConfirm(true)}
-                disabled={monitorLoading || !monitorKeywords.trim()}
-                className="w-full sm:w-auto"
-              >
-                {monitorLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Buscando...</> : "Buscar Menções"}
-              </Button>
-            </CardContent>
-          </Card>
 
-          {monitorResults && (
-            <div className="space-y-3">
-              {monitorResults.length === 0 ? (
-                <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma menção encontrada.</CardContent></Card>
-              ) : monitorResults.map((r, i) => (
-                <Card key={i} className={`border-l-4 ${urgencyColors[r.urgency]}`}>
-                  <CardContent className="pt-4 space-y-2">
-                    <div className="flex items-start justify-between gap-2 flex-wrap">
-                      <h3 className="font-semibold">{r.title}</h3>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <Badge className={classificationLabels[r.classification]?.color}>
-                          {classificationLabels[r.classification]?.label}
-                        </Badge>
-                        <Badge variant="outline">Urgência: {r.urgency}</Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{r.summary}</p>
-                    <p className="text-sm"><strong>Ação sugerida:</strong> {r.suggestedAction}</p>
-                    {(r.source || r.url) && (
-                      <div className="flex items-center gap-2 pt-1 border-t border-border mt-2">
-                        <Newspaper className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground">
-                          Fonte: <strong>{r.source || 'Não identificada'}</strong>
-                          {r.publishedAt && <> · {new Date(r.publishedAt).toLocaleDateString('pt-BR')}</>}
-                        </span>
-                        {r.url && (
-                          <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 ml-auto">
-                            Ver notícia <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
 
-          <CreditConfirmationDialog
-            isOpen={showMonitorConfirm}
-            onOpenChange={setShowMonitorConfirm}
-            cost={CREDIT_COSTS.FAKE_NEWS_MONITOR}
-            currentBalance={currentCredits}
-            resourceType="busca"
-            title="Buscar Menções?"
-            onConfirm={() => { setShowMonitorConfirm(false); handleMonitor(); }}
-          />
-        </TabsContent>
 
         {/* TAB: RESPOND */}
         <TabsContent value="respond" className="space-y-4 mt-4">
