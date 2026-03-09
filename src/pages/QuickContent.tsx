@@ -435,8 +435,8 @@ export default function QuickContent() {
                         value={formData.personaId}
                         onValueChange={value => setFormData({ ...formData, personaId: value })}
                         options={filteredPersonas.map(persona => ({ value: persona.id, label: persona.name }))}
-                        placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona cadastrada para esta marca" : "Nenhuma persona selecionada"}
-                        disabled={!formData.brandId || filteredPersonas.length === 0}
+                        placeholder={filteredPersonas.length === 0 ? "Nenhuma persona cadastrada" : "Nenhuma persona selecionada"}
+                        disabled={filteredPersonas.length === 0}
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
