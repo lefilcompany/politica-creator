@@ -272,7 +272,11 @@ export default function Defense() {
 
       {/* Tabs */}
       <Tabs defaultValue="respond" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/60 p-1.5 rounded-lg shadow-inner">
+        <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/60 p-1.5 rounded-lg shadow-inner">
+          <TabsTrigger value="monitor" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
+            <Radio className="h-4 w-4" />
+            <span className="hidden sm:inline">Monitorar</span>
+          </TabsTrigger>
           <TabsTrigger value="respond" className="flex items-center gap-2 text-xs sm:text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200">
             <MessageSquareReply className="h-4 w-4" />
             <span className="hidden sm:inline">Responder</span>
