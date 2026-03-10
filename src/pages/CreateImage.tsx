@@ -493,7 +493,7 @@ export default function CreateImage() {
     if (!formData.objective) missing.push('objective');
     
     if (!formData.description) missing.push('description');
-    if (formData.tone.length === 0) missing.push('tone');
+    
     // Imagens de referência são opcionais
     setMissingFields(missing);
     return missing.length === 0;
