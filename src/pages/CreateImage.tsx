@@ -475,17 +475,13 @@ export default function CreateImage() {
   };
 
   const isFormValid = useMemo(() => {
-    return (
+    return !!(
       formData.objective &&
-      formData.platform &&
-      formData.description &&
-      formData.tone.length > 0
+      formData.description
     );
   }, [
     formData.objective,
-    formData.platform,
     formData.description,
-    formData.tone.length,
   ]);
 
   const validateForm = () => {
