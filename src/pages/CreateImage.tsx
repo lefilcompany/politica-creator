@@ -491,7 +491,7 @@ export default function CreateImage() {
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.objective) missing.push('objective');
-    if (!formData.platform) missing.push('platform');
+    
     if (!formData.description) missing.push('description');
     if (formData.tone.length === 0) missing.push('tone');
     // Imagens de referência são opcionais
