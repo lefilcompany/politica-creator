@@ -333,9 +333,13 @@ export default function MarcasPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           {/* Column 1 */}
           <div className="space-y-4">
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label htmlFor="name">{t.brands.brandName}</Label>
               <Input id="name" value={formData.name} onChange={handleInputChange} placeholder={t.brands.placeholders.name} className="h-9" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="values">{t.brands.values}</Label>
+              <Textarea id="values" value={formData.values} onChange={handleInputChange} placeholder={t.brands.placeholders.values} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="successMetrics">{t.brands.successMetrics}</Label>
