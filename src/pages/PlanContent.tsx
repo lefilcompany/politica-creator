@@ -491,7 +491,7 @@ const PlanContent = () => {
                     </>
                   )}
                 </Button>
-                {(!formData.brand || formData.theme.length === 0 || !formData.platform || !formData.objective) && (
+                {(!formData.brand || formData.theme.length === 0 || !formData.objective) && (
                   <div className="text-center bg-muted/30 p-2.5 rounded-lg border border-border/30 w-full max-w-lg">
                     <p className="text-xs text-muted-foreground">
                       Preencha todos os campos obrigatórios (*) para continuar

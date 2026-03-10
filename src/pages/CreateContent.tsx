@@ -1484,7 +1484,7 @@ ${formData.description}
                     htmlFor="platform"
                     className="text-xs md:text-sm font-semibold text-foreground"
                   >
-                    Plataforma <span className="text-destructive">*</span>
+                    Plataforma
                   </Label>
                   <NativeSelect
                     value={formData.platform}

@@ -1192,7 +1192,7 @@ export default function CreateImage() {
                   {/* Plataforma */}
                   <div className="space-y-1.5">
                     <Label htmlFor="platform" className="text-sm font-bold text-foreground">
-                      Plataforma <span className="text-destructive">*</span>
+                      Plataforma
                       {formData.platform && (
                         <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4">
                           {recommendedAspectRatio || 'auto'}
