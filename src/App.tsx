@@ -140,8 +140,6 @@ const App = () => (
                         <Route path="create/animate" element={<SuspenseRoute><AnimateImage /></SuspenseRoute>} />
                         <Route path="result" element={<SuspenseRoute><ContentResult /></SuspenseRoute>} />
                         <Route path="video-result" element={<SuspenseRoute><VideoResult /></SuspenseRoute>} />
-                        <Route path="review" element={<SuspenseRoute><ReviewContent /></SuspenseRoute>} />
-                        <Route path="review-result" element={<SuspenseRoute><ReviewResult /></SuspenseRoute>} />
                         <Route path="plan" element={<SuspenseRoute><PlanContent /></SuspenseRoute>} />
                         <Route path="plan-result" element={<SuspenseRoute><PlanResult /></SuspenseRoute>} />
                         <Route path="quick-content" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />

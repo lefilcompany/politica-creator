@@ -18,14 +18,6 @@ const actions = [
     iconColor: "text-primary"
   },
   {
-    title: "Revisar Material",
-    description: "Análise e feedback",
-    icon: CheckCircle,
-    link: "/review",
-    gradient: "from-success/12 to-success/4",
-    iconColor: "text-success"
-  },
-  {
     title: "Planejar Campanha",
     description: "Organize a comunicação",
     icon: CalendarDays,
