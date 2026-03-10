@@ -299,17 +299,17 @@ export default function TextResult() {
                         alt="Imagem gerada"
                         className="w-full h-auto rounded-xl"
                       />
-                      <div className="absolute top-2 right-2 flex gap-1.5">
+                      <div className="absolute top-2 right-2">
                         <Button
-                          variant="secondary"
+                          variant="default"
                           size="sm"
-                          className="h-8 gap-1.5 text-xs shadow-md bg-background/90 backdrop-blur-sm"
+                          className="h-9 gap-2 text-xs font-semibold shadow-lg backdrop-blur-md bg-primary/90 hover:bg-primary text-primary-foreground rounded-xl px-4 transition-all duration-200 hover:scale-105 hover:shadow-xl"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDownloadImage(generated.imageUrl);
                           }}
                         >
-                          <Download className="h-3.5 w-3.5" /> Baixar
+                          <Download className="h-4 w-4" /> Baixar imagem
                         </Button>
                       </div>
                       <div className="absolute bottom-2 left-2">
