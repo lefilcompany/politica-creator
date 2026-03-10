@@ -1155,22 +1155,6 @@ export default function CreateImage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Brand auto-selected */}
 
-                  {/* Agenda */}
-                  {isLoadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                        Agenda <span className="text-muted-foreground font-normal text-xs">(preenche tom e plataforma)</span>
-                      </Label>
-                      <NativeSelect
-                        value={formData.theme}
-                        onValueChange={(value) => handleSelectChange("theme", value)}
-                        options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
-                        placeholder={filteredThemes.length === 0 ? "Nenhuma agenda disponível" : "Selecione uma agenda"}
-                        disabled={filteredThemes.length === 0}
-                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                      />
-                    </div>
-                  )}
 
                   {/* Audiência / Persona */}
                   {isLoadingData ? <SelectSkeleton /> : (
