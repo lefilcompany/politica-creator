@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,276 +14,193 @@ const corsHeaders = {
 
 function cleanInput(text: string | string[] | undefined | null): string {
   if (!text) return "";
-  
   if (Array.isArray(text)) {
-    return text
-      .map(item => String(item || ""))
-      .join(", ")
-      .replace(/[^\w\sÀ-ÿ,.-]/gi, "")
-      .trim();
+    return text.map(item => String(item || "")).join(", ").replace(/[^\w\sÀ-ÿ,.-]/gi, "").trim();
   }
-  
-  return String(text)
-    .replace(/[^\w\sÀ-ÿ,.-]/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return String(text).replace(/[^\w\sÀ-ÿ,.-]/gi, "").replace(/\s+/g, " ").trim();
 }
 
-function buildCaptionPrompt(formData: any): string {
-  const brandName = cleanInput(formData.brand);
-  const themeName = cleanInput(formData.theme);
-  const platform = cleanInput(formData.platform);
-  const objective = cleanInput(formData.objective);
-  const imageDescription = cleanInput(formData.imageDescription);
-  const audience = cleanInput(formData.audience);
-  const toneOfVoice = Array.isArray(formData.tone) 
-    ? formData.tone.map((t: any) => cleanInput(t)).join(", ")
-    : cleanInput(formData.tone);
-  const personaDescription = cleanInput(formData.persona);
-  const additionalInfo = cleanInput(formData.additionalInfo);
+// =====================================
+// PLATFORM SPECS
+// =====================================
+const PLATFORM_SPECS: Record<string, { maxChars: number; recommendedChars: number; hashtagRange: string; tips: string }> = {
+  Instagram: {
+    maxChars: 2200,
+    recommendedChars: 1300,
+    hashtagRange: "8-12 hashtags (mix nicho + médio alcance)",
+    tips: "Hook impactante nos primeiros 125 chars. Storytelling. Quebras de linha. Máximo 5 emojis. CTA claro (Salve, Compartilhe, Comente).",
+  },
+  Facebook: {
+    maxChars: 63206,
+    recommendedChars: 250,
+    hashtagRange: "1-3 hashtags",
+    tips: "Textos curtos performam melhor. Primeiro parágrafo cativante. Ideal para links diretos.",
+  },
+  LinkedIn: {
+    maxChars: 3000,
+    recommendedChars: 1500,
+    hashtagRange: "3-5 hashtags profissionais",
+    tips: "Textos longos são valorizados. Storytelling profissional. Emojis com moderação (💡🚀✅).",
+  },
+  TikTok: {
+    maxChars: 2200,
+    recommendedChars: 150,
+    hashtagRange: "3-5 hashtags (tendências + nicho)",
+    tips: "SEO crítico: palavras-chave. Tom informal e direto. Incentive engajamento rápido.",
+  },
+  "Twitter/X": {
+    maxChars: 280,
+    recommendedChars: 280,
+    hashtagRange: "1-2 hashtags",
+    tips: "Concisão é fundamental. Perguntas e enquetes. Marque perfis para interação.",
+  },
+  Comunidades: {
+    maxChars: 5000,
+    recommendedChars: 800,
+    hashtagRange: "2-4 hashtags",
+    tips: "Seja autêntico. Perguntas abertas. Entregue valor. CTA sutil.",
+  },
+};
 
-  // Validar campos obrigatórios (marca é opcional)
-  if (!platform || !objective || !imageDescription) {
-    throw new Error("Campos obrigatórios faltando: plataforma, objetivo e descrição da imagem");
-  }
+// =====================================
+// FETCH ENRICHMENT DATA
+// =====================================
+async function fetchBrandContext(supabase: any, brandId: string): Promise<string> {
+  if (!brandId) return '';
+  const { data } = await supabase
+    .from('brands')
+    .select('name, segment, values, keywords, goals, promise, restrictions')
+    .eq('id', brandId)
+    .single();
+  if (!data) return '';
+  const parts = [`Marca: "${data.name}"`, `Segmento: ${data.segment || 'N/A'}`];
+  if (data.values) parts.push(`Valores: ${data.values}`);
+  if (data.keywords) parts.push(`Palavras-chave: ${data.keywords}`);
+  if (data.goals) parts.push(`Objetivos: ${data.goals}`);
+  if (data.promise) parts.push(`Promessa: ${data.promise}`);
+  if (data.restrictions) parts.push(`Restrições: ${data.restrictions}`);
+  return parts.join(' | ');
+}
 
-  // Mapear tipo de conteúdo (orgânico vs anúncios)
-  const contentType = cleanInput(formData.contentType) || "organic";
-  
-  const platformInstructions: Record<string, any> = {
-    Instagram: {
-      organic: {
-        maxChars: 2200,
-        recommendedChars: 1300,
-        hookChars: 125,
-        hashtags: { min: 5, max: 15, strategy: "Mix de nicho + médio alcance + populares" },
-        tips: [
-          "Hook inicial impactante nos primeiros 125 caracteres",
-          "Use storytelling para engajar",
-          "Quebras de linha entre parágrafos principais",
-          "Máximo 5 emojis em toda a legenda",
-          "Inclua CTA claro (Salve, Compartilhe, Comente)"
-        ]
-      },
-      ads: {
-        maxChars: 2200,
-        recommendedChars: 150,
-        tips: [
-          "Mensagem direta e clara sobre a oferta",
-          "Primeiras 3 linhas são críticas",
-          "Use botão de CTA nativo (Saiba Mais, Comprar Agora)",
-          "Evite texto excessivo na imagem"
-        ]
-      }
-    },
-    Facebook: {
-      organic: {
-        maxChars: 63206,
-        recommendedChars: 250,
-        hashtags: { min: 1, max: 3, strategy: "Hashtags menos importantes, foque em texto" },
-        tips: [
-          "Textos curtos (até 250 caracteres) performam melhor",
-          "Use quebras de linha e emojis para facilitar leitura",
-          "Ideal para compartilhar links diretos",
-          "Primeiro parágrafo deve ser cativante"
-        ]
-      },
-      ads: {
-        maxChars: 125,
-        recommendedChars: 125,
-        tips: [
-          "Título entre 25-40 caracteres",
-          "Texto principal até 125 caracteres para evitar cortes",
-          "Descrição do link com ~30 caracteres",
-          "Teste diferentes combinações de imagem e texto"
-        ]
-      }
-    },
-    LinkedIn: {
-      organic: {
-        maxChars: 3000,
-        recommendedChars: 1500,
-        hashtags: { min: 3, max: 5, strategy: "Hashtags profissionais e de nicho" },
-        tips: [
-          "Textos longos e elaborados são valorizados",
-          "Conte histórias profissionais e compartilhe aprendizados",
-          "Use quebras de linha para criar 'respiros'",
-          "Emojis profissionais com moderação (💡, 🚀, ✅)"
-        ]
-      },
-      ads: {
-        maxChars: 600,
-        recommendedChars: 150,
-        tips: [
-          "Texto introdutório até 150 caracteres recomendado",
-          "Título do anúncio: 70 caracteres para melhor visualização",
-          "Use CTAs pré-definidos (Saiba mais, Inscreva-se)"
-        ]
-      }
-    },
-    TikTok: {
-      organic: {
-        maxChars: 2200,
-        recommendedChars: 150,
-        hashtags: { min: 3, max: 5, strategy: "Tendências + nicho + específico" },
-        tips: [
-          "SEO é CRÍTICO: use palavras-chave que descrevam o vídeo",
-          "Hashtags essenciais para alcance",
-          "Tom informal e direto",
-          "Incentive engajamento rápido (Ex: Você sabia disso? Comenta aí!)"
-        ]
-      },
-      ads: {
-        maxChars: 100,
-        recommendedChars: 100,
-        tips: [
-          "Limite de 100 caracteres",
-          "Comunicação principal deve estar no vídeo",
-          "Legenda como apoio pequeno",
-          "Pareça conteúdo nativo, não anúncio"
-        ]
-      }
-    },
-    "Twitter/X": {
-      organic: {
-        maxChars: 280,
-        recommendedChars: 280,
-        hashtags: { min: 1, max: 2, strategy: "1-2 hashtags para conversas relevantes" },
-        tips: [
-          "Concisão é fundamental",
-          "Vá direto ao ponto",
-          "Faça perguntas e crie enquetes",
-          "Marque outros perfis (@) para gerar interação"
-        ]
-      },
-      ads: {
-        maxChars: 280,
-        tips: [
-          "Tweet: 280 caracteres",
-          "Título do Card: 70 caracteres (cortado após 50)",
-          "Descrição: 200 caracteres (não aparece em todos os lugares)"
-        ]
-      }
-    },
-    Comunidades: {
-      organic: {
-        maxChars: 5000,
-        tips: [
-          "Seja autêntico - fale como um membro, não como marca",
-          "Faça perguntas abertas para gerar conversa",
-          "Entregue valor primeiro sem pedir nada em troca",
-          "Respeite as regras sobre autopromoção",
-          "CTA sutil: 'O que vocês acham?', 'Alguém já passou por isso?'"
-        ]
-      }
-    }
-  };
+async function fetchThemeContext(supabase: any, themeId: string): Promise<string> {
+  if (!themeId) return '';
+  const { data } = await supabase
+    .from('strategic_themes')
+    .select('title, description, tone_of_voice, target_audience, objectives, macro_themes, hashtags, expected_action')
+    .eq('id', themeId)
+    .single();
+  if (!data) return '';
+  const parts = [`Pauta: "${data.title}"`, `Descrição: ${data.description || 'N/A'}`];
+  if (data.objectives) parts.push(`Objetivos: ${data.objectives}`);
+  if (data.target_audience) parts.push(`Público: ${data.target_audience}`);
+  if (data.tone_of_voice) parts.push(`Tom: ${data.tone_of_voice}`);
+  if (data.macro_themes) parts.push(`Macro-temas: ${data.macro_themes}`);
+  if (data.expected_action) parts.push(`Ação esperada: ${data.expected_action}`);
+  if (data.hashtags) parts.push(`Hashtags sugeridas: ${data.hashtags}`);
+  return parts.join(' | ');
+}
 
-  const platformData = platformInstructions[platform]?.[contentType] || platformInstructions[platform]?.organic || platformInstructions.Instagram.organic;
-  
-  let specificInstructions = `\n## Para ${platform} (${contentType === 'organic' ? 'Orgânico' : 'Anúncio'}):\n`;
-  specificInstructions += `### Especificações de Legenda:\n`;
-  
-  if (platformData.maxChars) {
-    specificInstructions += `- Limite máximo: ${platformData.maxChars} caracteres\n`;
-  }
-  if (platformData.recommendedChars) {
-    specificInstructions += `- Recomendado: ${platformData.recommendedChars} caracteres\n`;
-  }
-  if (platformData.hookChars) {
-    specificInstructions += `- Hook inicial: ${platformData.hookChars} caracteres (antes do "ver mais")\n`;
-  }
-  if (platformData.hashtags) {
-    specificInstructions += `- Hashtags: ${platformData.hashtags.min}-${platformData.hashtags.max} (${platformData.hashtags.strategy})\n`;
-  }
-  if (platformData.tips) {
-    specificInstructions += `\n### Dicas Importantes:\n`;
-    platformData.tips.forEach((tip: string) => {
-      specificInstructions += `- ${tip}\n`;
-    });
-  }
+async function fetchPersonaContext(supabase: any, personaId: string): Promise<string> {
+  if (!personaId) return '';
+  const { data } = await supabase
+    .from('personas')
+    .select('name, age, gender, location, professional_context, preferred_tone_of_voice, challenges, main_goal, interest_triggers')
+    .eq('id', personaId)
+    .single();
+  if (!data) return '';
+  const parts = [`Persona: "${data.name}"`, `${data.age || '?'} anos, ${data.gender || '?'}, ${data.location || '?'}`];
+  if (data.professional_context) parts.push(`Contexto: ${data.professional_context}`);
+  if (data.challenges) parts.push(`Desafios: ${data.challenges}`);
+  if (data.main_goal) parts.push(`Objetivo: ${data.main_goal}`);
+  if (data.interest_triggers) parts.push(`Gatilhos: ${data.interest_triggers}`);
+  if (data.preferred_tone_of_voice) parts.push(`Tom preferido: ${data.preferred_tone_of_voice}`);
+  return parts.join(' | ');
+}
 
-  return `
-# CONTEXTO ESTRATÉGICO
-- **Marca/Empresa**: ${brandName}
-- **Tema Central**: ${themeName || "Não especificado"}
-- **Plataforma de Publicação**: ${platform}
-- **Objetivo Estratégico**: ${objective}
-- **Descrição Visual da Imagem**: ${imageDescription}
-- **Público-Alvo**: ${audience || "Não especificado"}
-- **Persona Específica**: ${personaDescription || "Não especificada"}
-- **Tom de Voz/Comunicação**: ${toneOfVoice || "Não especificado"}
-- **Informações Complementares**: ${additionalInfo || "Não informado"}
+// =====================================
+// BUILD CAPTION PROMPT
+// =====================================
+function buildCaptionPrompt(params: {
+  platform: string;
+  objective: string;
+  imageDescription: string;
+  toneOfVoice: string;
+  contentType: string;
+  additionalInfo: string;
+  brandContext: string;
+  themeContext: string;
+  personaContext: string;
+  politicalContext: string;
+  promptContext: string;
+}): string {
+  const spec = PLATFORM_SPECS[params.platform] || PLATFORM_SPECS.Instagram;
 
-# SUA MISSÃO COMO COPYWRITER ESPECIALISTA
-Você é um copywriter especialista em redes sociais com mais de 10 anos de experiência criando conteúdos virais e de alto engajamento. Sua tarefa é criar uma legenda COMPLETA e ENVOLVENTE para a descrição da ${platform}, seguindo as melhores práticas de marketing digital, storytelling e copywriting.
+  return `Você é um Copywriter Político Sênior especializado em redes sociais, com expertise em comunicação política brasileira e marketing digital de alto impacto.
 
-# ESTRUTURA IDEAL DA LEGENDA (SIGA RIGOROSAMENTE)
+## DADOS DO CONTEÚDO
+- **Plataforma:** ${params.platform}
+- **Tipo:** ${params.contentType === 'ads' ? 'Anúncio pago' : 'Orgânico'}
+- **Objetivo estratégico:** ${params.objective || 'Engajamento'}
+- **Descrição visual da imagem:** ${params.imageDescription}
+- **Tom de voz solicitado:** ${params.toneOfVoice || 'profissional'}
+${params.additionalInfo ? `- **Informações adicionais:** ${params.additionalInfo}` : ''}
 
-## ABERTURA IMPACTANTE (1-2 linhas)
-- Hook que desperta curiosidade ou emoção
-- Pode ser uma pergunta, declaração ousada, ou estatística impressionante
-- Deve conectar diretamente com a imagem
+## CONTEXTO COMPLETO
+${params.brandContext ? `### MARCA\n${params.brandContext}` : ''}
+${params.themeContext ? `### PAUTA ESTRATÉGICA\n${params.themeContext}` : ''}
+${params.personaContext ? `### PERSONA/PÚBLICO-ALVO\n${params.personaContext}` : ''}
+${params.politicalContext ? `### PERFIL POLÍTICO\n${params.politicalContext}` : ''}
+${params.promptContext ? `### CONTEXTO DO FORMULÁRIO\n${params.promptContext}` : ''}
 
-## DESENVOLVIMENTO (2-4 parágrafos)
-- Conte uma história relacionada à imagem
-- Conecte com o objetivo e a persona
-- Use quebras de linha para facilitar leitura
-- Incorpore gatilhos emocionais
+## ESPECIFICAÇÕES DA PLATAFORMA (${params.platform})
+- Máximo: ${spec.maxChars} caracteres
+- Recomendado: ${spec.recommendedChars} caracteres
+- Hashtags: ${spec.hashtagRange}
+- Dicas: ${spec.tips}
 
-## CALL-TO-ACTION PODEROSO (1-2 linhas)
-- Comando claro e específico
-- Use verbos de ação: "Descubra", "Experimente", "Transforme", "Acesse"
-- Inclua senso de urgência quando apropriado
+## SUA MISSÃO
 
-## PRINCÍPIOS DE USO DE EMOJIS (CRÍTICO)
-- MÁXIMO 3-5 emojis em TODA a legenda
-- Use emojis apenas em momentos estratégicos
-- NUNCA use emojis em todos os parágrafos
-- Priorize SEMPRE texto rico sobre ícones visuais
+Crie uma legenda COMPLETA, PROFISSIONAL e de ALTO IMPACTO seguindo esta estrutura obrigatória:
 
-# DIRETRIZES DE LINGUAGEM E ESTILO
-${specificInstructions}
+### 1. TÍTULO (headline)
+- Frase magnética de 40-70 caracteres
+- Deve despertar curiosidade ou emoção imediata
+- Conectar com o objetivo estratégico e a imagem
+- Usar linguagem de poder: verbos de ação, números, promessas
 
-# REQUISITOS OBRIGATÓRIOS
-- A legenda DEVE estar PERFEITAMENTE ALINHADA com a descrição da imagem: "${imageDescription}"
-- MANTENHA coerência total com a identidade da marca ${brandName}
-${themeName ? `- REFLITA o tema estratégico "${themeName}" de forma clara e natural` : ''}
-${personaDescription ? `- ESCREVA diretamente para a persona definida: ${personaDescription}` : ''}
-${audience ? `- FALE diretamente com o público: ${audience}` : ''}
-${toneOfVoice ? `- MANTENHA o tom de voz: ${toneOfVoice}` : ''}
-- Use linguagem de copywriter profissional, persuasiva e impactante
-- Incorpore gatilhos emocionais e elementos que incentivem interação
-- Inclua pelo menos 1 pergunta para engajamento
-- Termine com CTA forte e claro
+### 2. CORPO DA LEGENDA (body)
+Estrutura em 4 blocos separados por \\n\\n:
 
-# REGRAS TÉCNICAS DE SAÍDA (CRÍTICAS)
-- Resposta EXCLUSIVAMENTE em JSON válido
-- ZERO texto adicional, explicações ou markdown
-- Estrutura EXATA: {"title", "body", "hashtags"}
+**Bloco 1 - HOOK (1-2 linhas):** Abertura impactante que prende atenção. Pergunta provocativa, estatística surpreendente, ou declaração ousada conectada à imagem.
 
-## ESPECIFICAÇÕES:
-- **"title"**: Título magnético de 45-60 caracteres que funcione como headline
-- **"body"**: Legenda completa de 900-1300 caracteres, com TEXTO ABUNDANTE e emojis minimalistas (máximo 5 emojis no total)
-- **"hashtags"**: Array com 8-10 hashtags estratégicas (MIX de nicho + médio alcance)
+**Bloco 2 - DESENVOLVIMENTO (2-3 parágrafos):** Storytelling conectando a imagem ao objetivo. Construa narrativa que ressoe com o público-alvo. Incorpore dados da pauta e marca. Linguagem persuasiva e empática.
 
-## FORMATAÇÃO DA LEGENDA:
-- Use '\\n\\n' para separar parágrafos principais
-- Use '\\n' apenas para subtítulos ou quebras estratégicas
-- MÁXIMO 5 EMOJIS EM TODA A LEGENDA (incluso título)
-- Priorize parágrafos de texto corrido e descritivo
-- Evite listas com bullets ou excesso de quebras
-- Mantenha-se dentro do limite de caracteres da plataforma
+**Bloco 3 - PROVA/AUTORIDADE (1-2 linhas):** Elemento de credibilidade: dado concreto, realização, compromisso público, ou referência à atuação política.
 
-**FORMATO DE RESPOSTA (JSON VÁLIDO):**
+**Bloco 4 - CTA (1-2 linhas):** Call-to-action forte e claro. Verbo de ação + benefício. Incentive interação (comentário, compartilhamento, salvamento).
+
+### 3. HASHTAGS
+- Array com ${spec.hashtagRange}
+- Mix estratégico: tema principal + nicho + alcance médio + trending
+- Todas relevantes ao conteúdo, marca e pauta
+- Em português, sem acentos, minúsculas
+
+## REGRAS DE QUALIDADE
+- Máximo 5 emojis em TODA a legenda (use com intenção estratégica)
+- Texto rico e descritivo — NUNCA genérico ou raso
+- Cada frase deve ter propósito estratégico
+- Respeite o tom de voz solicitado: ${params.toneOfVoice || 'profissional'}
+- A legenda DEVE complementar a imagem, não apenas descrevê-la
+- Compliance TSE 2026: sem pedido de voto, sem deepfakes, sem discriminação
+
+## FORMATO DE RESPOSTA (JSON estrito, sem markdown):
 {
-  "title": "Título/gancho da postagem",
-  "body": "Corpo completo da legenda com quebras de linha apropriadas",
-  "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"]
+  "title": "Título magnético da postagem",
+  "body": "Corpo completo da legenda com quebras \\n\\n entre blocos",
+  "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5", "hashtag6", "hashtag7", "hashtag8"]
 }
 
-RETORNE APENAS O JSON, SEM TEXTO ADICIONAL ANTES OU DEPOIS.
-  `.trim();
+RETORNE APENAS O JSON.`;
 }
 
 serve(async (req) => {
@@ -295,22 +213,33 @@ serve(async (req) => {
     
     console.log("📝 [CAPTION] Dados recebidos:", {
       brand: formData?.brand,
+      brandId: formData?.brandId,
       theme: formData?.theme,
+      themeId: formData?.themeId,
       platform: formData?.platform,
       objective: formData?.objective,
       imageDescription: formData?.imageDescription,
       tone: formData?.tone,
       persona: formData?.persona,
-      audience: formData?.audience
+      personaId: formData?.personaId,
     });
     
     // Authenticate user
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
         JSON.stringify({ error: 'Server configuration error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!GEMINI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'Gemini API key not configured', fallback: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -335,10 +264,17 @@ serve(async (req) => {
       );
     }
 
-    // Get user's profile (team_id is optional now)
-    const [profileResult, politicalProfile] = await Promise.all([
+    // Get profile + political profile + enrichment data in parallel
+    const brandId = formData?.brandId || '';
+    const themeId = formData?.themeId || '';
+    const personaId = formData?.personaId || '';
+
+    const [profileResult, politicalProfile, brandContext, themeContext, personaContext] = await Promise.all([
       supabase.from('profiles').select('team_id, credits').eq('id', user.id).single(),
-      fetchPoliticalProfile(supabase, user.id)
+      fetchPoliticalProfile(supabase, user.id),
+      fetchBrandContext(supabase, brandId),
+      fetchThemeContext(supabase, themeId),
+      fetchPersonaContext(supabase, personaId),
     ]);
     const { data: profile, error: profileError } = profileResult;
 
@@ -352,9 +288,8 @@ serve(async (req) => {
 
     const authenticatedTeamId = profile?.team_id || null;
 
-    // Check user credits (individual)
+    // Check credits
     const creditCheck = await checkUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
-
     if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.COMPLETE_IMAGE} créditos` }),
@@ -376,122 +311,69 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    if (formData.imageDescription.length > 2000) {
-      return new Response(
-        JSON.stringify({ error: 'Description too long' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    const validPlatforms = ['Instagram', 'LinkedIn', 'TikTok', 'Twitter', 'Facebook'];
-    if (formData.platform && !validPlatforms.includes(formData.platform)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid platform' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured', fallback: true }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+
+    const validPlatforms = ['Instagram', 'LinkedIn', 'TikTok', 'Twitter/X', 'Facebook', 'Comunidades'];
+    const platform = validPlatforms.includes(formData.platform) ? formData.platform : 'Instagram';
+
+    const toneOfVoice = Array.isArray(formData.tone)
+      ? formData.tone.map((t: any) => cleanInput(t)).join(", ")
+      : cleanInput(formData.tone);
 
     const politicalContext = buildPoliticalContext(politicalProfile);
-    const prompt = buildCaptionPrompt(formData) + politicalContext;
 
-    console.log("🔄 Chamando OpenAI API...");
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openAIApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 1500,
-      }),
+    const prompt = buildCaptionPrompt({
+      platform,
+      objective: cleanInput(formData.objective),
+      imageDescription: cleanInput(formData.imageDescription),
+      toneOfVoice,
+      contentType: formData.contentType || 'organic',
+      additionalInfo: cleanInput(formData.additionalInfo),
+      brandContext,
+      themeContext,
+      personaContext,
+      politicalContext,
+      promptContext: formData.promptContext || '',
     });
 
-    console.log(`📡 OpenAI Response Status: ${response.status}`);
+    console.log("🔄 [CAPTION] Chamando Gemini API (gemini-2.5-flash)...");
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ [CAPTION] Erro OpenAI:", {
-        status: response.status,
-        error: errorText
-      });
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'OpenAI rate limit exceeded. Try again in a moment.',
-            fallback: true 
-          }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 401) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'Invalid OpenAI API key',
-            fallback: true 
-          }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    const result = await callGemini(GEMINI_API_KEY, {
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.75,
+      maxOutputTokens: 2048,
+    });
+
+    const content = result.content?.trim();
+    console.log("✅ [CAPTION] Gemini response received:", content?.length, "chars");
+
+    if (!content) {
+      console.error("❌ [CAPTION] Empty content from Gemini");
       return new Response(
-        JSON.stringify({ 
-          error: 'OpenAI API error',
-          fallback: true 
-        }),
+        JSON.stringify({ error: 'Empty response from AI', fallback: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await response.json();
-    console.log("✅ OpenAI Response received");
-    const content = data.choices?.[0]?.message?.content;
-
-    console.log("🤖 [CAPTION] Resposta da AI recebida:", {
-      contentLength: content?.length || 0,
-      contentPreview: content?.substring(0, 100)
-    });
-
-    if (!content) {
-      console.error("❌ [CAPTION] Conteúdo vazio retornado pela AI");
-      throw new Error("Empty content returned");
+    // Parse JSON
+    const parsedContent = extractJSON(content);
+    if (!parsedContent || !parsedContent.title || !parsedContent.body) {
+      console.error("❌ [CAPTION] Invalid JSON from Gemini:", content?.substring(0, 200));
+      return new Response(
+        JSON.stringify({ error: 'Invalid AI response structure', fallback: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Parse JSON response
-    let parsedContent;
-    try {
-      parsedContent = JSON.parse(content);
-    } catch (parseError) {
-      console.error("❌ [CAPTION] Erro ao fazer parse do JSON:", parseError);
-      throw new Error("Invalid JSON response from AI");
+    // Ensure hashtags is array
+    if (!Array.isArray(parsedContent.hashtags)) {
+      parsedContent.hashtags = [];
     }
 
-    // Validate response structure
-    if (!parsedContent.title || !parsedContent.body || !Array.isArray(parsedContent.hashtags)) {
-      console.error("❌ [CAPTION] Estrutura de resposta inválida:", parsedContent);
-      throw new Error("Invalid response structure from AI");
-    }
-
-    // Deduct credits after successful generation (individual)
+    // Deduct credits
     const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
-    
     if (!deductResult.success) {
       console.error('Error deducting credits:', deductResult.error);
     }
@@ -505,10 +387,10 @@ serve(async (req) => {
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Geração de legenda',
-      metadata: { platform: formData.platform, brand: formData.brand }
+      metadata: { platform, brand: formData.brand }
     });
 
-    // Save action to database
+    // Save action
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
@@ -516,10 +398,7 @@ serve(async (req) => {
         team_id: authenticatedTeamId || '00000000-0000-0000-0000-000000000000',
         type: 'CRIAR_CONTEUDO',
         status: 'completed',
-        details: {
-          formData,
-          type: 'caption'
-        },
+        details: { formData, type: 'caption' },
         result: parsedContent
       })
       .select()
@@ -529,7 +408,7 @@ serve(async (req) => {
       console.error('Error saving action:', actionError);
     }
 
-    console.log("✅ [CAPTION] Legenda gerada com sucesso");
+    console.log("✅ [CAPTION] Legenda gerada com sucesso via Gemini");
 
     return new Response(
       JSON.stringify({
