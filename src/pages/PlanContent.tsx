@@ -148,7 +148,7 @@ const PlanContent = () => {
   };
 
   const generatePlan = async () => {
-    if (!formData.brand || formData.theme.length === 0 || !formData.platform || !formData.objective) {
+    if (!formData.brand || formData.theme.length === 0 || !formData.objective) {
       toast.error("Por favor, preencha todos os campos obrigatórios (*)");
       return;
     }
