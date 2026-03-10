@@ -67,6 +67,12 @@ export default function ContentCreationSelector() {
         setCreationType(null);
         return;
       }
+      // Video coming soon
+      if (creationType === "video") {
+        setShowVideoComingSoon(true);
+        setCreationType(null);
+        return;
+      }
       const routes: Record<CreationType, string> = {
         text: "/create/text",
         image: "/create/image",
