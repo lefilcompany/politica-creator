@@ -603,7 +603,7 @@ export default function CreateContent() {
     
     if (!formData.brand) missing.push('brand');
     if (!formData.objective) missing.push('objective');
-    if (!formData.platform) missing.push('platform');
+    
     if (!formData.description) missing.push('description');
     if (formData.tone.length === 0) missing.push('tone');
     
