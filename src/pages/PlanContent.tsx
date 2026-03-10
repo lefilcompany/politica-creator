@@ -364,33 +364,6 @@ const PlanContent = () => {
                   )}
                 </div>
 
-                <div id="plan-themes-field" className="space-y-1.5">
-                  <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                    Agenda <span className="text-destructive">*</span>
-                  </Label>
-                  {isLoadingData ? (
-                    <Skeleton className="h-10 w-full rounded-xl" />
-                  ) : (
-                    <>
-                      <NativeSelect
-                        key={`theme-select-${formData.theme.length}`}
-                        value=""
-                        onValueChange={handleThemeSelect}
-                        options={filteredThemes
-                          .filter((t) => !formData.theme.includes(t.id))
-                          .map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={formData.theme.length > 0 ? "Adicionar mais itens..." : "Adicionar item da agenda"}
-                        disabled={filteredThemes.filter((t) => !formData.theme.includes(t.id)).length === 0}
-                        triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors disabled:opacity-50"
-                      />
-                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>O calendário seguirá o tom de voz, público-alvo e objetivos da agenda selecionada</span>
-                      </p>
-                    </>
-                  )}
-
-                </div>
 
                 <div id="plan-quantity-field" className="space-y-1.5">
                   <Label htmlFor="quantity" className="text-sm font-bold text-foreground">
