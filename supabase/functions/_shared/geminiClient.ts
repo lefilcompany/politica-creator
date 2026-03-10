@@ -169,7 +169,7 @@ function getToolConfig(toolChoice: any): any | undefined {
 
 export async function callGemini(apiKey: string, options: GeminiCallOptions): Promise<GeminiResult> {
   const model = resolveModel(options.model);
-  const { contents, systemInstruction } = convertMessagesToGemini(options.messages);
+  const { contents, systemInstruction } = await convertMessagesToGemini(options.messages);
   const geminiTools = convertToolsToGemini(options.tools);
   const toolConfig = getToolConfig(options.tool_choice);
 
