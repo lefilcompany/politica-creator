@@ -491,7 +491,7 @@ export default function CreateImage() {
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.objective) missing.push('objective');
-    if (!formData.platform) missing.push('platform');
+    
     if (!formData.description) missing.push('description');
     if (formData.tone.length === 0) missing.push('tone');
     // Imagens de referência são opcionais
@@ -1192,7 +1192,7 @@ export default function CreateImage() {
                   {/* Plataforma */}
                   <div className="space-y-1.5">
                     <Label htmlFor="platform" className="text-sm font-bold text-foreground">
-                      Plataforma <span className="text-destructive">*</span>
+                      Plataforma
                       {formData.platform && (
                         <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4">
                           {recommendedAspectRatio || 'auto'}

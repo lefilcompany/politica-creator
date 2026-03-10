@@ -148,7 +148,7 @@ const PlanContent = () => {
   };
 
   const generatePlan = async () => {
-    if (!formData.brand || formData.theme.length === 0 || !formData.platform || !formData.objective) {
+    if (!formData.brand || formData.theme.length === 0 || !formData.objective) {
       toast.error("Por favor, preencha todos os campos obrigatórios (*)");
       return;
     }
@@ -338,7 +338,7 @@ const PlanContent = () => {
 
                 <div id="plan-platform-field" className="space-y-1.5">
                   <Label htmlFor="platform" className="text-sm font-bold text-foreground">
-                    Plataforma <span className="text-destructive">*</span>
+                    Plataforma
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
@@ -471,7 +471,6 @@ const PlanContent = () => {
                     loading ||
                     !formData.brand ||
                     formData.theme.length === 0 ||
-                    !formData.platform ||
                     !formData.objective
                   }
                   className="w-full max-w-lg h-11 sm:h-12 rounded-xl text-sm sm:text-base font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
@@ -492,7 +491,7 @@ const PlanContent = () => {
                     </>
                   )}
                 </Button>
-                {(!formData.brand || formData.theme.length === 0 || !formData.platform || !formData.objective) && (
+                {(!formData.brand || formData.theme.length === 0 || !formData.objective) && (
                   <div className="text-center bg-muted/30 p-2.5 rounded-lg border border-border/30 w-full max-w-lg">
                     <p className="text-xs text-muted-foreground">
                       Preencha todos os campos obrigatórios (*) para continuar
