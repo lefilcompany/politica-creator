@@ -782,9 +782,11 @@ export default function CreateImage() {
       }
 
       if (!captionData || isLocalFallback) {
-        const brandName = selectedBrand?.name || formData.brand;
-        const themeName = selectedTheme?.title || formData.theme || "Nossa proposta";
+        const brandName = selectedBrand?.name || formData.brand || "";
+        const themeName = selectedTheme?.title || formData.theme || "";
         const platform = formData.platform;
+        const objective = formData.objective || formData.description;
+        const tones = formData.tone.join(", ");
         
         const platformSpecs = {
           Instagram: { maxLength: 2200, recommendedHashtags: 10 },
@@ -794,21 +796,34 @@ export default function CreateImage() {
           Twitter: { maxLength: 280, recommendedHashtags: 2 },
         }[platform] || { maxLength: 500, recommendedHashtags: 5 };
 
-        const fallbackBody = `🌟 ${brandName} apresenta: ${themeName}\n\n${formData.description}\n\n💡 ${formData.objective}\n\n🎯 Tom: ${formData.tone.join(", ")}\n\n💬 Comente o que achou!`;
+        const titleParts = [objective, brandName].filter(Boolean);
+        const fallbackTitle = titleParts.length > 0 
+          ? titleParts.join(" — ") 
+          : "Confira nosso novo conteúdo";
+
+        const bodyParts: string[] = [];
+        if (objective) bodyParts.push(objective);
+        if (formData.description && formData.description !== objective) {
+          bodyParts.push(`\n\n${formData.description}`);
+        }
+        if (themeName) bodyParts.push(`\n\nTema: ${themeName}`);
+        if (tones) bodyParts.push(`\n\nTom: ${tones}`);
+        bodyParts.push("\n\nO que você achou? Deixe seu comentário!");
+
+        const fallbackBody = bodyParts.join("");
+
+        const hashtagSources = [
+          objective, brandName, themeName, platform, 
+          ...formData.tone
+        ].filter(Boolean);
 
         captionData = {
-          title: `${brandName} | ${themeName} 🚀`,
+          title: fallbackTitle.substring(0, 70),
           body: fallbackBody.substring(0, platformSpecs.maxLength - 100),
-          hashtags: [
-            brandName.toLowerCase().replace(/\s+/g, ""),
-            themeName.toLowerCase().replace(/\s+/g, ""),
-            platform.toLowerCase(),
-            "marketingdigital",
-            "conteudocriativo",
-            ...formData.tone.map(t => t.toLowerCase())
-          ].filter((tag, index, self) => 
-            tag && tag.length > 2 && self.indexOf(tag) === index
-          ).slice(0, platformSpecs.recommendedHashtags)
+          hashtags: hashtagSources
+            .map(t => t.toLowerCase().replace(/[^a-záàâãéèêíïóôõúüç0-9]/gi, ""))
+            .filter((tag, index, self) => tag && tag.length > 2 && self.indexOf(tag) === index)
+            .slice(0, platformSpecs.recommendedHashtags)
         };
       }
 
