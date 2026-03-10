@@ -338,7 +338,7 @@ const PlanContent = () => {
 
                 <div id="plan-platform-field" className="space-y-1.5">
                   <Label htmlFor="platform" className="text-sm font-bold text-foreground">
-                    Plataforma <span className="text-destructive">*</span>
+                    Plataforma
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
