@@ -291,6 +291,102 @@ export default function Defense() {
           </TabsTrigger>
         </TabsList>
 
+        {/* TAB: MONITOR */}
+        <TabsContent value="monitor" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Radio className="h-5 w-5 text-primary" />
+                Monitor de Notícias
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Busque menções e notícias recentes sobre o político. Custo: {CREDIT_COSTS.FAKE_NEWS_MONITOR} créditos.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                placeholder="Digite palavras-chave: nome do político, partido, tema..."
+                value={monitorKeywords}
+                onChange={(e) => setMonitorKeywords(e.target.value)}
+                maxLength={200}
+              />
+              <Button
+                onClick={() => setShowMonitorConfirm(true)}
+                disabled={monitorLoading || monitorKeywords.trim().length < 3}
+                className="w-full sm:w-auto"
+              >
+                {monitorLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Monitorando...</> : "Monitorar Notícias"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {monitorResults && (
+            <div className="space-y-4">
+              {monitorResults.summary && (
+                <Card>
+                  <CardHeader><CardTitle className="text-base">📊 Resumo</CardTitle></CardHeader>
+                  <CardContent>
+                    <p className="text-sm">{monitorResults.summary}</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {monitorResults.articlesFound} notícias encontradas nos últimos 7 dias
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {monitorResults.results.length > 0 ? (
+                monitorResults.results.map((item, i) => (
+                  <Card key={i} className={`border-l-4 ${urgencyColors[item.urgency]}`}>
+                    <CardContent className="pt-4 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className={classificationLabels[item.classification]?.color}>
+                          {classificationLabels[item.classification]?.label}
+                        </Badge>
+                        <Badge variant={item.urgency === "alta" ? "destructive" : "outline"} className="text-xs">
+                          {item.urgency}
+                        </Badge>
+                        {item.source && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Newspaper className="h-3 w-3" /> {item.source}
+                          </span>
+                        )}
+                        {item.publishedAt && (
+                          <span className="text-xs text-muted-foreground">{item.publishedAt}</span>
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-sm">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground">{item.summary}</p>
+                      <p className="text-sm text-primary"><strong>Ação sugerida:</strong> {item.suggestedAction}</p>
+                      {item.url && (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                          Ver notícia <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                    <p className="text-sm font-medium">Nenhuma menção preocupante encontrada</p>
+                    <p className="text-xs text-muted-foreground">Cenário tranquilo nos últimos 7 dias</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          <CreditConfirmationDialog
+            isOpen={showMonitorConfirm}
+            onOpenChange={setShowMonitorConfirm}
+            cost={CREDIT_COSTS.FAKE_NEWS_MONITOR}
+            currentBalance={currentCredits}
+            resourceType="monitoramento"
+            title="Monitorar Notícias?"
+            onConfirm={() => { setShowMonitorConfirm(false); handleMonitor(); }}
+          />
+        </TabsContent>
 
 
 
