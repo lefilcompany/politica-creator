@@ -48,8 +48,6 @@ const CreateText = lazy(() => import("./pages/CreateText"));
 const TextResult = lazy(() => import("./pages/TextResult"));
 const ContentResult = lazy(() => import("./pages/ContentResult"));
 const VideoResult = lazy(() => import("./pages/VideoResult"));
-const ReviewContent = lazy(() => import("./pages/ReviewContent"));
-const ReviewResult = lazy(() => import("./pages/ReviewResult"));
 const PlanContent = lazy(() => import("./pages/PlanContent"));
 const PlanResult = lazy(() => import("./pages/PlanResult"));
 const QuickContent = lazy(() => import("./pages/QuickContent"));
