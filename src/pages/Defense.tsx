@@ -170,6 +170,23 @@ export default function Defense() {
   };
 
 
+  // Monitor handler
+  const handleMonitor = async () => {
+    setMonitorLoading(true);
+    setMonitorResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('fake-news-monitor', {
+        body: { keywords: monitorKeywords }
+      });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      setMonitorResults({ results: data.results || [], summary: data.summary || '', articlesFound: data.articlesFound || 0 });
+    } catch (e: any) {
+      toast({ title: "Erro", description: e.message || "Falha no monitoramento", variant: "destructive" });
+    } finally {
+      setMonitorLoading(false);
+    }
+  };
 
 
   // Respond handler
