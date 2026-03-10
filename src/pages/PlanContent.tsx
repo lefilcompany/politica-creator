@@ -471,7 +471,6 @@ const PlanContent = () => {
                     loading ||
                     !formData.brand ||
                     formData.theme.length === 0 ||
-                    !formData.platform ||
                     !formData.objective
                   }
                   className="w-full max-w-lg h-11 sm:h-12 rounded-xl text-sm sm:text-base font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
