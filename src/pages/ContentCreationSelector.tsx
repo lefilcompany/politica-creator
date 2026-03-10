@@ -4,7 +4,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone, Activity, Type } from "lucide-react";
+import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone, Activity, Type, Clock, CalendarDays } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { useImageLimit } from "@/hooks/useImageLimit";
