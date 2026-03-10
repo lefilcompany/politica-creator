@@ -52,7 +52,30 @@ interface GeminiResult {
   raw: any;
 }
 
-function convertMessagesToGemini(messages: OpenAIMessage[]): { contents: any[]; systemInstruction?: any } {
+async function fetchImageAsBase64(url: string): Promise<{ mimeType: string; data: string } | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Failed to fetch image URL (${response.status}): ${url.substring(0, 100)}`);
+      return null;
+    }
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+    const contentType = response.headers.get('content-type') || 'image/png';
+    const mimeType = contentType.split(';')[0].trim();
+    return { mimeType, data: base64 };
+  } catch (err) {
+    console.error(`Error fetching image URL: ${url.substring(0, 100)}`, err);
+    return null;
+  }
+}
+
+async function convertMessagesToGemini(messages: OpenAIMessage[]): Promise<{ contents: any[]; systemInstruction?: any }> {
   let systemInstruction: any = undefined;
   const contents: any[] = [];
 
@@ -79,7 +102,13 @@ function convertMessagesToGemini(messages: OpenAIMessage[]): { contents: any[]; 
               parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
             }
           } else {
-            parts.push({ text: `[Image URL: ${url}]` });
+            // Fetch external URL and convert to inline base64
+            const imageData = await fetchImageAsBase64(url);
+            if (imageData) {
+              parts.push({ inlineData: imageData });
+            } else {
+              console.warn(`⚠️ Skipping image URL (fetch failed): ${url.substring(0, 100)}`);
+            }
           }
         }
       }
@@ -140,7 +169,7 @@ function getToolConfig(toolChoice: any): any | undefined {
 
 export async function callGemini(apiKey: string, options: GeminiCallOptions): Promise<GeminiResult> {
   const model = resolveModel(options.model);
-  const { contents, systemInstruction } = convertMessagesToGemini(options.messages);
+  const { contents, systemInstruction } = await convertMessagesToGemini(options.messages);
   const geminiTools = convertToolsToGemini(options.tools);
   const toolConfig = getToolConfig(options.tool_choice);
 
