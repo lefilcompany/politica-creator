@@ -493,7 +493,7 @@ export default function CreateImage() {
     if (!formData.objective) missing.push('objective');
     
     if (!formData.description) missing.push('description');
-    if (formData.tone.length === 0) missing.push('tone');
+    
     // Imagens de referência são opcionais
     setMissingFields(missing);
     return missing.length === 0;
@@ -1374,48 +1374,6 @@ export default function CreateImage() {
                 </CardContent>
               </Card>
             )}
-
-            {/* 4. Tom de Voz */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardContent className="p-4 md:p-5 space-y-2">
-                <Label htmlFor="tone" className="text-sm font-bold text-foreground">
-                  Tom de Voz <span className="text-destructive">*</span> <span className="text-muted-foreground font-normal text-xs">(máximo 4)</span>
-                </Label>
-                <Select onValueChange={handleToneSelect} value="">
-                  <SelectTrigger className={`h-10 rounded-lg border-2 bg-background/50 text-sm transition-colors ${
-                    missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50 hover:border-border/70'
-                  }`}>
-                    <SelectValue placeholder="Selecione um tom de voz" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-border/20">
-                    {toneOptions.map((t) => (
-                      <SelectItem key={t} value={t} className="rounded-lg capitalize">{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {formData.tone.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
-                    {formData.tone.map((t) => (
-                      <Badge
-                        key={t}
-                        variant="secondary"
-                        className="bg-primary/10 text-primary border-primary/30 pr-1 text-xs font-medium gap-2 hover:bg-primary/20 transition-colors"
-                      >
-                        {t}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToneRemove(t)}
-                          className="h-4 w-4 p-0 hover:bg-destructive/20 rounded-full"
-                        >
-                          <X className="h-3 w-3 text-destructive" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
             {/* 5. Imagens de Referência */}
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
