@@ -1,10 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone, Activity, Type } from "lucide-react";
+import { Loader2, Zap, ImageIcon, Video, HelpCircle, Megaphone, Activity, Type, Clock, CalendarDays } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { useImageLimit } from "@/hooks/useImageLimit";
@@ -24,6 +33,17 @@ export default function ContentCreationSelector() {
   const [isLoading, setIsLoading] = useState(true);
   const [creationType, setCreationType] = useState<CreationType | null>(null);
   const [showLimitBlocker, setShowLimitBlocker] = useState(false);
+  const [showVideoComingSoon, setShowVideoComingSoon] = useState(false);
+
+  const videoReleaseDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 3);
+    return date;
+  }, []);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
 
   useEffect(() => {
     if (user !== null && user !== undefined) {
@@ -44,6 +64,12 @@ export default function ContentCreationSelector() {
       // Check image limit for image-related creation types
       if ((creationType === "image" || creationType === "campaign") && hasReachedLimit) {
         setShowLimitBlocker(true);
+        setCreationType(null);
+        return;
+      }
+      // Video coming soon
+      if (creationType === "video") {
+        setShowVideoComingSoon(true);
         setCreationType(null);
         return;
       }
@@ -299,6 +325,50 @@ export default function ContentCreationSelector() {
         imageCount={imageCount}
         maxImages={maxImages}
       />
+
+      {/* Video Coming Soon Modal */}
+      <AlertDialog open={showVideoComingSoon} onOpenChange={setShowVideoComingSoon}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-secondary/10">
+                <Video className="h-7 w-7 text-secondary" />
+              </div>
+              <AlertDialogTitle className="text-xl">
+                Vídeo em breve!
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p className="text-base">
+                  A criação de vídeos com IA está quase pronta e será liberada em breve.
+                </p>
+                <div className="p-4 rounded-xl bg-secondary/5 border border-secondary/20 flex items-center gap-3">
+                  <CalendarDays className="h-5 w-5 text-secondary flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Previsão de lançamento
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDate(videoReleaseDate)}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 border">
+                  <p className="text-xs text-muted-foreground">
+                    Estamos finalizando os últimos ajustes para garantir a melhor qualidade. Fique atento!
+                  </p>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button onClick={() => setShowVideoComingSoon(false)}>
+              Entendi
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
