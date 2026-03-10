@@ -33,6 +33,17 @@ export default function ContentCreationSelector() {
   const [isLoading, setIsLoading] = useState(true);
   const [creationType, setCreationType] = useState<CreationType | null>(null);
   const [showLimitBlocker, setShowLimitBlocker] = useState(false);
+  const [showVideoComingSoon, setShowVideoComingSoon] = useState(false);
+
+  const videoReleaseDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 3);
+    return date;
+  }, []);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
 
   useEffect(() => {
     if (user !== null && user !== undefined) {
