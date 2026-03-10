@@ -723,44 +723,93 @@ export default function ContentResult() {
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     {allImageUrls.map((url, index) => (
-                      <button
-                        key={url}
-                        onClick={() => {
-                          setSelectedImageIndex(index);
-                          setContentData(prev => prev ? { ...prev, mediaUrl: url } : prev);
-                          if (!imageHistory.includes(url)) {
-                            setImageHistory(prev => [...prev, url]);
-                          }
-                          setImageHistoryIndex(imageHistory.indexOf(url) >= 0 ? imageHistory.indexOf(url) : imageHistory.length);
-                        }}
-                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 group ${
-                          selectedImageIndex === index
-                            ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30'
-                            : 'border-border/30 hover:border-primary/50 hover:shadow-md'
-                        }`}
-                      >
-                        <img
-                          src={url}
-                          alt={`Opção ${index + 1}`}
-                          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className={`absolute top-2 left-2 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                          selectedImageIndex === index
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-background/80 text-foreground backdrop-blur-sm'
-                        }`}>
-                          {selectedImageIndex === index ? '✓ Selecionada' : `Opção ${index + 1}`}
-                        </div>
-                        {isReviewing && reviewType === "image" && selectedImageIndex === index && (
-                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-                            <div className="flex flex-col items-center gap-2">
-                              <Loader className="h-8 w-8 animate-spin text-primary" />
-                              <span className="text-xs font-medium text-muted-foreground">Editando...</span>
-                            </div>
+                      <div key={url} className="flex flex-col gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedImageIndex(index);
+                            setContentData(prev => prev ? { ...prev, mediaUrl: url } : prev);
+                            if (!imageHistory.includes(url)) {
+                              setImageHistory(prev => [...prev, url]);
+                            }
+                            setImageHistoryIndex(imageHistory.indexOf(url) >= 0 ? imageHistory.indexOf(url) : imageHistory.length);
+                          }}
+                          className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 group ${
+                            selectedImageIndex === index
+                              ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30'
+                              : 'border-border/30 hover:border-primary/50 hover:shadow-md'
+                          }`}
+                        >
+                          <img
+                            src={url}
+                            alt={`Opção ${index + 1}`}
+                            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className={`absolute top-2 left-2 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                            selectedImageIndex === index
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-background/80 text-foreground backdrop-blur-sm'
+                          }`}>
+                            {selectedImageIndex === index ? '✓ Selecionada' : `Opção ${index + 1}`}
                           </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-                      </button>
+                          {isReviewing && reviewType === "image" && selectedImageIndex === index && (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                              <div className="flex flex-col items-center gap-2">
+                                <Loader className="h-8 w-8 animate-spin text-primary" />
+                                <span className="text-xs font-medium text-muted-foreground">Editando...</span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                        </button>
+                        {/* Individual action buttons per image */}
+                        <div className="flex gap-1.5">
+                          <Button
+                            size="sm"
+                            variant={selectedImageIndex === index ? "default" : "outline"}
+                            className="flex-1 gap-1.5 rounded-lg text-xs h-8"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                toast.info(`Baixando imagem ${index + 1}...`);
+                                const response = await fetch(url, { mode: 'cors' });
+                                const blob = await response.blob();
+                                const blobUrl = window.URL.createObjectURL(blob);
+                                const link = document.createElement("a");
+                                link.href = blobUrl;
+                                const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+                                const brandName = contentData?.brand ? contentData.brand.replace(/\s+/g, "_") : "conteudo";
+                                link.download = `${brandName}_opcao${index + 1}_${timestamp}.png`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(blobUrl);
+                                toast.success(`Imagem ${index + 1} baixada!`);
+                              } catch (err) {
+                                console.error("Download error:", err);
+                                toast.error("Erro ao baixar imagem");
+                              }
+                            }}
+                          >
+                            <Download className="h-3 w-3" />
+                            Baixar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 gap-1.5 rounded-lg text-xs h-8 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                            disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedImageIndex(index);
+                              setContentData(prev => prev ? { ...prev, mediaUrl: url } : prev);
+                              handleOpenReview();
+                            }}
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Revisar
+                          </Button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -797,24 +846,61 @@ export default function ContentResult() {
 
               {/* Action buttons */}
               <div className="p-3 sm:p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <Button onClick={handleDownload} size="lg" className="flex-1 gap-2 hover-scale transition-all duration-200 hover:shadow-md my-0 mx-0 px-[8px] py-[8px] rounded-sm">
-                  <Download className="h-4 w-4" />
-                  <span className="hidden xs:inline">Download</span>
-                </Button>
-                <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}>
-                    <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
-                    <span className="sm:hidden">Revisar</span>
-                    <span className="hidden sm:inline">Revisar</span>
-                    <Badge variant="outline" className="ml-1 gap-1 border-secondary-foreground/30">
-                      <Coins className="h-3 w-3" />
-                      {CREDIT_COSTS.IMAGE_REVIEW}
-                    </Badge>
-                  </Button>
-                  {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                      Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
-                    </div>}
-                </div>
+                {allImageUrls.length > 1 ? (
+                  <>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          toast.info("Baixando todas as imagens...");
+                          for (let i = 0; i < allImageUrls.length; i++) {
+                            const response = await fetch(allImageUrls[i], { mode: 'cors' });
+                            const blob = await response.blob();
+                            const blobUrl = window.URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = blobUrl;
+                            const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+                            const brandName = contentData?.brand ? contentData.brand.replace(/\s+/g, "_") : "conteudo";
+                            link.download = `${brandName}_opcao${i + 1}_${timestamp}.png`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(blobUrl);
+                            await new Promise(r => setTimeout(r, 300));
+                          }
+                          toast.success(`${allImageUrls.length} imagens baixadas!`);
+                        } catch (err) {
+                          console.error("Download all error:", err);
+                          toast.error("Erro ao baixar imagens");
+                        }
+                      }}
+                      size="lg"
+                      className="flex-1 gap-2 rounded-xl hover-scale transition-all duration-200 hover:shadow-md"
+                    >
+                      <Download className="h-4 w-4" />
+                      Baixar todas ({allImageUrls.length})
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button onClick={handleDownload} size="lg" className="flex-1 gap-2 rounded-xl hover-scale transition-all duration-200 hover:shadow-md">
+                      <Download className="h-4 w-4" />
+                      Download
+                    </Button>
+                    <div className="relative group">
+                      <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}>
+                        <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
+                        Revisar
+                        <Badge variant="outline" className="ml-1 gap-1 border-secondary-foreground/30">
+                          <Coins className="h-3 w-3" />
+                          {CREDIT_COSTS.IMAGE_REVIEW}
+                        </Badge>
+                      </Button>
+                      {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                          Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
+                        </div>}
+                    </div>
+                  </>
+                )}
                 {imageHistory.length > 1 && (
                   <>
                     <Button
@@ -828,7 +914,7 @@ export default function ContentResult() {
                         }
                       }}
                       disabled={imageHistoryIndex <= 0}
-                      className="gap-2 px-3"
+                      className="gap-2 px-3 rounded-xl"
                     >
                       <Undo2 className="h-4 w-4" /> Anterior
                     </Button>
@@ -843,7 +929,7 @@ export default function ContentResult() {
                         }
                       }}
                       disabled={imageHistoryIndex >= imageHistory.length - 1}
-                      className="gap-2 px-3"
+                      className="gap-2 px-3 rounded-xl"
                     >
                       <Redo2 className="h-4 w-4" /> Próxima
                     </Button>
