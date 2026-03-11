@@ -731,9 +731,7 @@ export default function Defense() {
           </Card>
 
           {/* Crisis Results */}
-          {crisisResult && (
-            <div ref={crisisResultRef}></div>
-          )}
+          <div ref={crisisResultRef} />
           {crisisResult && (
             <div className="space-y-4">
               {/* Diagnosis */}
