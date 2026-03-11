@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Shield, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink, Newspaper, Siren, Radio } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -162,6 +162,7 @@ export default function Defense() {
   const [crisisContext, setCrisisContext] = useState("");
   const [crisisLoading, setCrisisLoading] = useState(false);
   const [crisisResult, setCrisisResult] = useState<CrisisResult | null>(null);
+  const crisisResultRef = useRef<HTMLDivElement>(null);
   const [showCrisisConfirm, setShowCrisisConfirm] = useState(false);
 
   const copyToClipboard = (text: string) => {
@@ -236,6 +237,9 @@ export default function Defense() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
       setCrisisResult(data);
+      setTimeout(() => {
+        crisisResultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (e: any) {
       toast({ title: "Erro", description: e.message || "Falha na análise de crise", variant: "destructive" });
     } finally {
@@ -727,6 +731,7 @@ export default function Defense() {
           </Card>
 
           {/* Crisis Results */}
+          <div ref={crisisResultRef} />
           {crisisResult && (
             <div className="space-y-4">
               {/* Diagnosis */}
