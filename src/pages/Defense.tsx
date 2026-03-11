@@ -732,6 +732,9 @@ export default function Defense() {
 
           {/* Crisis Results */}
           {crisisResult && (
+            <div ref={crisisResultRef}></div>
+          )}
+          {crisisResult && (
             <div className="space-y-4">
               {/* Diagnosis */}
               {crisisResult.diagnostico && (
