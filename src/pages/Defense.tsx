@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Shield, MessageSquareReply, CheckCircle2, Copy, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink, Newspaper, Siren, Radio } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
