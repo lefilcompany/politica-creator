@@ -9,7 +9,7 @@ const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models
 const MODEL_MAP: Record<string, string> = {
   'google/gemini-2.5-pro': 'gemini-2.5-pro',
   'google/gemini-2.5-flash': 'gemini-2.5-flash',
-  'google/gemini-2.5-flash-lite': 'gemini-2.5-flash-lite-preview-06-17',
+  'google/gemini-2.5-flash-lite': 'gemini-2.5-flash',
   'google/gemini-3-flash-preview': 'gemini-2.5-flash',
   'google/gemini-3-pro-image-preview': 'gemini-3-pro-image-preview',
   'google/gemini-2.5-flash-image': 'gemini-2.5-flash-image-preview',
