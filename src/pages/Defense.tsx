@@ -162,6 +162,7 @@ export default function Defense() {
   const [crisisContext, setCrisisContext] = useState("");
   const [crisisLoading, setCrisisLoading] = useState(false);
   const [crisisResult, setCrisisResult] = useState<CrisisResult | null>(null);
+  const crisisResultRef = useRef<HTMLDivElement>(null);
   const [showCrisisConfirm, setShowCrisisConfirm] = useState(false);
 
   const copyToClipboard = (text: string) => {
