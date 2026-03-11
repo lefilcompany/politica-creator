@@ -237,6 +237,9 @@ export default function Defense() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
       setCrisisResult(data);
+      setTimeout(() => {
+        crisisResultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (e: any) {
       toast({ title: "Erro", description: e.message || "Falha na análise de crise", variant: "destructive" });
     } finally {
