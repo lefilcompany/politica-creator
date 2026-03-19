@@ -108,7 +108,7 @@ ${contextParts.join('\n')}
 
 ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 1500)}` : ''}
 
-${useBookContext ? `## BASE CONCEITUAL — "A PRÓXIMA DEMOCRACIA"\nOs textos DEVEM se fundamentar nos conceitos e teses do livro "A Próxima Democracia" de Silvio Meira & Rosário Pompéia. Use as teses, princípios e frameworks como base argumentativa.\n\n${getKnowledgeBaseContext().substring(0, 3000)}` : ''}
+${useBookContext ? `## BASE CONCEITUAL — "A PRÓXIMA DEMOCRACIA"\nOs textos DEVEM se fundamentar nos conceitos e teses do livro "A Próxima Democracia" de Silvio Meira & Rosário Pompéia. Use as teses, princípios e frameworks como base argumentativa.\n\n${selectedTheses && selectedTheses.length > 0 ? `### TESES SELECIONADAS (foco principal)\nO conteúdo DEVE ser fundamentado ESPECIFICAMENTE nestas teses:\n${selectedTheses.map((t: any) => `- Tese ${t.number} (${t.group}): "${t.title}" — ${t.shortDescription}`).join('\n')}\n\nTodo o conteúdo gerado deve girar em torno destas teses específicas.` : getKnowledgeBaseContext().substring(0, 3000)}` : ''}
 
 ## REGRAS OBRIGATÓRIAS
 1. Gere EXATAMENTE 10 versões diferentes do texto
