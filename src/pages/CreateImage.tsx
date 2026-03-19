@@ -1568,18 +1568,6 @@ export default function CreateImage() {
         </DialogContent>
       </Dialog>
 
-      <ThesisRecommendationModal
-        open={showThesisModal}
-        onClose={() => setShowThesisModal(false)}
-        onSelectThesis={handleThesisSelected}
-        onContinueWithout={handleContinueWithoutThesis}
-        recommendedThesesIds={
-          Array.isArray((user as any)?.recommendedTheses)
-            ? (user as any).recommendedTheses.map((t: any) => t.id || `t${t.number}`)
-            : []
-        }
-        description={formData.description}
-      />
     </div>
   );
 }
