@@ -30,7 +30,7 @@ export async function fetchPoliticalProfile(
 ): Promise<PoliticalProfile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('political_role, political_party, political_experience, political_level, focus_areas, main_social_networks, target_audience_description, mandate_stage, biography, tone_of_voice, red_lines, evidence_history')
+    .select('political_role, political_party, political_experience, political_level, focus_areas, main_social_networks, target_audience_description, mandate_stage, biography, tone_of_voice, red_lines, evidence_history, instagram_handle, name, state, city')
     .eq('id', userId)
     .single();
 
