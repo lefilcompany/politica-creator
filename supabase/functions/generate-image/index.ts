@@ -55,7 +55,7 @@ const FONT_STYLES: Record<string, string> = {
 };
 
 // =====================================
-// TONE/OBJECTIVE → VISUAL PARAMETERS MAP (Political)
+// TONE/OBJECTIVE → VISUAL PARAMETERS MAP
 // =====================================
 const TONE_VISUAL_MAP: Record<string, {
   contrast: string;
@@ -100,12 +100,32 @@ const TONE_VISUAL_MAP: Record<string, {
   institucional: {
     contrast: "Baixo — composição estável e formal",
     lighting: "Limpa, balanceada, studio profissional",
-    style: "Minimalista, formal, autoritário, governamental",
-    composition: "Simétrica, centrada, estável, bandeiras e símbolos",
-    focus: "Ordem, estabilidade, governança, competência",
+    style: "Minimalista, formal, autoritário, profissional",
+    composition: "Simétrica, centrada, estável, elementos institucionais",
+    focus: "Ordem, estabilidade, competência, confiança",
     description: "Transmite estabilidade e ordem. Estilo minimalista, composição simétrica.",
     fontHint: "Serifada clássica, autoritária, transmitindo seriedade",
-    colorHint: "Azul escuro, dourado, branco, cores nacionais",
+    colorHint: "Azul escuro, dourado, branco, tons sóbrios",
+  },
+  profissional: {
+    contrast: "Médio — equilibrado e sofisticado",
+    lighting: "Studio profissional, iluminação neutra e limpa",
+    style: "Clean, moderno, corporativo, sofisticado",
+    composition: "Equilibrada, regra dos terços, hierarquia clara",
+    focus: "Profissionalismo, credibilidade, modernidade",
+    description: "Transmite profissionalismo e modernidade. Design limpo e sofisticado.",
+    fontHint: "Sans-serif moderna, limpa e profissional",
+    colorHint: "Azul corporativo, cinza elegante, branco",
+  },
+  inspirador: {
+    contrast: "Médio — vibrante e elevado",
+    lighting: "Luz natural aberta, céu dramático, golden hour",
+    style: "Elevado, aspiracional, horizonte amplo",
+    composition: "Perspectiva ampla, linhas de fuga, espaço aberto",
+    focus: "Futuro, possibilidades, superação, visão",
+    description: "Inspira e motiva. Perspectivas amplas, iluminação elevada.",
+    fontHint: "Sans-serif elegante, moderna e aspiracional",
+    colorHint: "Azul celeste, dourado, branco luminoso",
   },
 };
 
