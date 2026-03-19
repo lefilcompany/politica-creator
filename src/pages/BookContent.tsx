@@ -6,12 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, BookOpen, Zap, Send, FileText, ImageIcon } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrands } from "@/hooks/useBrands";
 import { usePersonas } from "@/hooks/usePersonas";
 import { supabase } from "@/integrations/supabase/client";
+import { THESIS_GROUPS, ALL_THESES, type Thesis } from "@/lib/theses";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import createBanner from "@/assets/create-banner.jpg";
 
