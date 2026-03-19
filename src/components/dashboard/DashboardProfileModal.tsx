@@ -183,63 +183,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     }
   };
 
-  const handleFinish = () => {
-    onClose();
-  };
-
-  const stepIcons = [Briefcase, UserCircle, ShieldAlert, FileText, ...(showTheses ? [BookOpen] : [])];
-
-  const thesesStep = (
-    <div key="s-theses" className="space-y-5">
-      <div className="text-center space-y-1">
-        <h3 className="text-lg font-bold text-foreground">Suas 5 Teses Fundamentais</h3>
-        <p className="text-sm text-muted-foreground">
-          Baseadas no seu perfil e no livro <em>"A Próxima Democracia"</em>
-        </p>
-      </div>
-
-      {isLoadingTheses ? (
-        <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Analisando seu perfil político...</p>
-          <p className="text-xs text-muted-foreground">A IA está selecionando as teses mais relevantes para você</p>
-        </div>
-      ) : recommendedTheses.length > 0 ? (
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-          {recommendedTheses.map((thesis, i) => (
-            <motion.div
-              key={thesis.number}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.15 }}
-              className="p-4 rounded-lg border border-border bg-muted/30 space-y-2"
-            >
-              <div className="flex items-start gap-2">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                  {thesis.number}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-foreground leading-tight">{thesis.title}</h4>
-                  <Badge variant="outline" className="mt-1 text-xs">
-                    Grupo {thesis.group} — {GROUP_LABELS[thesis.group] || thesis.group}
-                  </Badge>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed pl-9">{thesis.relevance}</p>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-8">
-          <p className="text-sm text-muted-foreground">Não foi possível carregar as recomendações.</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={fetchRecommendedTheses}>
-            Tentar novamente
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-
   const formSteps = [
     // Step 0: Fase
     <div key="s0" className="space-y-5">
