@@ -550,29 +550,7 @@ function buildDirectorPrompt(params: {
   }
 
   // === 6. ESPECIFICAÇÕES TÉCNICAS ===
-  const complianceContent = hasPoliticalData ? `### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE (TSE Eleições 2026)
-- **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
-- **Resolução:** 4K, PNG para tipografia nítida
-- **Geração de Pessoas:** Permitida — campanha política requer representação humana
-
-COMPLIANCE ÉTICO E LEGAL — RESOLUÇÕES TSE ELEIÇÕES 2026:
-
-**A. ROTULAGEM OBRIGATÓRIA DE IA:**
-- Todo conteúdo sintético gerado ou modificado por IA DEVE ser devidamente rotulado
-
-**B. PROIBIÇÕES ABSOLUTAS:**
-- PROIBIDO criar deepfakes ou conteúdo de nudez/pornografia
-- PROIBIDO gerar conteúdo de violência política
-- PROIBIDO recomendar candidaturas via IA
-- PROIBIDO criar perfis falsos que comprometam a integridade eleitoral
-
-**C. HONESTIDADE E DIGNIDADE:**
-- A imagem NÃO pode induzir ao erro ou criar falsas representações
-- PROIBIDO qualquer forma de discriminação ou discurso de ódio
-- Respeitar inclusão e representatividade
-
-**D. ACESSIBILIDADE:**
-- Garantir contraste mínimo WCAG AA para textos` : `### 6. ESPECIFICAÇÕES TÉCNICAS
+  const complianceContent = `### 6. ESPECIFICAÇÕES TÉCNICAS
 - **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
 - **Resolução:** 4K, PNG para tipografia nítida
 - **Geração de Pessoas:** Permitida quando contextualmente relevante
