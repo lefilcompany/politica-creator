@@ -105,6 +105,12 @@ export default function BookContent() {
             personaId: personaId || undefined,
             platform: platform || undefined,
             useBookContext: true,
+            selectedTheses: selectedThesesData.map((t) => ({
+              number: t.number,
+              title: t.title,
+              shortDescription: t.shortDescription,
+              group: t.groupLabel,
+            })),
           },
         });
 
