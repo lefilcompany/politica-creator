@@ -549,8 +549,8 @@ export default function CreateImage() {
     handleGenerateContent();
   };
 
-  // Step 3: Actually generate after user confirms
-  const handleGenerateContent = async (thesis: Thesis | null = null) => {
+  // Step 3: Actually generate
+  const handleGenerateContent = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
 
     setLoading(true);
