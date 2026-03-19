@@ -194,6 +194,7 @@ const Dashboard = () => {
       />
       
       <IncompleteProfileBanner />
+      <InstagramBanner />
 
       {/* Banner */}
       <DashboardBanner userName={user.name} />
