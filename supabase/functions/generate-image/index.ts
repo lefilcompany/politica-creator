@@ -707,6 +707,7 @@ serve(async (req) => {
         headline: formData.headline,
         promptContext: formData.promptContext,
         useBookContext: formData.useBookContext,
+        selectedTheses: formData.selectedTheses,
       }
     );
 
