@@ -36,25 +36,7 @@ export default function CreateText() {
   const [personaId, setPersonaId] = useState<string>("");
   const [platform, setPlatform] = useState<string>("");
   const [tone, setTone] = useState<string>("");
-  const [selectedThesisId, setSelectedThesisId] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [recommendedThesesIds, setRecommendedThesesIds] = useState<string[]>([]);
-
-  // Fetch recommended theses from profile
-  useEffect(() => {
-    if (!user?.id) return;
-    supabase.from('profiles').select('recommended_theses').eq('id', user.id).single()
-      .then(({ data }) => {
-        const rt = data?.recommended_theses;
-        if (!rt || !Array.isArray(rt)) return;
-        setRecommendedThesesIds(
-          rt.map((t: any) => {
-            const num = t.thesis_number || t.number;
-            return num ? `t${num}` : "";
-          }).filter(Boolean)
-        );
-      });
-  }, [user?.id]);
 
   const isLoading = brandsLoading || themesLoading || personasLoading;
   const canSubmit = message.trim().length >= 5 && !isGenerating;
