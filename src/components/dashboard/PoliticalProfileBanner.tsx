@@ -88,7 +88,7 @@ export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) 
   }
 
   const location = [profile.city, profile.state].filter(Boolean).join(", ");
-  const theses = (profile.recommended_theses as unknown as RecommendedThesis[]) || [];
+  
 
   return (
     <motion.div
