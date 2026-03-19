@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, Coins, Briefcase, Shield, ImageIcon, CalendarDays, BookOpen } from "lucide-react";
+import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, Coins, Briefcase, Shield, ImageIcon, CalendarDays, BookOpen, Instagram } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useImageLimit } from "@/hooks/useImageLimit";
 import { useTranslation } from "@/hooks/useTranslation";
+import { InstagramHandleDialog } from "@/components/sidebar/InstagramHandleDialog";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
@@ -171,6 +172,7 @@ export function AppSidebar() {
   const { remaining, maxImages } = useImageLimit();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const [instagramDialogOpen, setInstagramDialogOpen] = useState(false);
 
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
@@ -257,9 +259,33 @@ export function AppSidebar() {
           ))}
         </div>
 
-        {/* Credits */}
+        {/* Instagram & Credits */}
         {user && (
           <div className="mt-auto mb-5 flex flex-col gap-2.5">
+            {/* Instagram Button */}
+            {collapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setInstagramDialogOpen(true)}
+                    className="flex items-center justify-center p-2.5 rounded-lg transition-colors duration-300 text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
+                  >
+                    <Instagram className="h-5 w-5 flex-shrink-0" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>Instagram</p></TooltipContent>
+              </Tooltip>
+            ) : (
+              <button
+                onClick={() => setInstagramDialogOpen(true)}
+                className="flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
+              >
+                <Instagram className="h-5 w-5 flex-shrink-0" />
+                <span className="font-medium text-sm">Instagram</span>
+              </button>
+            )}
+
+            {/* Credits */}
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -304,25 +330,31 @@ export function AppSidebar() {
 
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-[var(--layout-bg)] shadow-md shadow-primary/20">
-          <div className="h-full flex flex-col">{sidebarContent()}</div>
-        </SheetContent>
-      </Sheet>
+      <>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent side="left" className="w-64 p-0 bg-[var(--layout-bg)] shadow-md shadow-primary/20">
+            <div className="h-full flex flex-col">{sidebarContent()}</div>
+          </SheetContent>
+        </Sheet>
+        <InstagramHandleDialog open={instagramDialogOpen} onOpenChange={setInstagramDialogOpen} />
+      </>
     );
   }
 
   return (
-    <Sidebar
-      collapsible="icon"
-      side="left"
-      variant="sidebar"
-      className="border-none shadow-none flex-shrink-0"
-    >
-      <SidebarContent className="bg-transparent flex flex-col h-full overflow-y-auto">
-        {sidebarContent()}
-      </SidebarContent>
-      <SidebarRail />
-    </Sidebar>
+    <>
+      <Sidebar
+        collapsible="icon"
+        side="left"
+        variant="sidebar"
+        className="border-none shadow-none flex-shrink-0"
+      >
+        <SidebarContent className="bg-transparent flex flex-col h-full overflow-y-auto">
+          {sidebarContent()}
+        </SidebarContent>
+        <SidebarRail />
+      </Sidebar>
+      <InstagramHandleDialog open={instagramDialogOpen} onOpenChange={setInstagramDialogOpen} />
+    </>
   );
 }
