@@ -240,19 +240,22 @@ async function enrichPromptWithFlash(
   const publicoAlvo = personaData?.name || themeData?.target_audience || 'público geral';
   const fontStyleHint = toneParams.fontHint || 'sans-serif moderna';
 
-  const systemPrompt = `Você é um Estrategista de Marketing Político Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
+  const hasPoliticalContext = !!(pp.political_role || pp.political_party || pp.mandate_stage);
+  const roleTitle = hasPoliticalContext ? 'Estrategista de Marketing e Comunicação Visual' : 'Estrategista de Marketing e Design Visual';
+
+  const systemPrompt = `Você é um ${roleTitle} Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
 
 DADOS DO FORMULÁRIO:
-- Cargo/Local: ${cargo} em ${estado}
+${hasPoliticalContext ? `- Cargo/Local: ${cargo} em ${estado}` : `- Autor: ${pp.name || 'Usuário'} em ${estado}`}
 - Objetivo: ${objetivo}
 - Mensagem Central: "${mensagemCentral}"
 - Descrição Visual Bruta: (será fornecida pelo usuário)
-- Tom/Combatividade: ${tom} / ${grau}
+- Tom: ${tom} / ${grau}
 - Público-Alvo: ${publicoAlvo}
 
 ## DADOS CONTEXTUAIS COMPLETOS:
 ${contextParts.join('\n')}
-${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
+${politicalContext ? `\nCONTEXTO ADICIONAL:\n${politicalContext.substring(0, 800)}` : ''}
 ${params?.useBookContext ? `\nBASE CONCEITUAL "A PRÓXIMA DEMOCRACIA":\nA imagem deve refletir visualmente os conceitos do livro.${params?.selectedTheses && params.selectedTheses.length > 0 ? `\n\nTESES SELECIONADAS (foco visual principal):\n${params.selectedTheses.map((t: any) => `- Tese ${t.number}: "${t.title}" — ${t.shortDescription}`).join('\n')}\n\nA imagem DEVE representar visualmente estas teses específicas.` : ` Use simbolismo de democracia em rede, governança líquida, cidadania expandida, mundo figital.\n${getKnowledgeBaseContext().substring(0, 1500)}`}` : ''}
 
 ## PARÂMETROS VISUAIS DO TOM "${tom.toUpperCase()}":
@@ -270,12 +273,12 @@ SUA MISSÃO (3 etapas obrigatórias):
    - Lente da câmera (ex: 35mm para contexto ambiental, 85mm para retrato)
    - Iluminação específica (${grau === 'Alto' ? 'sombras profundas, contra-luz dramático, low-key' : 'luz solar suave, golden hour, tons abertos e acolhedores'})
    - Cores dominantes alinhadas à paleta da marca
-   - Expressão facial e linguagem corporal do político alinhados ao tom "${tom}"
-   - Elementos regionais sutis de ${estado} (arquitetura, vegetação, cultura local)
+   ${hasPoliticalContext ? '- Expressão facial e linguagem corporal alinhados ao tom' : '- Elementos visuais que representem a identidade da marca'}
+   ${pp.state ? `- Elementos regionais sutis de ${estado} (arquitetura, vegetação, cultura local)` : ''}
    - Profundidade de campo, texturas e materiais
 
 2. **DEFINIR O LAYOUT DO TEXTO**: Se houver mensagem central "${mensagemCentral}", defina:
-   - Posição exata para impacto máximo (ex: "caixa alta, alinhado à direita sobre área de respiro")
+   - Posição exata para impacto máximo
    - Estilo tipográfico: ${fontStyleHint}
    - Hierarquia visual adequada ao público ${publicoAlvo}
    - Garantia de legibilidade absoluta (contraste texto/fundo)
@@ -283,19 +286,19 @@ SUA MISSÃO (3 etapas obrigatórias):
 3. **AJUSTAR O CLIMA**: Adapte toda a atmosfera:
    ${grau === 'Alto' ? '- Sombras profundas, cores fortes e saturadas, contraste dramático, energia de urgência' : grau === 'Médio' ? '- Luz quente dourada, foco em expressões humanas, empatia e conexão' : '- Luz solar suave, tons abertos e limpos, estabilidade e confiança'}
 
-## VALIDAÇÃO ÉTICA E COMPLIANCE TSE 2026 (pré-verificação obrigatória):
-- Se houver menção a "inimigo" ou "adversário", transforme em "crítica política legítima"
+${hasPoliticalContext ? `## COMPLIANCE TSE 2026 (pré-verificação obrigatória):
 - Nunca gerar conteúdo que viole dignidade humana ou incite ódio
-- PROIBIDO gerar deepfakes ou conteúdo de nudez/pornografia envolvendo candidatos
-- PROIBIDO gerar conteúdo de violência política contra a mulher
-- PROIBIDO recomendar candidaturas — não incluir mensagens que indiquem "vote em X"
-- Todo conteúdo gerado por IA DEVE ser rotulado (a plataforma adiciona automaticamente)
-- Respeitar Resoluções TSE Eleições 2026 (Res. 23.610/2019 atualizada)
-- Respeitar inclusão e representatividade de candidaturas indígenas, negras e femininas
+- PROIBIDO gerar deepfakes ou conteúdo de nudez/pornografia
+- PROIBIDO gerar conteúdo de violência política
+- Todo conteúdo gerado por IA DEVE ser rotulado
+- Respeitar inclusão e representatividade` : `## BOAS PRÁTICAS:
+- Conteúdo autêntico, sem falsas representações
+- Respeitar diretrizes da plataforma de destino
+- Design inclusivo e acessível`}
 
 ## FORMATO DE RESPOSTA (JSON estrito):
 {
-  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. O político demonstra [EXPRESSÃO/POSTURA]. Elementos de ${estado} incluem [DETALHES REGIONAIS]. O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta e hierarquia visual para o público de ${publicoAlvo}.",
+  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. ${hasPoliticalContext ? 'O político demonstra [EXPRESSÃO/POSTURA].' : 'A composição transmite [SENTIMENTO].'} ${pp.state ? `Elementos de ${estado} incluem [DETALHES REGIONAIS].` : ''} O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta.",
   "headline": "texto principal sugerido (máx 10 palavras)",
   "subtexto": "CTA ou texto secundário (máx 15 palavras)"
 }
