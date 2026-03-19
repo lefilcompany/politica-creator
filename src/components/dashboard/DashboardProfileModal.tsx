@@ -137,38 +137,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
-  const fetchRecommendedTheses = async () => {
-    setIsLoadingTheses(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      if (!token) throw new Error('No session');
-
-      const response = await supabase.functions.invoke('recommend-theses', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.error) throw response.error;
-      const result = response.data;
-      if (result?.theses && Array.isArray(result.theses)) {
-        const theses = result.theses.slice(0, 5);
-        setRecommendedTheses(theses);
-        
-        // Persist theses to profile
-        if (user?.id && theses.length > 0) {
-          await supabase
-            .from('profiles')
-            .update({ recommended_theses: JSON.parse(JSON.stringify(theses)) } as any)
-            .eq('id', user.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching theses:', error);
-      toast.error('Não foi possível carregar as teses recomendadas');
-    } finally {
-      setIsLoadingTheses(false);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!user?.id) return;
