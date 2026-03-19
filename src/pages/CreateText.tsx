@@ -138,15 +138,15 @@ export default function CreateText() {
             {/* Main textarea */}
             <div className="space-y-2">
               <label className="text-base font-semibold text-foreground">
-                💬 Diga o que você quer falar com seu futuro eleitor
+                💬 O que você quer comunicar?
               </label>
               <p className="text-sm text-muted-foreground">
-                Escreva sua ideia, mensagem ou tema. Pode ser informal — a IA vai transformar em 10 textos profissionais.
+                Escreva sua ideia, mensagem ou tema. Pode ser informal — a IA vai transformar em 10 versões profissionais.
               </p>
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ex: Quero falar sobre as melhorias na saúde pública da minha cidade, como a reforma do hospital e a chegada de novos médicos..."
+                placeholder="Ex: Quero falar sobre as conquistas do meu projeto, lançamento de produto, novidades da marca, evento especial..."
                 className="min-h-[140px] text-base"
                 maxLength={2000}
               />

@@ -75,16 +75,23 @@ serve(async (req) => {
     const personaData = personaResult.data;
     const politicalContext = buildPoliticalContext(politicalProfile);
 
+    // Detect if user has political profile data
+    const pp = politicalProfile || {} as any;
+    const hasPoliticalProfile = !!(pp.political_role || pp.political_party || pp.mandate_stage);
+
     // Build context
     const contextParts: string[] = [];
-    const pp = politicalProfile || {} as any;
 
-    if (pp.political_role || profile.state) {
-      contextParts.push(`AUTOR: ${userName}, ${pp.political_role || 'Político(a)'} em ${profile.state || 'Brasil'}${pp.political_party ? ` (${pp.political_party})` : ''}`);
+    if (hasPoliticalProfile) {
+      if (pp.political_role || profile.state) {
+        contextParts.push(`AUTOR: ${userName}, ${pp.political_role || 'Político(a)'} em ${profile.state || 'Brasil'}${pp.political_party ? ` (${pp.political_party})` : ''}`);
+      }
+      if (pp.mandate_stage) contextParts.push(`Fase: ${pp.mandate_stage}`);
+      if (pp.focus_areas?.length) contextParts.push(`Áreas de foco: ${pp.focus_areas.join(', ')}`);
+      if (pp.tone_of_voice) contextParts.push(`Tom pessoal: ${pp.tone_of_voice}`);
+    } else {
+      contextParts.push(`AUTOR: ${userName}${profile.state ? ` — ${profile.state}` : ''}${profile.city ? `, ${profile.city}` : ''}`);
     }
-    if (pp.mandate_stage) contextParts.push(`Fase: ${pp.mandate_stage}`);
-    if (pp.focus_areas?.length) contextParts.push(`Áreas de foco: ${pp.focus_areas.join(', ')}`);
-    if (pp.tone_of_voice) contextParts.push(`Tom pessoal: ${pp.tone_of_voice}`);
 
     if (brandData) {
       contextParts.push(`MARCA: "${brandData.name}" | Segmento: ${brandData.segment || 'N/A'} | Valores: ${brandData.values || 'N/A'} | Promessa: ${brandData.promise || 'N/A'}`);
@@ -99,11 +106,37 @@ serve(async (req) => {
     const toneInstruction = tone ? `O tom deve ser "${tone}".` : '';
     const platformInstruction = platform ? `Otimizado para ${platform}.` : '';
 
-    const systemPrompt = `Você é um Redator Político Sênior e Estrategista de Comunicação.
+    // Build system prompt based on whether user has political profile
+    const roleDescription = hasPoliticalProfile 
+      ? 'Redator Político Sênior e Estrategista de Comunicação Política'
+      : 'Redator Sênior e Estrategista de Comunicação Digital';
 
-Sua tarefa é transformar a ideia bruta do candidato em 10 versões profissionais de texto para comunicação política.
+    const contextLabel = hasPoliticalProfile ? 'DADOS DO CANDIDATO' : 'DADOS DO AUTOR';
 
-## DADOS DO CANDIDATO
+    const complianceSection = hasPoliticalProfile ? `
+## COMPLIANCE TSE (Eleições 2026)
+- Todo conteúdo deve respeitar a legislação eleitoral vigente
+- Proibido conteúdo que induza ao erro ou crie falsas representações
+- Proibido discurso de ódio ou violência política
+- O conteúdo deve ser identificável como produzido com auxílio de IA` : `
+## BOAS PRÁTICAS
+- Conteúdo deve ser verdadeiro e não induzir ao erro
+- Respeitar diretrizes da plataforma de destino
+- Linguagem inclusiva e respeitosa`;
+
+    const styleInstruction = hasPoliticalProfile
+      ? 'Cada versão deve ter um ESTILO DIFERENTE: formal, informal, emotivo, didático, combativo, institucional, narrativo, inspirador, urgente, comunitário'
+      : 'Cada versão deve ter um ESTILO DIFERENTE: formal, informal, emotivo, didático, persuasivo, institucional, narrativo, inspirador, urgente, conversacional';
+
+    const targetDescription = hasPoliticalProfile
+      ? 'Adapte a linguagem ao público-alvo e à região do candidato'
+      : 'Adapte a linguagem ao público-alvo e ao contexto da marca';
+
+    const systemPrompt = `Você é um ${roleDescription}.
+
+Sua tarefa é transformar a ideia bruta do usuário em 10 versões profissionais de texto para comunicação ${hasPoliticalProfile ? 'política' : 'digital'}.
+
+## ${contextLabel}
 ${contextParts.join('\n')}
 
 ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 1500)}` : ''}
@@ -112,20 +145,16 @@ ${useBookContext ? `## BASE CONCEITUAL — "A PRÓXIMA DEMOCRACIA"\nOs textos DE
 
 ## REGRAS OBRIGATÓRIAS
 1. Gere EXATAMENTE 10 versões diferentes do texto
-2. Cada versão deve ter um ESTILO DIFERENTE: formal, informal, emotivo, didático, combativo, institucional, narrativo, inspirador, urgente, comunitário
+2. ${styleInstruction}
 3. Cada texto deve ter entre 50 e 280 caracteres (ideal para redes sociais) a menos que o contexto peça algo maior
 4. ${toneInstruction}
 5. ${platformInstruction}
-6. Respeite TODOS os temas sensíveis do candidato
+6. Respeite TODOS os temas sensíveis do autor
 7. NÃO inclua hashtags nos textos (serão adicionadas separadamente)
 8. O texto deve soar AUTÊNTICO e HUMANO, nunca robótico
-9. Adapte a linguagem ao público-alvo e à região do candidato
+9. ${targetDescription}
 
-## COMPLIANCE TSE (Eleições 2026)
-- Todo conteúdo deve respeitar a legislação eleitoral vigente
-- Proibido conteúdo que induza ao erro ou crie falsas representações
-- Proibido discurso de ódio ou violência política
-- O conteúdo deve ser identificável como produzido com auxílio de IA
+${complianceSection}
 
 ## FORMATO DE RESPOSTA (JSON estrito)
 {

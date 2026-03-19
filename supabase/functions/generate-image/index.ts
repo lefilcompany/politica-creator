@@ -55,7 +55,7 @@ const FONT_STYLES: Record<string, string> = {
 };
 
 // =====================================
-// TONE/OBJECTIVE → VISUAL PARAMETERS MAP (Political)
+// TONE/OBJECTIVE → VISUAL PARAMETERS MAP
 // =====================================
 const TONE_VISUAL_MAP: Record<string, {
   contrast: string;
@@ -100,12 +100,32 @@ const TONE_VISUAL_MAP: Record<string, {
   institucional: {
     contrast: "Baixo — composição estável e formal",
     lighting: "Limpa, balanceada, studio profissional",
-    style: "Minimalista, formal, autoritário, governamental",
-    composition: "Simétrica, centrada, estável, bandeiras e símbolos",
-    focus: "Ordem, estabilidade, governança, competência",
+    style: "Minimalista, formal, autoritário, profissional",
+    composition: "Simétrica, centrada, estável, elementos institucionais",
+    focus: "Ordem, estabilidade, competência, confiança",
     description: "Transmite estabilidade e ordem. Estilo minimalista, composição simétrica.",
     fontHint: "Serifada clássica, autoritária, transmitindo seriedade",
-    colorHint: "Azul escuro, dourado, branco, cores nacionais",
+    colorHint: "Azul escuro, dourado, branco, tons sóbrios",
+  },
+  profissional: {
+    contrast: "Médio — equilibrado e sofisticado",
+    lighting: "Studio profissional, iluminação neutra e limpa",
+    style: "Clean, moderno, corporativo, sofisticado",
+    composition: "Equilibrada, regra dos terços, hierarquia clara",
+    focus: "Profissionalismo, credibilidade, modernidade",
+    description: "Transmite profissionalismo e modernidade. Design limpo e sofisticado.",
+    fontHint: "Sans-serif moderna, limpa e profissional",
+    colorHint: "Azul corporativo, cinza elegante, branco",
+  },
+  inspirador: {
+    contrast: "Médio — vibrante e elevado",
+    lighting: "Luz natural aberta, céu dramático, golden hour",
+    style: "Elevado, aspiracional, horizonte amplo",
+    composition: "Perspectiva ampla, linhas de fuga, espaço aberto",
+    focus: "Futuro, possibilidades, superação, visão",
+    description: "Inspira e motiva. Perspectivas amplas, iluminação elevada.",
+    fontHint: "Sans-serif elegante, moderna e aspiracional",
+    colorHint: "Azul celeste, dourado, branco luminoso",
   },
 };
 
@@ -220,19 +240,22 @@ async function enrichPromptWithFlash(
   const publicoAlvo = personaData?.name || themeData?.target_audience || 'público geral';
   const fontStyleHint = toneParams.fontHint || 'sans-serif moderna';
 
-  const systemPrompt = `Você é um Estrategista de Marketing Político Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
+  const hasPoliticalContext = !!(pp.political_role || pp.political_party || pp.mandate_stage);
+  const roleTitle = hasPoliticalContext ? 'Estrategista de Marketing e Comunicação Visual' : 'Estrategista de Marketing e Design Visual';
+
+  const systemPrompt = `Você é um ${roleTitle} Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
 
 DADOS DO FORMULÁRIO:
-- Cargo/Local: ${cargo} em ${estado}
+${hasPoliticalContext ? `- Cargo/Local: ${cargo} em ${estado}` : `- Autor: ${pp.name || 'Usuário'} em ${estado}`}
 - Objetivo: ${objetivo}
 - Mensagem Central: "${mensagemCentral}"
 - Descrição Visual Bruta: (será fornecida pelo usuário)
-- Tom/Combatividade: ${tom} / ${grau}
+- Tom: ${tom} / ${grau}
 - Público-Alvo: ${publicoAlvo}
 
 ## DADOS CONTEXTUAIS COMPLETOS:
 ${contextParts.join('\n')}
-${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
+${politicalContext ? `\nCONTEXTO ADICIONAL:\n${politicalContext.substring(0, 800)}` : ''}
 ${params?.useBookContext ? `\nBASE CONCEITUAL "A PRÓXIMA DEMOCRACIA":\nA imagem deve refletir visualmente os conceitos do livro.${params?.selectedTheses && params.selectedTheses.length > 0 ? `\n\nTESES SELECIONADAS (foco visual principal):\n${params.selectedTheses.map((t: any) => `- Tese ${t.number}: "${t.title}" — ${t.shortDescription}`).join('\n')}\n\nA imagem DEVE representar visualmente estas teses específicas.` : ` Use simbolismo de democracia em rede, governança líquida, cidadania expandida, mundo figital.\n${getKnowledgeBaseContext().substring(0, 1500)}`}` : ''}
 
 ## PARÂMETROS VISUAIS DO TOM "${tom.toUpperCase()}":
@@ -250,12 +273,12 @@ SUA MISSÃO (3 etapas obrigatórias):
    - Lente da câmera (ex: 35mm para contexto ambiental, 85mm para retrato)
    - Iluminação específica (${grau === 'Alto' ? 'sombras profundas, contra-luz dramático, low-key' : 'luz solar suave, golden hour, tons abertos e acolhedores'})
    - Cores dominantes alinhadas à paleta da marca
-   - Expressão facial e linguagem corporal do político alinhados ao tom "${tom}"
-   - Elementos regionais sutis de ${estado} (arquitetura, vegetação, cultura local)
+   ${hasPoliticalContext ? '- Expressão facial e linguagem corporal alinhados ao tom' : '- Elementos visuais que representem a identidade da marca'}
+   ${pp.state ? `- Elementos regionais sutis de ${estado} (arquitetura, vegetação, cultura local)` : ''}
    - Profundidade de campo, texturas e materiais
 
 2. **DEFINIR O LAYOUT DO TEXTO**: Se houver mensagem central "${mensagemCentral}", defina:
-   - Posição exata para impacto máximo (ex: "caixa alta, alinhado à direita sobre área de respiro")
+   - Posição exata para impacto máximo
    - Estilo tipográfico: ${fontStyleHint}
    - Hierarquia visual adequada ao público ${publicoAlvo}
    - Garantia de legibilidade absoluta (contraste texto/fundo)
@@ -263,19 +286,19 @@ SUA MISSÃO (3 etapas obrigatórias):
 3. **AJUSTAR O CLIMA**: Adapte toda a atmosfera:
    ${grau === 'Alto' ? '- Sombras profundas, cores fortes e saturadas, contraste dramático, energia de urgência' : grau === 'Médio' ? '- Luz quente dourada, foco em expressões humanas, empatia e conexão' : '- Luz solar suave, tons abertos e limpos, estabilidade e confiança'}
 
-## VALIDAÇÃO ÉTICA E COMPLIANCE TSE 2026 (pré-verificação obrigatória):
-- Se houver menção a "inimigo" ou "adversário", transforme em "crítica política legítima"
+${hasPoliticalContext ? `## COMPLIANCE TSE 2026 (pré-verificação obrigatória):
 - Nunca gerar conteúdo que viole dignidade humana ou incite ódio
-- PROIBIDO gerar deepfakes ou conteúdo de nudez/pornografia envolvendo candidatos
-- PROIBIDO gerar conteúdo de violência política contra a mulher
-- PROIBIDO recomendar candidaturas — não incluir mensagens que indiquem "vote em X"
-- Todo conteúdo gerado por IA DEVE ser rotulado (a plataforma adiciona automaticamente)
-- Respeitar Resoluções TSE Eleições 2026 (Res. 23.610/2019 atualizada)
-- Respeitar inclusão e representatividade de candidaturas indígenas, negras e femininas
+- PROIBIDO gerar deepfakes ou conteúdo de nudez/pornografia
+- PROIBIDO gerar conteúdo de violência política
+- Todo conteúdo gerado por IA DEVE ser rotulado
+- Respeitar inclusão e representatividade` : `## BOAS PRÁTICAS:
+- Conteúdo autêntico, sem falsas representações
+- Respeitar diretrizes da plataforma de destino
+- Design inclusivo e acessível`}
 
 ## FORMATO DE RESPOSTA (JSON estrito):
 {
-  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. O político demonstra [EXPRESSÃO/POSTURA]. Elementos de ${estado} incluem [DETALHES REGIONAIS]. O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta e hierarquia visual para o público de ${publicoAlvo}.",
+  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. ${hasPoliticalContext ? 'O político demonstra [EXPRESSÃO/POSTURA].' : 'A composição transmite [SENTIMENTO].'} ${pp.state ? `Elementos de ${estado} incluem [DETALHES REGIONAIS].` : ''} O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta.",
   "headline": "texto principal sugerido (máx 10 palavras)",
   "subtexto": "CTA ou texto secundário (máx 15 palavras)"
 }
@@ -354,17 +377,21 @@ function buildDirectorPrompt(params: {
   const pp = params.politicalProfile || {};
 
   // === ROLE ===
-  sections.push(`Atue como um Consultor de Marketing Político e Designer de Campanha de Alto Nível. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
+  const hasPoliticalData = !!(pp.political_role || pp.political_party || pp.mandate_stage);
+  const roleLabel = hasPoliticalData ? 'Consultor de Marketing e Designer de Campanha de Alto Nível' : 'Consultor de Marketing Visual e Designer de Alto Nível';
+  sections.push(`Atue como um ${roleLabel}. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
 
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
   
-  if (pp.political_role || pp.state) {
-    contextLines.push(`- **Cargo/Função:** ${pp.political_role || 'Político(a)'} em ${pp.state || 'Brasil'}`);
+  if (hasPoliticalData) {
+    if (pp.political_role || pp.state) {
+      contextLines.push(`- **Cargo/Função:** ${pp.political_role || 'Político(a)'} em ${pp.state || 'Brasil'}`);
+    }
+    if (pp.political_party) contextLines.push(`- **Partido:** ${pp.political_party}`);
+    if (pp.mandate_stage) contextLines.push(`- **Fase da Campanha/Mandato:** ${pp.mandate_stage}`);
+    if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Foco:** ${pp.focus_areas.join(', ')}`);
   }
-  if (pp.political_party) contextLines.push(`- **Partido:** ${pp.political_party}`);
-  if (pp.mandate_stage) contextLines.push(`- **Fase da Campanha/Mandato:** ${pp.mandate_stage}`);
-  if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Foco:** ${pp.focus_areas.join(', ')}`);
 
   if (params.brandData) {
     contextLines.push(`- **Marca:** ${params.brandData.name}`);
@@ -411,11 +438,12 @@ function buildDirectorPrompt(params: {
   // === 2. DIRETRIZES ESTRATÉGICAS ===
   const stratLines: string[] = [];
   
-  if (pp.mandate_stage) stratLines.push(`- **Fase:** ${pp.mandate_stage} — Adaptar o semblante e maturidade visual para esta fase.`);
+  if (hasPoliticalData && pp.mandate_stage) stratLines.push(`- **Fase:** ${pp.mandate_stage} — Adaptar o semblante e maturidade visual para esta fase.`);
   if (params.objective) stratLines.push(`- **Objetivo do Post:** ${params.objective}`);
   if (params.personaData?.name) stratLines.push(`- **Público-Alvo:** ${params.personaData.name} — O design deve ressoar com este grupo específico.`);
   
-  stratLines.push(`- **Grau de Combatividade:** ${params.politicalTone === 'combativo' ? 'Alto' : params.politicalTone === 'emocional' ? 'Baixo/Propositivo' : 'Médio'}`);
+  const toneLabel = hasPoliticalData ? 'Grau de Combatividade' : 'Intensidade Visual';
+  stratLines.push(`- **${toneLabel}:** ${params.politicalTone === 'combativo' ? 'Alto' : params.politicalTone === 'emocional' ? 'Baixo/Propositivo' : 'Médio'}`);
   
   if (params.politicalTone === 'combativo') {
     stratLines.push(`  → Use contrastes fortes, cores intensas e tipografia impactante.`);
@@ -443,7 +471,7 @@ function buildDirectorPrompt(params: {
   // === 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO) ===
   const compositionLines: string[] = [];
   
-  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. O político deve demonstrar um semblante ${toneStr} através da linguagem corporal e expressão facial.`);
+  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. ${hasPoliticalData ? `O político deve demonstrar um semblante ${toneStr} através da linguagem corporal e expressão facial.` : `A composição deve transmitir ${toneStr} de forma clara e impactante.`}`);
 
   // Brand identity
   const colors: string[] = [];
@@ -474,12 +502,12 @@ function buildDirectorPrompt(params: {
   }
 
   // Regional adaptation
-  if (pp.state) {
+  if (hasPoliticalData && pp.state) {
     compositionLines.push(`- **Regionalismo:** Adapte sutilmente o fundo da imagem (arquitetura, vegetação, elementos culturais) para remeter a ${pp.state}${pp.city ? ` / ${pp.city}` : ''}.`);
   }
 
   // Qualidade
-  compositionLines.push(`- **Qualidade:** Fotorealismo 4K, profundidade de campo profissional, estilo de fotografia de campanha de alta verba.`);
+  compositionLines.push(`- **Qualidade:** Fotorealismo 4K, profundidade de campo profissional, estilo de fotografia profissional de alta qualidade.`);
 
   sections.push(`### 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO)\n${compositionLines.join('\n')}`);
 
@@ -494,8 +522,8 @@ function buildDirectorPrompt(params: {
     const toneFont = toneParams.fontHint;
     
     textLines.push(`- **Headline (Texto Principal na Imagem):** Renderize PERFEITAMENTE o texto: "${headlineText}"`);
-    textLines.push(`- **Tipografia:** ${userFont}. Adaptar ao tom político: ${toneFont}.`);
-    textLines.push(`- **Cor da tipografia:** Em harmonia com a paleta da marca${pp.state ? ` e cores que remetam a ${pp.state}` : ''}.`);
+    textLines.push(`- **Tipografia:** ${userFont}. Adaptar ao tom: ${toneFont}.`);
+    textLines.push(`- **Cor da tipografia:** Em harmonia com a paleta da marca.`);
     
     const posLabels: Record<string, string> = {
       'top': 'no topo da imagem',
@@ -506,7 +534,7 @@ function buildDirectorPrompt(params: {
       'bottom-left': 'no canto inferior esquerdo',
       'bottom-right': 'no canto inferior direito',
     };
-    textLines.push(`- **Posição do Texto:** ${posLabels[params.textPosition] || 'centralizado'}. O texto NÃO deve obstruir o rosto do candidato.`);
+    textLines.push(`- **Posição do Texto:** ${posLabels[params.textPosition] || 'centralizado'}. O texto NÃO deve obstruir elementos visuais principais.`);
     textLines.push(`- **Legibilidade e Contraste:** O texto DEVE ser o foco principal e ser 100% legível. Utilize espaço negativo estratégico, sobreposições de gradiente sutil ou caixas de texto limpas. O texto deve fazer parte da composição, não flutuar sem propósito.`);
   } else {
     // Use LLM Refiner suggestions if available
@@ -535,43 +563,40 @@ function buildDirectorPrompt(params: {
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refLines.join('\n')}`);
   }
 
-  // === 6. COMPLIANCE E ESPECIFICAÇÕES (TSE Eleições 2026 — Res. 23.610/2019 atualizada) ===
-  sections.push(`### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE (TSE Eleições 2026)
+  // === 6. ESPECIFICAÇÕES TÉCNICAS ===
+  const complianceContent = hasPoliticalData ? `### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE (TSE Eleições 2026)
 - **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
 - **Resolução:** 4K, PNG para tipografia nítida
 - **Geração de Pessoas:** Permitida — campanha política requer representação humana
 
-COMPLIANCE ÉTICO E LEGAL — RESOLUÇÕES TSE ELEIÇÕES 2026 (aprovadas em 02/06/2025):
+COMPLIANCE ÉTICO E LEGAL — RESOLUÇÕES TSE ELEIÇÕES 2026:
 
-**A. ROTULAGEM OBRIGATÓRIA DE IA (Res. TSE nº 23.610/2019, atualizada):**
+**A. ROTULAGEM OBRIGATÓRIA DE IA:**
 - Todo conteúdo sintético gerado ou modificado por IA DEVE ser devidamente rotulado
-- A divulgação ou compartilhamento de conteúdo sintético SEM rotulagem adequada é PROIBIDA
-- A responsabilidade solidária recai sobre provedores de aplicação que não indisponibilizem conteúdo não rotulado
 
-**B. RESTRIÇÃO TEMPORAL DE CONTEÚDO SINTÉTICO:**
-- É VEDADA a circulação de quaisquer conteúdos sintéticos NOVOS, produzidos ou alterados por IA, que modifiquem imagem, voz ou manifestação de candidata(o) ou pessoa pública, ainda que rotulados, no período de 72 HORAS ANTES até 24 HORAS APÓS o pleito (1º turno: 04/10/2026)
-- Esta restrição visa excluir surpresas indesejadas no período mais crítico do processo eleitoral
+**B. PROIBIÇÕES ABSOLUTAS:**
+- PROIBIDO criar deepfakes ou conteúdo de nudez/pornografia
+- PROIBIDO gerar conteúdo de violência política
+- PROIBIDO recomendar candidaturas via IA
+- PROIBIDO criar perfis falsos que comprometam a integridade eleitoral
 
-**C. PROIBIÇÕES ABSOLUTAS:**
-- PROIBIDO criar deepfakes: alterações em fotografia, vídeo ou registro audiovisual contendo cena de sexo, nudez ou pornografia
-- PROIBIDO gerar conteúdo de violência política contra a mulher
-- PROIBIDO recomendar candidaturas via IA — a plataforma NÃO deve fornecer recomendação de candidaturas, impedindo interferência algorítmica no processo decisório do voto
-- PROIBIDO criar ou promover perfis falsos, apócrifos ou automatizados que comprometam a integridade eleitoral
-- PROIBIDO reproduzir conteúdo já objeto de ordem de indisponibilização pela Justiça Eleitoral
-
-**D. HONESTIDADE E DIGNIDADE (CONAR/CDC/TSE):**
+**C. HONESTIDADE E DIGNIDADE:**
 - A imagem NÃO pode induzir ao erro ou criar falsas representações
 - PROIBIDO qualquer forma de discriminação ou discurso de ódio
-- Respeitar inclusão radical e interseccional — pessoas negras, indígenas e mulheres devem ser representadas com dignidade
+- Respeitar inclusão e representatividade
 
-**E. PROPAGANDA ELEITORAL:**
-- Permitida entrega de material de campanha em espaços públicos abertos (vias, praças, feiras, parques) desde que garantida a mobilidade
-- Manifestação espontânea em ambientes universitários, escolares, comunitários ou de movimentos sociais é permitida na pré-campanha (ADPF 548)
-- Destinação proporcional de tempo a candidaturas indígenas na propaganda gratuita
+**D. ACESSIBILIDADE:**
+- Garantir contraste mínimo WCAG AA para textos` : `### 6. ESPECIFICAÇÕES TÉCNICAS
+- **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
+- **Resolução:** 4K, PNG para tipografia nítida
+- **Geração de Pessoas:** Permitida quando contextualmente relevante
 
-**F. ACESSIBILIDADE:**
-- Garantir contraste mínimo WCAG AA para textos
-- Considerar acessibilidade visual para pessoas com deficiência`);
+BOAS PRÁTICAS:
+- A imagem NÃO pode induzir ao erro ou criar falsas representações
+- Respeitar diretrizes de publicidade e ética profissional
+- Design inclusivo e acessível
+- Garantir contraste mínimo WCAG AA para textos`;
+  sections.push(complianceContent);
 
   // === POLITICAL CONTEXT ===
   if (params.politicalContext) {
