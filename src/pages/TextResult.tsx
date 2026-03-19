@@ -45,6 +45,7 @@ export default function TextResult() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [generatingId, setGeneratingId] = useState<number | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [confirmImageGen, setConfirmImageGen] = useState<{ text: string; textId: number } | null>(null);
 
   if (!state?.texts) {
     return (
