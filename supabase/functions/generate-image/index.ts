@@ -219,34 +219,28 @@ async function enrichPromptWithFlash(
   
   if (politicalProfile) {
     const polParts: string[] = [];
-    if (politicalProfile.political_role) polParts.push(`Cargo: ${politicalProfile.political_role}`);
-    if (politicalProfile.political_level) polParts.push(`Nível: ${politicalProfile.political_level}`);
+    if (politicalProfile.political_role) polParts.push(`Atuação: ${politicalProfile.political_role}`);
     if (politicalProfile.state) polParts.push(`Estado: ${politicalProfile.state}`);
     if (politicalProfile.city) polParts.push(`Cidade: ${politicalProfile.city}`);
-    if (politicalProfile.mandate_stage) polParts.push(`Fase: ${politicalProfile.mandate_stage}`);
-    if (politicalProfile.political_party) polParts.push(`Partido: ${politicalProfile.political_party}`);
-    if (politicalProfile.focus_areas?.length) polParts.push(`Foco: ${politicalProfile.focus_areas.join(', ')}`);
+    if (politicalProfile.focus_areas?.length) polParts.push(`Áreas de interesse: ${politicalProfile.focus_areas.join(', ')}`);
     if (politicalProfile.tone_of_voice) polParts.push(`Tom pessoal: ${politicalProfile.tone_of_voice}`);
-    if (polParts.length > 0) contextParts.push(`PERFIL POLÍTICO: ${polParts.join(' | ')}`);
+    if (polParts.length > 0) contextParts.push(`PERFIL DO AUTOR: ${polParts.join(' | ')}`);
   }
 
   const pp = politicalProfile || {};
-  const cargo = pp.political_role || 'Político(a)';
+  const atuacao = pp.political_role || 'Profissional';
   const estado = pp.state || pp.city || 'Brasil';
-  const objetivo = themeData?.objectives || 'comunicação política';
+  const objetivo = themeData?.objectives || 'comunicação digital';
   const mensagemCentral = params?.textContent || params?.headline || '';
   const tom = politicalTone || 'institucional';
   const grau = (politicalTone === 'combativo') ? 'Alto' : (politicalTone === 'emocional' ? 'Médio' : 'Baixo/Propositivo');
   const publicoAlvo = personaData?.name || themeData?.target_audience || 'público geral';
   const fontStyleHint = toneParams.fontHint || 'sans-serif moderna';
 
-  const hasPoliticalContext = !!(pp.political_role || pp.political_party || pp.mandate_stage);
-  const roleTitle = hasPoliticalContext ? 'Estrategista de Marketing e Comunicação Visual' : 'Estrategista de Marketing e Design Visual';
-
-  const systemPrompt = `Você é um ${roleTitle} Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
+  const systemPrompt = `Você é um Estrategista de Marketing e Design Visual Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
 
 DADOS DO FORMULÁRIO:
-${hasPoliticalContext ? `- Cargo/Local: ${cargo} em ${estado}` : `- Autor: ${pp.name || 'Usuário'} em ${estado}`}
+- Autor: ${pp.name || 'Usuário'}${atuacao !== 'Profissional' ? ` (${atuacao})` : ''} em ${estado}
 - Objetivo: ${objetivo}
 - Mensagem Central: "${mensagemCentral}"
 - Descrição Visual Bruta: (será fornecida pelo usuário)
@@ -273,8 +267,7 @@ SUA MISSÃO (3 etapas obrigatórias):
    - Lente da câmera (ex: 35mm para contexto ambiental, 85mm para retrato)
    - Iluminação específica (${grau === 'Alto' ? 'sombras profundas, contra-luz dramático, low-key' : 'luz solar suave, golden hour, tons abertos e acolhedores'})
    - Cores dominantes alinhadas à paleta da marca
-   ${hasPoliticalContext ? '- Expressão facial e linguagem corporal alinhados ao tom' : '- Elementos visuais que representem a identidade da marca'}
-   ${pp.state ? `- Elementos regionais sutis de ${estado} (arquitetura, vegetação, cultura local)` : ''}
+   - Elementos visuais que representem a identidade da marca
    - Profundidade de campo, texturas e materiais
 
 2. **DEFINIR O LAYOUT DO TEXTO**: Se houver mensagem central "${mensagemCentral}", defina:
@@ -286,19 +279,14 @@ SUA MISSÃO (3 etapas obrigatórias):
 3. **AJUSTAR O CLIMA**: Adapte toda a atmosfera:
    ${grau === 'Alto' ? '- Sombras profundas, cores fortes e saturadas, contraste dramático, energia de urgência' : grau === 'Médio' ? '- Luz quente dourada, foco em expressões humanas, empatia e conexão' : '- Luz solar suave, tons abertos e limpos, estabilidade e confiança'}
 
-${hasPoliticalContext ? `## COMPLIANCE TSE 2026 (pré-verificação obrigatória):
-- Nunca gerar conteúdo que viole dignidade humana ou incite ódio
-- PROIBIDO gerar deepfakes ou conteúdo de nudez/pornografia
-- PROIBIDO gerar conteúdo de violência política
-- Todo conteúdo gerado por IA DEVE ser rotulado
-- Respeitar inclusão e representatividade` : `## BOAS PRÁTICAS:
+## BOAS PRÁTICAS:
 - Conteúdo autêntico, sem falsas representações
 - Respeitar diretrizes da plataforma de destino
-- Design inclusivo e acessível`}
+- Design inclusivo e acessível
 
 ## FORMATO DE RESPOSTA (JSON estrito):
 {
-  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. ${hasPoliticalContext ? 'O político demonstra [EXPRESSÃO/POSTURA].' : 'A composição transmite [SENTIMENTO].'} ${pp.state ? `Elementos de ${estado} incluem [DETALHES REGIONAIS].` : ''} O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta.",
+  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. A composição transmite [SENTIMENTO]. O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta.",
   "headline": "texto principal sugerido (máx 10 palavras)",
   "subtexto": "CTA ou texto secundário (máx 15 palavras)"
 }
@@ -312,7 +300,7 @@ REGRAS:
   // pp already defined above
 
   try {
-    console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Político...');
+    console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Visual...');
     const result = await callGemini(GEMINI_API_KEY, {
       model: 'google/gemini-2.5-flash',
       messages: [
