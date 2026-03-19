@@ -108,6 +108,8 @@ ${contextParts.join('\n')}
 
 ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 1500)}` : ''}
 
+${useBookContext ? `## BASE CONCEITUAL — "A PRÓXIMA DEMOCRACIA"\nOs textos DEVEM se fundamentar nos conceitos e teses do livro "A Próxima Democracia" de Silvio Meira & Rosário Pompéia. Use as teses, princípios e frameworks como base argumentativa.\n\n${getKnowledgeBaseContext().substring(0, 3000)}` : ''}
+
 ## REGRAS OBRIGATÓRIAS
 1. Gere EXATAMENTE 10 versões diferentes do texto
 2. Cada versão deve ter um ESTILO DIFERENTE: formal, informal, emotivo, didático, combativo, institucional, narrativo, inspirador, urgente, comunitário
