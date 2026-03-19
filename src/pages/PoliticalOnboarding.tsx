@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, Building2, MapPin, Target, Share2,
+  User, Building2, MapPin, Target, Share2, Instagram,
   ChevronRight, ChevronLeft, Check, Sparkles, LocateFixed, Loader2
 } from 'lucide-react';
 import logoCreator from '@/assets/logoCreatorPreta.png';
