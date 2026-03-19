@@ -219,6 +219,7 @@ async function enrichPromptWithFlash(
   
   if (politicalProfile) {
     const polParts: string[] = [];
+    if (politicalProfile.instagram_handle) polParts.push(`Instagram: @${politicalProfile.instagram_handle} — A identidade visual DEVE refletir o estilo e estética deste perfil`);
     if (politicalProfile.political_role) polParts.push(`Atuação: ${politicalProfile.political_role}`);
     if (politicalProfile.state) polParts.push(`Estado: ${politicalProfile.state}`);
     if (politicalProfile.city) polParts.push(`Cidade: ${politicalProfile.city}`);
