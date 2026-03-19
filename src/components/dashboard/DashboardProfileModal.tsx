@@ -157,11 +157,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       if (error) throw error;
       await reloadUserData();
       toast.success('Perfil detalhado salvo com sucesso!');
-      
-      // Move to theses step and start loading
-      setShowTheses(true);
-      setStep(FORM_STEPS);
-      fetchRecommendedTheses();
+      onClose();
     } catch (error) {
       console.error('Error saving profile details:', error);
       toast.error('Erro ao salvar. Tente novamente.');
