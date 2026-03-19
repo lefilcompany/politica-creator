@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
-import { User, Building2, MapPin, Target, Share2, ArrowRight, Sparkles, Briefcase, Mic, ShieldAlert, FileText } from "lucide-react";
+import { User, Building2, MapPin, Target, Share2, ArrowRight, Sparkles, Briefcase, Mic, ShieldAlert, FileText, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
