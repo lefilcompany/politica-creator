@@ -41,13 +41,7 @@ export async function fetchPoliticalProfile(
 export function buildPoliticalContext(profile: PoliticalProfile | null): string {
   const parts: string[] = [];
 
-  // 1. Inject knowledge base context
-  const knowledgeBase = getKnowledgeBaseContext();
-  if (knowledgeBase) {
-    parts.push(knowledgeBase);
-  }
-
-  // 2. Inject political profile context
+  // Inject political profile context
   if (profile) {
     const lines: string[] = [];
 
