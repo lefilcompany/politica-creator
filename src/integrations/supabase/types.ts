@@ -611,6 +611,7 @@ export type Database = {
           focus_areas: string[] | null
           force_password_change: boolean | null
           id: string
+          instagram_handle: string | null
           main_social_networks: string[] | null
           mandate_stage: string | null
           migration_user: boolean | null
@@ -663,6 +664,7 @@ export type Database = {
           focus_areas?: string[] | null
           force_password_change?: boolean | null
           id: string
+          instagram_handle?: string | null
           main_social_networks?: string[] | null
           mandate_stage?: string | null
           migration_user?: boolean | null
@@ -715,6 +717,7 @@ export type Database = {
           focus_areas?: string[] | null
           force_password_change?: boolean | null
           id?: string
+          instagram_handle?: string | null
           main_social_networks?: string[] | null
           mandate_stage?: string | null
           migration_user?: boolean | null

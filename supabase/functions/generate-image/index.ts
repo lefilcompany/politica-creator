@@ -219,6 +219,7 @@ async function enrichPromptWithFlash(
   
   if (politicalProfile) {
     const polParts: string[] = [];
+    if (politicalProfile.instagram_handle) polParts.push(`Instagram: @${politicalProfile.instagram_handle} — A identidade visual DEVE refletir o estilo e estética deste perfil`);
     if (politicalProfile.political_role) polParts.push(`Atuação: ${politicalProfile.political_role}`);
     if (politicalProfile.state) polParts.push(`Estado: ${politicalProfile.state}`);
     if (politicalProfile.city) polParts.push(`Cidade: ${politicalProfile.city}`);
@@ -597,7 +598,7 @@ serve(async (req) => {
 
     // Fetch profile + political profile in parallel
     const [profileResult, politicalProfile] = await Promise.all([
-      supabase.from('profiles').select('team_id, credits, name, state, city').eq('id', authenticatedUserId).single(),
+      supabase.from('profiles').select('team_id, credits, name, state, city, instagram_handle').eq('id', authenticatedUserId).single(),
       fetchPoliticalProfile(supabase, authenticatedUserId)
     ]);
     const { data: profile, error: profileError } = profileResult;
@@ -617,6 +618,7 @@ serve(async (req) => {
       ...politicalProfile,
       state: politicalProfile?.state || profile?.state,
       city: politicalProfile?.city || profile?.city,
+      instagram_handle: profile?.instagram_handle,
     };
 
     const formData = await req.json();

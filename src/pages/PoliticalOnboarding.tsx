@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, Building2, MapPin, Target, Share2,
+  User, Building2, MapPin, Target, Share2, Instagram,
   ChevronRight, ChevronLeft, Check, Sparkles, LocateFixed, Loader2
 } from 'lucide-react';
 import logoCreator from '@/assets/logoCreatorPreta.png';
@@ -67,9 +67,10 @@ interface OnboardingData {
   target_audience_description: string;
   state: string;
   city: string;
+  instagram_handle: string;
 }
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export default function PoliticalOnboarding() {
   const { user, reloadUserData } = useAuth();
@@ -87,6 +88,7 @@ export default function PoliticalOnboarding() {
     target_audience_description: '',
     state: '',
     city: '',
+    instagram_handle: '',
   });
 
   const handleGetLocation = async () => {
@@ -139,6 +141,7 @@ export default function PoliticalOnboarding() {
       case 2: return !!data.state;
       case 3: return data.focus_areas.length > 0;
       case 4: return data.main_social_networks.length > 0;
+      case 5: return true; // Instagram é opcional
       default: return true;
     }
   };
@@ -160,6 +163,7 @@ export default function PoliticalOnboarding() {
           target_audience_description: data.target_audience_description,
           state: data.state,
           city: data.city,
+          instagram_handle: data.instagram_handle || null,
           tutorial_completed: true,
         })
         .eq('id', user.id);
@@ -194,7 +198,7 @@ export default function PoliticalOnboarding() {
     }
   };
 
-  const stepIcons = [User, Building2, MapPin, Target, Share2];
+  const stepIcons = [User, Building2, MapPin, Target, Share2, Instagram];
 
   const steps = [
     // Step 0: Cargo e Nível
@@ -389,6 +393,53 @@ export default function PoliticalOnboarding() {
             {sn.label}
           </button>
         ))}
+      </div>
+    </div>,
+
+    // Step 5: Instagram
+    <div key="step5" className="space-y-6">
+      <div className="text-center space-y-2">
+        <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center mb-4">
+          <Instagram className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">Seu Instagram</h2>
+        <p className="text-sm text-muted-foreground">
+          Informe seu @ do Instagram para que o conteúdo gerado tenha o mesmo estilo e tom da sua comunicação atual.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">@</span>
+          <Input
+            placeholder="seu.perfil"
+            value={data.instagram_handle}
+            onChange={e => {
+              const value = e.target.value.replace(/[^a-zA-Z0-9._]/g, '');
+              setData(prev => ({ ...prev, instagram_handle: value }));
+            }}
+            className="pl-10 h-12 text-base"
+            maxLength={30}
+          />
+        </div>
+
+        <div className="rounded-xl bg-muted/50 border border-border/50 p-4 space-y-2">
+          <p className="text-xs font-medium text-foreground">Por que pedimos isso?</p>
+          <ul className="text-xs text-muted-foreground space-y-1.5">
+            <li className="flex items-start gap-2">
+              <Sparkles className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
+              Os textos e imagens gerados terão o mesmo tom e estilo do seu perfil
+            </li>
+            <li className="flex items-start gap-2">
+              <Sparkles className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
+              O conteúdo será mais autêntico e coerente com sua identidade digital
+            </li>
+            <li className="flex items-start gap-2">
+              <Sparkles className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
+              Você pode pular este passo e adicionar depois no perfil
+            </li>
+          </ul>
+        </div>
       </div>
     </div>,
   ];
