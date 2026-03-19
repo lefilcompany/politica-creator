@@ -64,6 +64,7 @@ const Defense = lazy(() => import("./pages/Defense"));
 const ActionView = lazy(() => import("./pages/ActionView"));
 const RepercussionAnalysis = lazy(() => import("./pages/RepercussionAnalysis"));
 const RepercussionResult = lazy(() => import("./pages/RepercussionResult"));
+const BookContent = lazy(() => import("./pages/BookContent"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
