@@ -330,25 +330,31 @@ export function AppSidebar() {
 
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-[var(--layout-bg)] shadow-md shadow-primary/20">
-          <div className="h-full flex flex-col">{sidebarContent()}</div>
-        </SheetContent>
-      </Sheet>
+      <>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent side="left" className="w-64 p-0 bg-[var(--layout-bg)] shadow-md shadow-primary/20">
+            <div className="h-full flex flex-col">{sidebarContent()}</div>
+          </SheetContent>
+        </Sheet>
+        <InstagramHandleDialog open={instagramDialogOpen} onOpenChange={setInstagramDialogOpen} />
+      </>
     );
   }
 
   return (
-    <Sidebar
-      collapsible="icon"
-      side="left"
-      variant="sidebar"
-      className="border-none shadow-none flex-shrink-0"
-    >
-      <SidebarContent className="bg-transparent flex flex-col h-full overflow-y-auto">
-        {sidebarContent()}
-      </SidebarContent>
-      <SidebarRail />
-    </Sidebar>
+    <>
+      <Sidebar
+        collapsible="icon"
+        side="left"
+        variant="sidebar"
+        className="border-none shadow-none flex-shrink-0"
+      >
+        <SidebarContent className="bg-transparent flex flex-col h-full overflow-y-auto">
+          {sidebarContent()}
+        </SidebarContent>
+        <SidebarRail />
+      </Sidebar>
+      <InstagramHandleDialog open={instagramDialogOpen} onOpenChange={setInstagramDialogOpen} />
+    </>
   );
 }
