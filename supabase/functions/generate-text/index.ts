@@ -178,7 +178,7 @@ ${complianceSection}
       model: 'google/gemini-3-flash-preview',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Transforme esta ideia em 10 textos profissionais para comunicação política:\n\n"${message.trim()}"` },
+        { role: 'user', content: `Transforme esta ideia em 10 textos profissionais para comunicação digital:\n\n"${message.trim()}"` },
       ],
     });
 
