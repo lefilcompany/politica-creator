@@ -92,7 +92,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     load();
   }, [open, user?.id]);
 
-  const totalSteps = showTheses ? FORM_STEPS + 1 : FORM_STEPS;
+  const totalSteps = FORM_STEPS;
   const progress = ((step + 1) / totalSteps) * 100;
 
   const canProceed = () => {
