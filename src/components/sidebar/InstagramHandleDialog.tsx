@@ -236,7 +236,9 @@ export function InstagramHandleDialog({ open, onOpenChange }: InstagramHandleDia
                   <div className="border-t border-border px-4 py-2.5 bg-primary/5">
                     <p className="text-xs text-primary font-medium flex items-center gap-1.5">
                       <Check className="h-3.5 w-3.5" />
-                      Perfil encontrado — clique em Salvar para confirmar
+                      {(preview as any).minimal
+                        ? 'Perfil identificado — clique em Salvar para confirmar'
+                        : 'Perfil encontrado — clique em Salvar para confirmar'}
                     </p>
                   </div>
                 </div>

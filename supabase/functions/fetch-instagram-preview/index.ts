@@ -19,26 +19,45 @@ Deno.serve(async (req) => {
     }
 
     const cleanHandle = handle.replace(/[^a-zA-Z0-9._]/g, '');
-    const url = `https://www.instagram.com/${cleanHandle}/`;
+    const profileUrl = `https://www.instagram.com/${cleanHandle}/`;
 
-    console.log('Fetching Instagram profile:', url);
+    console.log('Fetching Instagram profile:', profileUrl);
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-      },
-    });
+    // Try multiple user agents to get past Instagram's blocks
+    const userAgents = [
+      'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+      'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    ];
 
-    if (!response.ok) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Perfil não encontrado' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let html = '';
+    let fetchSuccess = false;
+
+    for (const ua of userAgents) {
+      try {
+        const response = await fetch(profileUrl, {
+          headers: {
+            'User-Agent': ua,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Cache-Control': 'no-cache',
+          },
+          redirect: 'follow',
+        });
+
+        if (response.ok) {
+          html = await response.text();
+          // Check if we got actual profile content (not just a login page)
+          if (html.includes('og:title') || html.includes(`"username":"${cleanHandle}"`) || html.includes(`@${cleanHandle}`)) {
+            fetchSuccess = true;
+            console.log(`Success with UA: ${ua.substring(0, 30)}...`);
+            break;
+          }
+        }
+      } catch (e) {
+        console.log(`Failed with UA: ${ua.substring(0, 30)}...`, e.message);
+      }
     }
-
-    const html = await response.text();
 
     // Extract Open Graph meta tags
     const ogTitle = html.match(/<meta\s+property="og:title"\s+content="([^"]*?)"/)?.[1]
@@ -50,11 +69,8 @@ Deno.serve(async (req) => {
     const ogImage = html.match(/<meta\s+property="og:image"\s+content="([^"]*?)"/)?.[1]
       || html.match(/<meta\s+content="([^"]*?)"\s+property="og:image"/)?.[1];
 
-    // Extract from title tag as fallback
     const titleTag = html.match(/<title>([^<]*)<\/title>/)?.[1];
 
-    // Try to extract follower info from description
-    // Format: "123K Followers, 456 Following, 789 Posts - See Instagram photos and videos from Name (@handle)"
     let followers = '';
     let posts = '';
     let displayName = '';
@@ -71,11 +87,9 @@ Deno.serve(async (req) => {
         || decoded.match(/([\d,.]+[KkMm]?)\s*Publicações/i);
       if (postsMatch) posts = postsMatch[1];
 
-      // Extract the bio part after the dash
-      const bioMatch = decoded.match(/from\s+(.+?)(?:\s*\(@|$)/i);
-      if (bioMatch) displayName = bioMatch[1].trim();
+      const nameMatch = decoded.match(/from\s+(.+?)(?:\s*\(@|$)/i);
+      if (nameMatch) displayName = nameMatch[1].trim();
 
-      // Try to get bio text
       const bioTextMatch = decoded.match(/["""](.+?)["""]/);
       if (bioTextMatch) bio = bioTextMatch[1];
     }
@@ -88,12 +102,33 @@ Deno.serve(async (req) => {
       displayName = titleTag.replace(/\s*\(.*?\)\s*/, '').replace(/•\s*Instagram.*/, '').trim();
     }
 
-    const profileFound = !!(ogTitle || ogImage || displayName);
+    // Try to extract from JSON-LD or inline scripts
+    if (!displayName) {
+      const jsonMatch = html.match(/"name"\s*:\s*"([^"]+)"/);
+      if (jsonMatch) displayName = jsonMatch[1];
+    }
+
+    const profileFound = !!(ogTitle || ogImage || displayName || fetchSuccess);
 
     if (!profileFound) {
+      // If we couldn't scrape but the handle looks valid, return a minimal result
+      // so the user can still save it
+      console.log('Could not extract OG data, returning minimal profile');
       return new Response(
-        JSON.stringify({ success: false, error: 'Não foi possível carregar o perfil' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          success: true,
+          data: {
+            handle: cleanHandle,
+            displayName: cleanHandle,
+            profilePicture: null,
+            followers: '',
+            posts: '',
+            bio: '',
+            profileUrl,
+            minimal: true,
+          },
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -107,7 +142,7 @@ Deno.serve(async (req) => {
           followers,
           posts,
           bio,
-          profileUrl: url,
+          profileUrl,
         },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
