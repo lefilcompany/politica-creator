@@ -132,13 +132,40 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Proxy the profile picture to avoid CORS/referrer blocks
+    let profilePictureDataUrl: string | null = null;
+    if (ogImage) {
+      try {
+        const imgResponse = await fetch(ogImage, {
+          headers: {
+            'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+            'Referer': 'https://www.instagram.com/',
+          },
+        });
+        if (imgResponse.ok) {
+          const contentType = imgResponse.headers.get('content-type') || 'image/jpeg';
+          const arrayBuffer = await imgResponse.arrayBuffer();
+          const uint8 = new Uint8Array(arrayBuffer);
+          let binary = '';
+          for (let i = 0; i < uint8.length; i++) {
+            binary += String.fromCharCode(uint8[i]);
+          }
+          const base64 = btoa(binary);
+          profilePictureDataUrl = `data:${contentType};base64,${base64}`;
+          console.log('Profile picture proxied successfully');
+        }
+      } catch (e) {
+        console.log('Failed to proxy profile picture:', e.message);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         data: {
           handle: cleanHandle,
           displayName: displayName || cleanHandle,
-          profilePicture: ogImage || null,
+          profilePicture: profilePictureDataUrl,
           followers,
           posts,
           bio,
