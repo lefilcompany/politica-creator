@@ -370,7 +370,7 @@ function buildDirectorPrompt(params: {
 
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
-  const pp = params.politicalProfile || {};
+  // pp already declared above
   
   if (pp.political_role) contextLines.push(`- **Atuação Profissional:** ${pp.political_role}`);
   if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Interesse:** ${pp.focus_areas.join(', ')}`);
