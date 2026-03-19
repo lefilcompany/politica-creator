@@ -45,6 +45,21 @@ export default function BookContent() {
   const isLoading = brandsLoading || personasLoading;
   const canSubmit = message.trim().length >= 5 && !isGenerating;
 
+  const handleThesisToggle = (thesisId: string) => {
+    setSelectedThesesIds((prev) => {
+      if (prev.includes(thesisId)) return prev.filter((id) => id !== thesisId);
+      if (prev.length >= MAX_THESES) {
+        toast.info(`Máximo de ${MAX_THESES} teses selecionadas`);
+        return prev;
+      }
+      return [...prev, thesisId];
+    });
+  };
+
+  const selectedThesesData = selectedThesesIds
+    .map((id) => ALL_THESES.find((t) => t.id === id))
+    .filter(Boolean) as Thesis[];
+
   const handleGenerate = async () => {
     if (!canSubmit) return;
 
