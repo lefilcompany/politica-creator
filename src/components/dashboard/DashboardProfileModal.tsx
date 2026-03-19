@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle, Upload, X, File, BookOpen, Loader2 } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle, Upload, X, File, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const MANDATE_STAGES = [
