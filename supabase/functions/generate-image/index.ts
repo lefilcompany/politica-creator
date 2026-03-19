@@ -5,6 +5,7 @@ import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
+import { getKnowledgeBaseContext } from '../_shared/knowledgeBase.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -165,7 +166,7 @@ async function enrichPromptWithFlash(
   politicalContext: string,
   politicalTone: string,
   politicalProfile: any,
-  params?: { textContent?: string; headline?: string; promptContext?: string }
+  params?: { textContent?: string; headline?: string; promptContext?: string; useBookContext?: boolean }
 ): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   if (!GEMINI_API_KEY) {
@@ -232,6 +233,7 @@ DADOS DO FORMULÁRIO:
 ## DADOS CONTEXTUAIS COMPLETOS:
 ${contextParts.join('\n')}
 ${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
+${params?.useBookContext ? `\nBASE CONCEITUAL "A PRÓXIMA DEMOCRACIA":\nA imagem deve refletir visualmente os conceitos do livro. Use simbolismo de democracia em rede, governança líquida, cidadania expandida, mundo figital.\n${getKnowledgeBaseContext().substring(0, 1500)}` : ''}
 
 ## PARÂMETROS VISUAIS DO TOM "${tom.toUpperCase()}":
 - Iluminação: ${toneParams.lighting}
@@ -704,6 +706,7 @@ serve(async (req) => {
         textContent: formData.textContent,
         headline: formData.headline,
         promptContext: formData.promptContext,
+        useBookContext: formData.useBookContext,
       }
     );
 

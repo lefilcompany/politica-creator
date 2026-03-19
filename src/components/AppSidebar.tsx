@@ -187,9 +187,10 @@ export function AppSidebar() {
   ];
 
   const bookLink = {
+    id: "nav-book-content",
     icon: BookOpen,
     label: "A Próxima Democracia",
-    url: "/knowledge-base/MAR_POL_DEM_BOOK_2025_v10.pdf",
+    href: "/book-content",
   };
 
   const actionButtons = [
@@ -234,32 +235,14 @@ export function AppSidebar() {
               disabled={isNavigationDisabled && link.id !== "nav-history"}
             />
           ))}
-          {/* Book reference link */}
-          {collapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href={bookLink.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
-                >
-                  <bookLink.icon className="h-5 w-5 flex-shrink-0" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side="right"><p>{bookLink.label}</p></TooltipContent>
-            </Tooltip>
-          ) : (
-            <a
-              href={bookLink.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
-            >
-              <bookLink.icon className="h-5 w-5 flex-shrink-0" />
-              <span className="font-medium text-sm">{bookLink.label}</span>
-            </a>
-          )}
+          <NavItem
+            id={bookLink.id}
+            href={bookLink.href}
+            icon={bookLink.icon}
+            label={bookLink.label}
+            collapsed={collapsed}
+            onNavigate={handleMobileNavigate}
+          />
         </div>
 
         <div className="flex flex-col gap-2.5">

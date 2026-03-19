@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { getKnowledgeBaseContext } from '../_shared/knowledgeBase.ts';
 
 import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
@@ -56,7 +57,7 @@ serve(async (req) => {
     }
     const creditsBefore = creditsCheck.currentCredits;
 
-    const { message, brandId, themeId, personaId, platform, tone } = await req.json();
+    const { message, brandId, themeId, personaId, platform, tone, useBookContext } = await req.json();
 
     if (!message || typeof message !== 'string' || message.trim().length < 5) {
       return new Response(JSON.stringify({ error: 'Mensagem deve ter pelo menos 5 caracteres' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -106,6 +107,8 @@ Sua tarefa é transformar a ideia bruta do candidato em 10 versões profissionai
 ${contextParts.join('\n')}
 
 ${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 1500)}` : ''}
+
+${useBookContext ? `## BASE CONCEITUAL — "A PRÓXIMA DEMOCRACIA"\nOs textos DEVEM se fundamentar nos conceitos e teses do livro "A Próxima Democracia" de Silvio Meira & Rosário Pompéia. Use as teses, princípios e frameworks como base argumentativa.\n\n${getKnowledgeBaseContext().substring(0, 3000)}` : ''}
 
 ## REGRAS OBRIGATÓRIAS
 1. Gere EXATAMENTE 10 versões diferentes do texto
