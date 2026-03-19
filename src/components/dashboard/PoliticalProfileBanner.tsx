@@ -9,49 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-interface RecommendedThesis {
-  number: number;
-  title: string;
-  group: string;
-  relevance: string;
-}
-
 const EXPERIENCE_LABELS: Record<string, string> = {
-  pre_candidato: "Pré-candidato(a)",
-  primeiro_mandato: "Primeiro mandato",
-  reeleicao: "Reeleição",
-  assessor: "Assessor(a)",
-};
-
-const LEVEL_LABELS: Record<string, string> = {
-  municipal: "Municipal",
-  estadual: "Estadual",
-  federal: "Federal",
-};
-
-const MANDATE_LABELS: Record<string, string> = {
-  mandato: "Mandato",
-  pre_campanha: "Pré-campanha",
-  campanha: "Campanha",
-};
-
-const GROUP_LABELS: Record<string, string> = {
-  A: "Poder e Governança",
-  B: "Dinâmica Política",
-  C: "Narrativa e Autenticidade",
-  D: "Cidadania Expandida",
-  E: "Complexidade e Ética",
-};
-
-const GROUP_COLORS: Record<string, string> = {
-  A: "bg-primary/15 text-primary border-primary/30",
-  B: "bg-accent/15 text-accent-foreground border-accent/30",
-  C: "bg-secondary/15 text-secondary-foreground border-secondary/30",
-  D: "bg-muted text-muted-foreground border-muted-foreground/20",
-  E: "bg-primary/10 text-primary border-primary/20",
-};
-
-interface PoliticalProfileBannerProps {
   onEdit?: () => void;
 }
 
