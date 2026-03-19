@@ -219,34 +219,28 @@ async function enrichPromptWithFlash(
   
   if (politicalProfile) {
     const polParts: string[] = [];
-    if (politicalProfile.political_role) polParts.push(`Cargo: ${politicalProfile.political_role}`);
-    if (politicalProfile.political_level) polParts.push(`Nível: ${politicalProfile.political_level}`);
+    if (politicalProfile.political_role) polParts.push(`Atuação: ${politicalProfile.political_role}`);
     if (politicalProfile.state) polParts.push(`Estado: ${politicalProfile.state}`);
     if (politicalProfile.city) polParts.push(`Cidade: ${politicalProfile.city}`);
-    if (politicalProfile.mandate_stage) polParts.push(`Fase: ${politicalProfile.mandate_stage}`);
-    if (politicalProfile.political_party) polParts.push(`Partido: ${politicalProfile.political_party}`);
-    if (politicalProfile.focus_areas?.length) polParts.push(`Foco: ${politicalProfile.focus_areas.join(', ')}`);
+    if (politicalProfile.focus_areas?.length) polParts.push(`Áreas de interesse: ${politicalProfile.focus_areas.join(', ')}`);
     if (politicalProfile.tone_of_voice) polParts.push(`Tom pessoal: ${politicalProfile.tone_of_voice}`);
-    if (polParts.length > 0) contextParts.push(`PERFIL POLÍTICO: ${polParts.join(' | ')}`);
+    if (polParts.length > 0) contextParts.push(`PERFIL DO AUTOR: ${polParts.join(' | ')}`);
   }
 
   const pp = politicalProfile || {};
-  const cargo = pp.political_role || 'Político(a)';
+  const atuacao = pp.political_role || 'Profissional';
   const estado = pp.state || pp.city || 'Brasil';
-  const objetivo = themeData?.objectives || 'comunicação política';
+  const objetivo = themeData?.objectives || 'comunicação digital';
   const mensagemCentral = params?.textContent || params?.headline || '';
   const tom = politicalTone || 'institucional';
   const grau = (politicalTone === 'combativo') ? 'Alto' : (politicalTone === 'emocional' ? 'Médio' : 'Baixo/Propositivo');
   const publicoAlvo = personaData?.name || themeData?.target_audience || 'público geral';
   const fontStyleHint = toneParams.fontHint || 'sans-serif moderna';
 
-  const hasPoliticalContext = !!(pp.political_role || pp.political_party || pp.mandate_stage);
-  const roleTitle = hasPoliticalContext ? 'Estrategista de Marketing e Comunicação Visual' : 'Estrategista de Marketing e Design Visual';
-
-  const systemPrompt = `Você é um ${roleTitle} Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
+  const systemPrompt = `Você é um Estrategista de Marketing e Design Visual Sênior. Sua tarefa é transformar dados brutos de um formulário em um BRIEFING VISUAL detalhado para um gerador de imagens de IA (Nano Banana Pro).
 
 DADOS DO FORMULÁRIO:
-${hasPoliticalContext ? `- Cargo/Local: ${cargo} em ${estado}` : `- Autor: ${pp.name || 'Usuário'} em ${estado}`}
+- Autor: ${pp.name || 'Usuário'}${atuacao !== 'Profissional' ? ` (${atuacao})` : ''} em ${estado}
 - Objetivo: ${objetivo}
 - Mensagem Central: "${mensagemCentral}"
 - Descrição Visual Bruta: (será fornecida pelo usuário)
@@ -273,8 +267,7 @@ SUA MISSÃO (3 etapas obrigatórias):
    - Lente da câmera (ex: 35mm para contexto ambiental, 85mm para retrato)
    - Iluminação específica (${grau === 'Alto' ? 'sombras profundas, contra-luz dramático, low-key' : 'luz solar suave, golden hour, tons abertos e acolhedores'})
    - Cores dominantes alinhadas à paleta da marca
-   ${hasPoliticalContext ? '- Expressão facial e linguagem corporal alinhados ao tom' : '- Elementos visuais que representem a identidade da marca'}
-   ${pp.state ? `- Elementos regionais sutis de ${estado} (arquitetura, vegetação, cultura local)` : ''}
+   - Elementos visuais que representem a identidade da marca
    - Profundidade de campo, texturas e materiais
 
 2. **DEFINIR O LAYOUT DO TEXTO**: Se houver mensagem central "${mensagemCentral}", defina:
@@ -286,19 +279,14 @@ SUA MISSÃO (3 etapas obrigatórias):
 3. **AJUSTAR O CLIMA**: Adapte toda a atmosfera:
    ${grau === 'Alto' ? '- Sombras profundas, cores fortes e saturadas, contraste dramático, energia de urgência' : grau === 'Médio' ? '- Luz quente dourada, foco em expressões humanas, empatia e conexão' : '- Luz solar suave, tons abertos e limpos, estabilidade e confiança'}
 
-${hasPoliticalContext ? `## COMPLIANCE TSE 2026 (pré-verificação obrigatória):
-- Nunca gerar conteúdo que viole dignidade humana ou incite ódio
-- PROIBIDO gerar deepfakes ou conteúdo de nudez/pornografia
-- PROIBIDO gerar conteúdo de violência política
-- Todo conteúdo gerado por IA DEVE ser rotulado
-- Respeitar inclusão e representatividade` : `## BOAS PRÁTICAS:
+## BOAS PRÁTICAS:
 - Conteúdo autêntico, sem falsas representações
 - Respeitar diretrizes da plataforma de destino
-- Design inclusivo e acessível`}
+- Design inclusivo e acessível
 
 ## FORMATO DE RESPOSTA (JSON estrito):
 {
-  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. ${hasPoliticalContext ? 'O político demonstra [EXPRESSÃO/POSTURA].' : 'A composição transmite [SENTIMENTO].'} ${pp.state ? `Elementos de ${estado} incluem [DETALHES REGIONAIS].` : ''} O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta.",
+  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]. Lente [LENTE]. Iluminação [DETALHES]. O clima deve ser [ATMOSFERA DETALHADA]. Cores [PALETA]. A composição transmite [SENTIMENTO]. O texto '[TEXTO]' deve ser renderizado com fonte ${fontStyleHint} na posição [POSIÇÃO IDEAL], garantindo legibilidade absoluta.",
   "headline": "texto principal sugerido (máx 10 palavras)",
   "subtexto": "CTA ou texto secundário (máx 15 palavras)"
 }
@@ -312,7 +300,7 @@ REGRAS:
   // pp already defined above
 
   try {
-    console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Político...');
+    console.log('🎨 Step 1: LLM Refiner — Estrategista de Marketing Visual...');
     const result = await callGemini(GEMINI_API_KEY, {
       model: 'google/gemini-2.5-flash',
       messages: [
@@ -376,22 +364,15 @@ function buildDirectorPrompt(params: {
   const toneParams = TONE_VISUAL_MAP[params.politicalTone] || TONE_VISUAL_MAP['institucional'];
   const pp = params.politicalProfile || {};
 
-  // === ROLE ===
-  const hasPoliticalData = !!(pp.political_role || pp.political_party || pp.mandate_stage);
-  const roleLabel = hasPoliticalData ? 'Consultor de Marketing e Designer de Campanha de Alto Nível' : 'Consultor de Marketing Visual e Designer de Alto Nível';
-  sections.push(`Atue como um ${roleLabel}. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
+  // === ROLE === (universal, non-political framing)
+  sections.push(`Atue como um Consultor de Marketing Visual e Designer de Alto Nível. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
 
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
+  const pp = params.politicalProfile || {};
   
-  if (hasPoliticalData) {
-    if (pp.political_role || pp.state) {
-      contextLines.push(`- **Cargo/Função:** ${pp.political_role || 'Político(a)'} em ${pp.state || 'Brasil'}`);
-    }
-    if (pp.political_party) contextLines.push(`- **Partido:** ${pp.political_party}`);
-    if (pp.mandate_stage) contextLines.push(`- **Fase da Campanha/Mandato:** ${pp.mandate_stage}`);
-    if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Foco:** ${pp.focus_areas.join(', ')}`);
-  }
+  if (pp.political_role) contextLines.push(`- **Atuação Profissional:** ${pp.political_role}`);
+  if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Interesse:** ${pp.focus_areas.join(', ')}`);
 
   if (params.brandData) {
     contextLines.push(`- **Marca:** ${params.brandData.name}`);
@@ -438,12 +419,10 @@ function buildDirectorPrompt(params: {
   // === 2. DIRETRIZES ESTRATÉGICAS ===
   const stratLines: string[] = [];
   
-  if (hasPoliticalData && pp.mandate_stage) stratLines.push(`- **Fase:** ${pp.mandate_stage} — Adaptar o semblante e maturidade visual para esta fase.`);
   if (params.objective) stratLines.push(`- **Objetivo do Post:** ${params.objective}`);
   if (params.personaData?.name) stratLines.push(`- **Público-Alvo:** ${params.personaData.name} — O design deve ressoar com este grupo específico.`);
   
-  const toneLabel = hasPoliticalData ? 'Grau de Combatividade' : 'Intensidade Visual';
-  stratLines.push(`- **${toneLabel}:** ${params.politicalTone === 'combativo' ? 'Alto' : params.politicalTone === 'emocional' ? 'Baixo/Propositivo' : 'Médio'}`);
+  stratLines.push(`- **Intensidade Visual:** ${params.politicalTone === 'combativo' ? 'Alto' : params.politicalTone === 'emocional' ? 'Baixo/Propositivo' : 'Médio'}`);
   
   if (params.politicalTone === 'combativo') {
     stratLines.push(`  → Use contrastes fortes, cores intensas e tipografia impactante.`);
@@ -471,7 +450,7 @@ function buildDirectorPrompt(params: {
   // === 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO) ===
   const compositionLines: string[] = [];
   
-  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. ${hasPoliticalData ? `O político deve demonstrar um semblante ${toneStr} através da linguagem corporal e expressão facial.` : `A composição deve transmitir ${toneStr} de forma clara e impactante.`}`);
+  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. A composição deve transmitir ${toneStr} de forma clara e impactante.`);
 
   // Brand identity
   const colors: string[] = [];
@@ -499,11 +478,6 @@ function buildDirectorPrompt(params: {
     compositionLines.push(`- **Tipo:** Conteúdo de ANÚNCIO PAGO — foco em conversão, CTA implícito`);
   } else {
     compositionLines.push(`- **Tipo:** Conteúdo ORGÂNICO — foco em engajamento, autenticidade, conexão`);
-  }
-
-  // Regional adaptation
-  if (hasPoliticalData && pp.state) {
-    compositionLines.push(`- **Regionalismo:** Adapte sutilmente o fundo da imagem (arquitetura, vegetação, elementos culturais) para remeter a ${pp.state}${pp.city ? ` / ${pp.city}` : ''}.`);
   }
 
   // Qualidade
@@ -564,29 +538,7 @@ function buildDirectorPrompt(params: {
   }
 
   // === 6. ESPECIFICAÇÕES TÉCNICAS ===
-  const complianceContent = hasPoliticalData ? `### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE (TSE Eleições 2026)
-- **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
-- **Resolução:** 4K, PNG para tipografia nítida
-- **Geração de Pessoas:** Permitida — campanha política requer representação humana
-
-COMPLIANCE ÉTICO E LEGAL — RESOLUÇÕES TSE ELEIÇÕES 2026:
-
-**A. ROTULAGEM OBRIGATÓRIA DE IA:**
-- Todo conteúdo sintético gerado ou modificado por IA DEVE ser devidamente rotulado
-
-**B. PROIBIÇÕES ABSOLUTAS:**
-- PROIBIDO criar deepfakes ou conteúdo de nudez/pornografia
-- PROIBIDO gerar conteúdo de violência política
-- PROIBIDO recomendar candidaturas via IA
-- PROIBIDO criar perfis falsos que comprometam a integridade eleitoral
-
-**C. HONESTIDADE E DIGNIDADE:**
-- A imagem NÃO pode induzir ao erro ou criar falsas representações
-- PROIBIDO qualquer forma de discriminação ou discurso de ódio
-- Respeitar inclusão e representatividade
-
-**D. ACESSIBILIDADE:**
-- Garantir contraste mínimo WCAG AA para textos` : `### 6. ESPECIFICAÇÕES TÉCNICAS
+  const complianceContent = `### 6. ESPECIFICAÇÕES TÉCNICAS
 - **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
 - **Resolução:** 4K, PNG para tipografia nítida
 - **Geração de Pessoas:** Permitida quando contextualmente relevante
@@ -931,7 +883,7 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem (Pipeline Político Premium - 2 opções)',
+      description: 'Geração de imagem (Pipeline Premium - 2 opções)',
       metadata: { 
         platform: formData.platform, 
         vibeStyle: formData.vibeStyle || formData.visualStyle,
