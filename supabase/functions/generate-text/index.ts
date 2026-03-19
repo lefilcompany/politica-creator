@@ -3,9 +3,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
-import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
+import { fetchPoliticalProfile } from '../_shared/politicalProfile.ts';
 import { getKnowledgeBaseContext } from '../_shared/knowledgeBase.ts';
-
 import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
 
 const corsHeaders = {
@@ -36,7 +35,6 @@ serve(async (req) => {
 
     const userId = user.id;
 
-    // Fetch profile + political profile
     const [profileResult, politicalProfile] = await Promise.all([
       supabase.from('profiles').select('team_id, credits, name, state, city').eq('id', userId).single(),
       fetchPoliticalProfile(supabase, userId),
@@ -50,7 +48,6 @@ serve(async (req) => {
     const teamId = profile.team_id;
     const userName = profile.name || 'Usuário';
 
-    // Check credits
     const creditsCheck = await checkUserCredits(supabase, userId, CREDIT_COSTS.GENERATE_TEXT);
     if (!creditsCheck.hasCredits) {
       return new Response(JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.GENERATE_TEXT} créditos` }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -63,7 +60,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Mensagem deve ter pelo menos 5 caracteres' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Fetch brand/theme/persona in parallel
     const [brandResult, themeResult, personaResult] = await Promise.all([
       brandId ? supabase.from('brands').select('name, segment, values, keywords, promise, restrictions').eq('id', brandId).single() : { data: null },
       themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes').eq('id', themeId).single() : { data: null },
@@ -73,25 +69,14 @@ serve(async (req) => {
     const brandData = brandResult.data;
     const themeData = themeResult.data;
     const personaData = personaResult.data;
-    const politicalContext = buildPoliticalContext(politicalProfile);
-
-    // Detect if user has political profile data
     const pp = politicalProfile || {} as any;
-    const hasPoliticalProfile = !!(pp.political_role || pp.political_party || pp.mandate_stage);
 
-    // Build context
+    // Build context — universal, non-political tone
     const contextParts: string[] = [];
-
-    if (hasPoliticalProfile) {
-      if (pp.political_role || profile.state) {
-        contextParts.push(`AUTOR: ${userName}, ${pp.political_role || 'Político(a)'} em ${profile.state || 'Brasil'}${pp.political_party ? ` (${pp.political_party})` : ''}`);
-      }
-      if (pp.mandate_stage) contextParts.push(`Fase: ${pp.mandate_stage}`);
-      if (pp.focus_areas?.length) contextParts.push(`Áreas de foco: ${pp.focus_areas.join(', ')}`);
-      if (pp.tone_of_voice) contextParts.push(`Tom pessoal: ${pp.tone_of_voice}`);
-    } else {
-      contextParts.push(`AUTOR: ${userName}${profile.state ? ` — ${profile.state}` : ''}${profile.city ? `, ${profile.city}` : ''}`);
-    }
+    contextParts.push(`AUTOR: ${userName}${profile.state ? ` — ${profile.state}` : ''}${profile.city ? `, ${profile.city}` : ''}`);
+    if (pp.political_role) contextParts.push(`Atuação profissional: ${pp.political_role}`);
+    if (pp.focus_areas?.length) contextParts.push(`Áreas de interesse: ${pp.focus_areas.join(', ')}`);
+    if (pp.tone_of_voice) contextParts.push(`Tom pessoal preferido: ${pp.tone_of_voice}`);
 
     if (brandData) {
       contextParts.push(`MARCA: "${brandData.name}" | Segmento: ${brandData.segment || 'N/A'} | Valores: ${brandData.values || 'N/A'} | Promessa: ${brandData.promise || 'N/A'}`);
@@ -105,56 +90,33 @@ serve(async (req) => {
 
     const toneInstruction = tone ? `O tom deve ser "${tone}".` : '';
     const platformInstruction = platform ? `Otimizado para ${platform}.` : '';
+    const redLinesSection = pp.red_lines ? `\n## TEMAS SENSÍVEIS (RESTRIÇÕES ABSOLUTAS)\n${pp.red_lines}\nATENÇÃO: Os temas acima são PROIBIÇÕES. O conteúdo NUNCA deve violar essas restrições.` : '';
 
-    // Build system prompt based on whether user has political profile
-    const roleDescription = hasPoliticalProfile 
-      ? 'Redator Político Sênior e Estrategista de Comunicação Política'
-      : 'Redator Sênior e Estrategista de Comunicação Digital';
+    const systemPrompt = `Você é um Redator Sênior e Estrategista de Comunicação Digital.
 
-    const contextLabel = hasPoliticalProfile ? 'DADOS DO CANDIDATO' : 'DADOS DO AUTOR';
+Sua tarefa é transformar a ideia bruta do usuário em 10 versões profissionais de texto para comunicação digital.
 
-    const complianceSection = hasPoliticalProfile ? `
-## COMPLIANCE TSE (Eleições 2026)
-- Todo conteúdo deve respeitar a legislação eleitoral vigente
-- Proibido conteúdo que induza ao erro ou crie falsas representações
-- Proibido discurso de ódio ou violência política
-- O conteúdo deve ser identificável como produzido com auxílio de IA` : `
-## BOAS PRÁTICAS
-- Conteúdo deve ser verdadeiro e não induzir ao erro
-- Respeitar diretrizes da plataforma de destino
-- Linguagem inclusiva e respeitosa`;
-
-    const styleInstruction = hasPoliticalProfile
-      ? 'Cada versão deve ter um ESTILO DIFERENTE: formal, informal, emotivo, didático, combativo, institucional, narrativo, inspirador, urgente, comunitário'
-      : 'Cada versão deve ter um ESTILO DIFERENTE: formal, informal, emotivo, didático, persuasivo, institucional, narrativo, inspirador, urgente, conversacional';
-
-    const targetDescription = hasPoliticalProfile
-      ? 'Adapte a linguagem ao público-alvo e à região do candidato'
-      : 'Adapte a linguagem ao público-alvo e ao contexto da marca';
-
-    const systemPrompt = `Você é um ${roleDescription}.
-
-Sua tarefa é transformar a ideia bruta do usuário em 10 versões profissionais de texto para comunicação ${hasPoliticalProfile ? 'política' : 'digital'}.
-
-## ${contextLabel}
+## DADOS DO AUTOR
 ${contextParts.join('\n')}
 
-${politicalContext ? `## CONTEXTO POLÍTICO\n${politicalContext.substring(0, 1500)}` : ''}
-
 ${useBookContext ? `## BASE CONCEITUAL — "A PRÓXIMA DEMOCRACIA"\nOs textos DEVEM se fundamentar nos conceitos e teses do livro "A Próxima Democracia" de Silvio Meira & Rosário Pompéia. Use as teses, princípios e frameworks como base argumentativa.\n\n${selectedTheses && selectedTheses.length > 0 ? `### TESES SELECIONADAS (foco principal)\nO conteúdo DEVE ser fundamentado ESPECIFICAMENTE nestas teses:\n${selectedTheses.map((t: any) => `- Tese ${t.number} (${t.group}): "${t.title}" — ${t.shortDescription}`).join('\n')}\n\nTodo o conteúdo gerado deve girar em torno destas teses específicas.` : getKnowledgeBaseContext().substring(0, 3000)}` : ''}
+${redLinesSection}
 
 ## REGRAS OBRIGATÓRIAS
 1. Gere EXATAMENTE 10 versões diferentes do texto
-2. ${styleInstruction}
+2. Cada versão deve ter um ESTILO DIFERENTE: formal, informal, emotivo, didático, persuasivo, institucional, narrativo, inspirador, urgente, conversacional
 3. Cada texto deve ter entre 50 e 280 caracteres (ideal para redes sociais) a menos que o contexto peça algo maior
 4. ${toneInstruction}
 5. ${platformInstruction}
-6. Respeite TODOS os temas sensíveis do autor
-7. NÃO inclua hashtags nos textos (serão adicionadas separadamente)
-8. O texto deve soar AUTÊNTICO e HUMANO, nunca robótico
-9. ${targetDescription}
+6. NÃO inclua hashtags nos textos (serão adicionadas separadamente)
+7. O texto deve soar AUTÊNTICO e HUMANO, nunca robótico
+8. Adapte a linguagem ao público-alvo e ao contexto da marca
+9. NÃO use jargão político ou eleitoral a menos que o usuário peça explicitamente
 
-${complianceSection}
+## BOAS PRÁTICAS
+- Conteúdo deve ser verdadeiro e não induzir ao erro
+- Respeitar diretrizes da plataforma de destino
+- Linguagem inclusiva e respeitosa
 
 ## FORMATO DE RESPOSTA (JSON estrito)
 {
@@ -197,7 +159,6 @@ ${complianceSection}
       return new Response(JSON.stringify({ error: 'Nenhum texto gerado' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Deduct credits
     const deductResult = await deductUserCredits(supabase, userId, CREDIT_COSTS.GENERATE_TEXT);
     const creditsAfter = deductResult.newCredits;
 
