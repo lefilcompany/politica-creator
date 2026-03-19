@@ -54,7 +54,6 @@ export default function CreateText() {
           personaId: personaId || undefined,
           platform: platform || undefined,
           tone: tone || undefined,
-          selectedThesis: selectedThesisId ? getThesisById(selectedThesisId) : undefined,
         },
       });
 
