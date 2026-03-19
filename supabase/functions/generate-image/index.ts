@@ -883,7 +883,7 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem (Pipeline Político Premium - 2 opções)',
+      description: 'Geração de imagem (Pipeline Premium - 2 opções)',
       metadata: { 
         platform: formData.platform, 
         vibeStyle: formData.vibeStyle || formData.visualStyle,
