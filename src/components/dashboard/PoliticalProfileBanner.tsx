@@ -24,7 +24,7 @@ export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) 
       const { data } = await supabase
         .from("profiles")
         .select(
-          "political_role, political_party, political_level, political_experience, focus_areas, main_social_networks, state, city, target_audience_description, mandate_stage, biography, tone_of_voice, red_lines, evidence_history, recommended_theses"
+          "political_role, political_party, political_level, political_experience, focus_areas, main_social_networks, state, city, target_audience_description, mandate_stage, biography, tone_of_voice, red_lines, evidence_history"
         )
         .eq("id", user.id)
         .single();
