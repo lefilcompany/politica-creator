@@ -39,8 +39,6 @@ import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { buildRequestPayload, buildImagePromptString, type PromptFormFields } from "@/lib/buildImagePrompt";
 import createBanner from "@/assets/create-banner.jpg";
-import { ThesisRecommendationModal } from "@/components/criar-imagem/ThesisRecommendationModal";
-import { type Thesis } from "@/lib/theses";
 
 enum GenerationStep {
   IDLE = "IDLE",
