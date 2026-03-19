@@ -153,12 +153,6 @@ export default function CreateText() {
               <p className="text-xs text-muted-foreground text-right">{message.length}/2000</p>
             </div>
 
-            {/* Thesis selector */}
-            <ThesisSelector
-              selectedThesisId={selectedThesisId}
-              onSelect={setSelectedThesisId}
-              recommendedThesesIds={recommendedThesesIds}
-            />
 
             {/* Optional selectors */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
