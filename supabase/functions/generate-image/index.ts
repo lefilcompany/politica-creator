@@ -502,12 +502,12 @@ function buildDirectorPrompt(params: {
   }
 
   // Regional adaptation
-  if (pp.state) {
+  if (hasPoliticalData && pp.state) {
     compositionLines.push(`- **Regionalismo:** Adapte sutilmente o fundo da imagem (arquitetura, vegetação, elementos culturais) para remeter a ${pp.state}${pp.city ? ` / ${pp.city}` : ''}.`);
   }
 
   // Qualidade
-  compositionLines.push(`- **Qualidade:** Fotorealismo 4K, profundidade de campo profissional, estilo de fotografia de campanha de alta verba.`);
+  compositionLines.push(`- **Qualidade:** Fotorealismo 4K, profundidade de campo profissional, estilo de fotografia profissional de alta qualidade.`);
 
   sections.push(`### 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO)\n${compositionLines.join('\n')}`);
 
