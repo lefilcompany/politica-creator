@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import {
   Home, Landmark, Users, Calendar, Archive, FileText,
   Coins, Briefcase, Shield, ImageIcon, CalendarDays,
-  BookOpen, Instagram, Separator,
+  BookOpen, Instagram,
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
