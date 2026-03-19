@@ -534,7 +534,7 @@ function buildDirectorPrompt(params: {
       'bottom-left': 'no canto inferior esquerdo',
       'bottom-right': 'no canto inferior direito',
     };
-    textLines.push(`- **Posição do Texto:** ${posLabels[params.textPosition] || 'centralizado'}. O texto NÃO deve obstruir o rosto do candidato.`);
+    textLines.push(`- **Posição do Texto:** ${posLabels[params.textPosition] || 'centralizado'}. O texto NÃO deve obstruir elementos visuais principais.`);
     textLines.push(`- **Legibilidade e Contraste:** O texto DEVE ser o foco principal e ser 100% legível. Utilize espaço negativo estratégico, sobreposições de gradiente sutil ou caixas de texto limpas. O texto deve fazer parte da composição, não flutuar sem propósito.`);
   } else {
     // Use LLM Refiner suggestions if available
