@@ -166,7 +166,7 @@ async function enrichPromptWithFlash(
   politicalContext: string,
   politicalTone: string,
   politicalProfile: any,
-  params?: { textContent?: string; headline?: string; promptContext?: string; useBookContext?: boolean }
+  params?: { textContent?: string; headline?: string; promptContext?: string; useBookContext?: boolean; selectedTheses?: any[] }
 ): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   if (!GEMINI_API_KEY) {
