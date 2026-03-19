@@ -368,6 +368,21 @@ export default function TextResult() {
             );
           })}
         </div>
+
+        <CreditConfirmationDialog
+          isOpen={!!confirmImageGen}
+          onOpenChange={(open) => { if (!open) setConfirmImageGen(null); }}
+          onConfirm={() => {
+            if (confirmImageGen) {
+              handleGenerateImage(confirmImageGen.text, confirmImageGen.textId);
+              setConfirmImageGen(null);
+            }
+          }}
+          currentBalance={user?.credits || 0}
+          cost={CREDIT_COSTS.COMPLETE_IMAGE}
+          resourceType="imagem"
+          title="Gerar imagem para este texto?"
+        />
       </main>
     </div>
   );
