@@ -57,7 +57,7 @@ serve(async (req) => {
     }
     const creditsBefore = creditsCheck.currentCredits;
 
-    const { message, brandId, themeId, personaId, platform, tone, useBookContext } = await req.json();
+    const { message, brandId, themeId, personaId, platform, tone, useBookContext, selectedTheses } = await req.json();
 
     if (!message || typeof message !== 'string' || message.trim().length < 5) {
       return new Response(JSON.stringify({ error: 'Mensagem deve ter pelo menos 5 caracteres' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
