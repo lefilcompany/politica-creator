@@ -522,8 +522,8 @@ function buildDirectorPrompt(params: {
     const toneFont = toneParams.fontHint;
     
     textLines.push(`- **Headline (Texto Principal na Imagem):** Renderize PERFEITAMENTE o texto: "${headlineText}"`);
-    textLines.push(`- **Tipografia:** ${userFont}. Adaptar ao tom político: ${toneFont}.`);
-    textLines.push(`- **Cor da tipografia:** Em harmonia com a paleta da marca${pp.state ? ` e cores que remetam a ${pp.state}` : ''}.`);
+    textLines.push(`- **Tipografia:** ${userFont}. Adaptar ao tom: ${toneFont}.`);
+    textLines.push(`- **Cor da tipografia:** Em harmonia com a paleta da marca.`);
     
     const posLabels: Record<string, string> = {
       'top': 'no topo da imagem',
