@@ -395,6 +395,53 @@ export default function PoliticalOnboarding() {
         ))}
       </div>
     </div>,
+
+    // Step 5: Instagram
+    <div key="step5" className="space-y-6">
+      <div className="text-center space-y-2">
+        <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center mb-4">
+          <Instagram className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">Seu Instagram</h2>
+        <p className="text-sm text-muted-foreground">
+          Informe seu @ do Instagram para que o conteúdo gerado tenha o mesmo estilo e tom da sua comunicação atual.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">@</span>
+          <Input
+            placeholder="seu.perfil"
+            value={data.instagram_handle}
+            onChange={e => {
+              const value = e.target.value.replace(/[^a-zA-Z0-9._]/g, '');
+              setData(prev => ({ ...prev, instagram_handle: value }));
+            }}
+            className="pl-10 h-12 text-base"
+            maxLength={30}
+          />
+        </div>
+
+        <div className="rounded-xl bg-muted/50 border border-border/50 p-4 space-y-2">
+          <p className="text-xs font-medium text-foreground">Por que pedimos isso?</p>
+          <ul className="text-xs text-muted-foreground space-y-1.5">
+            <li className="flex items-start gap-2">
+              <Sparkles className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
+              Os textos e imagens gerados terão o mesmo tom e estilo do seu perfil
+            </li>
+            <li className="flex items-start gap-2">
+              <Sparkles className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
+              O conteúdo será mais autêntico e coerente com sua identidade digital
+            </li>
+            <li className="flex items-start gap-2">
+              <Sparkles className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
+              Você pode pular este passo e adicionar depois no perfil
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>,
   ];
 
   return (

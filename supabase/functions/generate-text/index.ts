@@ -74,6 +74,7 @@ serve(async (req) => {
     // Build context — universal, non-political tone
     const contextParts: string[] = [];
     contextParts.push(`AUTOR: ${userName}${profile.state ? ` — ${profile.state}` : ''}${profile.city ? `, ${profile.city}` : ''}`);
+    if (profile.instagram_handle) contextParts.push(`Instagram do autor: @${profile.instagram_handle} — O conteúdo gerado DEVE imitar o estilo, tom de voz e linguagem que este perfil usa no Instagram. Analise mentalmente como perfis semelhantes a @${profile.instagram_handle} se comunicam e replique esse padrão de escrita.`);
     if (pp.political_role) contextParts.push(`Atuação profissional: ${pp.political_role}`);
     if (pp.focus_areas?.length) contextParts.push(`Áreas de interesse: ${pp.focus_areas.join(', ')}`);
     if (pp.tone_of_voice) contextParts.push(`Tom pessoal preferido: ${pp.tone_of_voice}`);
