@@ -137,8 +137,6 @@ export default function CreateImage() {
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showThesisModal, setShowThesisModal] = useState(false);
-  const [selectedThesis, setSelectedThesis] = useState<Thesis | null>(null);
   const [promptPreview, setPromptPreview] = useState("");
 
   // React Query for brands, themes, personas
