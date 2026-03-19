@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle, Upload, X, File, BookOpen, Loader2 } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Sparkles, Briefcase, Mic, ShieldAlert, FileText, UserCircle, Upload, X, File, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const MANDATE_STAGES = [
@@ -33,13 +33,6 @@ interface ProfileDetailData {
   evidence_history: string;
 }
 
-interface RecommendedThesis {
-  number: number;
-  title: string;
-  group: string;
-  relevance: string;
-}
-
 const FORM_STEPS = 4;
 
 interface Props {
@@ -47,23 +40,12 @@ interface Props {
   onClose: () => void;
 }
 
-const GROUP_LABELS: Record<string, string> = {
-  A: 'Poder e Governança',
-  B: 'Dinâmica Política',
-  C: 'Narrativa e Autenticidade',
-  D: 'Cidadania Expandida',
-  E: 'Complexidade e Ética',
-};
-
 export function DashboardProfileModal({ open, onClose }: Props) {
   const { user, reloadUserData } = useAuth();
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
-  const [showTheses, setShowTheses] = useState(false);
-  const [isLoadingTheses, setIsLoadingTheses] = useState(false);
-  const [recommendedTheses, setRecommendedTheses] = useState<RecommendedThesis[]>([]);
   const [data, setData] = useState<ProfileDetailData>({
     mandate_stage: '',
     biography: '',
@@ -95,7 +77,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     load();
   }, [open, user?.id]);
 
-  const totalSteps = showTheses ? FORM_STEPS + 1 : FORM_STEPS;
+  const totalSteps = FORM_STEPS;
   const progress = ((step + 1) / totalSteps) * 100;
 
   const canProceed = () => {
@@ -160,38 +142,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
-  const fetchRecommendedTheses = async () => {
-    setIsLoadingTheses(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      if (!token) throw new Error('No session');
-
-      const response = await supabase.functions.invoke('recommend-theses', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.error) throw response.error;
-      const result = response.data;
-      if (result?.theses && Array.isArray(result.theses)) {
-        const theses = result.theses.slice(0, 5);
-        setRecommendedTheses(theses);
-        
-        // Persist theses to profile
-        if (user?.id && theses.length > 0) {
-          await supabase
-            .from('profiles')
-            .update({ recommended_theses: JSON.parse(JSON.stringify(theses)) } as any)
-            .eq('id', user.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching theses:', error);
-      toast.error('Não foi possível carregar as teses recomendadas');
-    } finally {
-      setIsLoadingTheses(false);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!user?.id) return;
@@ -212,11 +162,7 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       if (error) throw error;
       await reloadUserData();
       toast.success('Perfil detalhado salvo com sucesso!');
-      
-      // Move to theses step and start loading
-      setShowTheses(true);
-      setStep(FORM_STEPS);
-      fetchRecommendedTheses();
+      onClose();
     } catch (error) {
       console.error('Error saving profile details:', error);
       toast.error('Erro ao salvar. Tente novamente.');
@@ -241,63 +187,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
       setIsSubmitting(false);
     }
   };
-
-  const handleFinish = () => {
-    onClose();
-  };
-
-  const stepIcons = [Briefcase, UserCircle, ShieldAlert, FileText, ...(showTheses ? [BookOpen] : [])];
-
-  const thesesStep = (
-    <div key="s-theses" className="space-y-5">
-      <div className="text-center space-y-1">
-        <h3 className="text-lg font-bold text-foreground">Suas 5 Teses Fundamentais</h3>
-        <p className="text-sm text-muted-foreground">
-          Baseadas no seu perfil e no livro <em>"A Próxima Democracia"</em>
-        </p>
-      </div>
-
-      {isLoadingTheses ? (
-        <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Analisando seu perfil político...</p>
-          <p className="text-xs text-muted-foreground">A IA está selecionando as teses mais relevantes para você</p>
-        </div>
-      ) : recommendedTheses.length > 0 ? (
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-          {recommendedTheses.map((thesis, i) => (
-            <motion.div
-              key={thesis.number}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.15 }}
-              className="p-4 rounded-lg border border-border bg-muted/30 space-y-2"
-            >
-              <div className="flex items-start gap-2">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                  {thesis.number}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-foreground leading-tight">{thesis.title}</h4>
-                  <Badge variant="outline" className="mt-1 text-xs">
-                    Grupo {thesis.group} — {GROUP_LABELS[thesis.group] || thesis.group}
-                  </Badge>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed pl-9">{thesis.relevance}</p>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-8">
-          <p className="text-sm text-muted-foreground">Não foi possível carregar as recomendações.</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={fetchRecommendedTheses}>
-            Tentar novamente
-          </Button>
-        </div>
-      )}
-    </div>
-  );
 
   const formSteps = [
     // Step 0: Fase
@@ -422,68 +311,46 @@ export function DashboardProfileModal({ open, onClose }: Props) {
     </div>,
   ];
 
-  const allSteps = showTheses ? [...formSteps, thesesStep] : formSteps;
-  const displayedIcons = showTheses ? stepIcons : stepIcons.slice(0, FORM_STEPS);
-
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v && !showTheses) handleSkip(); else if (!v) onClose(); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleSkip(); }}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden [&>div]:overflow-hidden [&>div]:flex [&>div]:flex-col [&>div]:flex-1 [&>div]:min-h-0">
         <DialogHeader className="shrink-0">
           <DialogTitle className="text-lg font-bold">Complete seu perfil político</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">Informações adicionais para personalizar a IA</DialogDescription>
         </DialogHeader>
 
-        {showTheses ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col flex-1 min-h-0"
-          >
-            <div className="flex-1 overflow-y-auto">
-              {thesesStep}
-            </div>
-            <div className="flex justify-end pt-4 border-t border-border/50 shrink-0">
-              <Button onClick={handleFinish} className="gap-2">
-                <Sparkles className="w-4 h-4" />
-                Começar a criar
-              </Button>
-            </div>
-          </motion.div>
-        ) : (
-          <div className="flex flex-col flex-1 min-h-0">
-            <div className="flex-1 overflow-y-auto space-y-8 pr-1">
-              {/* Fase */}
-              {formSteps[0]}
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-8 pr-1">
+            {/* Fase */}
+            {formSteps[0]}
 
-              <div className="border-t border-border/30" />
+            <div className="border-t border-border/30" />
 
-              {/* Biografia */}
-              {formSteps[1]}
+            {/* Biografia */}
+            {formSteps[1]}
 
-              <div className="border-t border-border/30" />
+            <div className="border-t border-border/30" />
 
-              {/* Linhas vermelhas */}
-              {formSteps[2]}
+            {/* Linhas vermelhas */}
+            {formSteps[2]}
 
-              <div className="border-t border-border/30" />
+            <div className="border-t border-border/30" />
 
-              {/* Evidências */}
-              {formSteps[3]}
-            </div>
-
-            {/* Actions - fixed at bottom */}
-            <div className="flex items-center justify-between pt-4 border-t border-border/50 shrink-0">
-              <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
-                Pular
-              </Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting || isUploading || !data.mandate_stage || data.biography.trim().length <= 10} className="gap-2">
-                <Sparkles className="w-4 h-4" />
-                {isSubmitting ? 'Salvando...' : 'Concluir'}
-              </Button>
-            </div>
+            {/* Evidências */}
+            {formSteps[3]}
           </div>
-        )}
+
+          {/* Actions - fixed at bottom */}
+          <div className="flex items-center justify-between pt-4 border-t border-border/50 shrink-0">
+            <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting} className="text-muted-foreground text-xs">
+              Pular
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting || isUploading || !data.mandate_stage || data.biography.trim().length <= 10} className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              {isSubmitting ? 'Salvando...' : 'Concluir'}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

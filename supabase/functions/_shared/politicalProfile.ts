@@ -1,9 +1,7 @@
 /**
  * Shared helper to fetch the user's political profile and build
  * a context string that can be injected into any AI prompt.
- * Also integrates the knowledge base from "A Próxima Democracia".
  */
-import { getKnowledgeBaseContext } from './knowledgeBase.ts';
 export interface PoliticalProfile {
   political_role: string | null;
   political_party: string | null;
@@ -43,13 +41,7 @@ export async function fetchPoliticalProfile(
 export function buildPoliticalContext(profile: PoliticalProfile | null): string {
   const parts: string[] = [];
 
-  // 1. Inject knowledge base context
-  const knowledgeBase = getKnowledgeBaseContext();
-  if (knowledgeBase) {
-    parts.push(knowledgeBase);
-  }
-
-  // 2. Inject political profile context
+  // Inject political profile context
   if (profile) {
     const lines: string[] = [];
 

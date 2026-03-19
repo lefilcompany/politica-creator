@@ -39,8 +39,6 @@ import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { buildRequestPayload, buildImagePromptString, type PromptFormFields } from "@/lib/buildImagePrompt";
 import createBanner from "@/assets/create-banner.jpg";
-import { ThesisRecommendationModal } from "@/components/criar-imagem/ThesisRecommendationModal";
-import { type Thesis } from "@/lib/theses";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -139,8 +137,6 @@ export default function CreateImage() {
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showThesisModal, setShowThesisModal] = useState(false);
-  const [selectedThesis, setSelectedThesis] = useState<Thesis | null>(null);
   const [promptPreview, setPromptPreview] = useState("");
 
   // React Query for brands, themes, personas
@@ -547,26 +543,14 @@ export default function CreateImage() {
     setShowConfirmModal(true);
   };
 
-  // Step 2: After confirm, show thesis recommendation modal
-  const handleConfirmAndShowThesis = () => {
+  // Step 2: After confirm, go straight to generate
+  const handleConfirmAndGenerate = () => {
     setShowConfirmModal(false);
-    setShowThesisModal(true);
+    handleGenerateContent();
   };
 
-  const handleThesisSelected = (thesis: Thesis) => {
-    setSelectedThesis(thesis);
-    setShowThesisModal(false);
-    handleGenerateContent(thesis);
-  };
-
-  const handleContinueWithoutThesis = () => {
-    setSelectedThesis(null);
-    setShowThesisModal(false);
-    handleGenerateContent(null);
-  };
-
-  // Step 3: Actually generate after user confirms
-  const handleGenerateContent = async (thesis: Thesis | null = null) => {
+  // Step 3: Actually generate
+  const handleGenerateContent = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
 
     setLoading(true);
@@ -1576,7 +1560,7 @@ export default function CreateImage() {
             <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
               Voltar e editar
             </Button>
-            <Button onClick={handleConfirmAndShowThesis} className="gap-2">
+            <Button onClick={handleConfirmAndGenerate} className="gap-2">
               <Sparkles className="h-4 w-4" />
               Confirmar e Gerar
             </Button>
@@ -1584,18 +1568,6 @@ export default function CreateImage() {
         </DialogContent>
       </Dialog>
 
-      <ThesisRecommendationModal
-        open={showThesisModal}
-        onClose={() => setShowThesisModal(false)}
-        onSelectThesis={handleThesisSelected}
-        onContinueWithout={handleContinueWithoutThesis}
-        recommendedThesesIds={
-          Array.isArray((user as any)?.recommendedTheses)
-            ? (user as any).recommendedTheses.map((t: any) => t.id || `t${t.number}`)
-            : []
-        }
-        description={formData.description}
-      />
     </div>
   );
 }
