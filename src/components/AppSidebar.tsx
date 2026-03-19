@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, Coins, Briefcase, Shield, ImageIcon, CalendarDays, BookOpen, Instagram } from "lucide-react";
+import {
+  Home, Landmark, Users, Calendar, Archive, FileText,
+  Coins, Briefcase, Shield, ImageIcon, CalendarDays,
+  BookOpen, Instagram,
+} from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -15,22 +19,12 @@ import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
 
-function NavItem({
-  id,
-  href,
-  icon: Icon,
-  label,
-  collapsed,
-  onNavigate,
-  disabled
+/* ── Reusable nav link ────────────────────────────── */
+function SidebarNavItem({
+  id, href, icon: Icon, label, collapsed, onNavigate, disabled,
 }: {
-  id: string;
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  collapsed: boolean;
-  onNavigate?: () => void;
-  disabled?: boolean;
+  id: string; href: string; icon: React.ElementType;
+  label: string; collapsed: boolean; onNavigate?: () => void; disabled?: boolean;
 }) {
   const location = useLocation();
   const isActive = location.pathname === href;
@@ -38,133 +32,124 @@ function NavItem({
   if (disabled) {
     return (
       <div className={cn(
-        "flex items-center gap-4 p-2.5 rounded-lg cursor-not-allowed opacity-50",
+        "flex items-center gap-3 px-3 py-2 rounded-lg cursor-not-allowed opacity-40",
         collapsed ? "justify-center" : "",
-        "text-muted-foreground bg-white/20 dark:bg-white/5"
+        "text-muted-foreground"
       )}>
-        <Icon className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && <span className="font-medium text-sm">{label}</span>}
+        <Icon className="h-[18px] w-[18px] flex-shrink-0" />
+        {!collapsed && <span className="text-sm">{label}</span>}
       </div>
     );
   }
 
-  const linkContent = (
+  const content = (
     <NavLink
       id={id}
       to={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
+        "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
         collapsed ? "justify-center" : "",
         isActive
-          ? "bg-white/70 dark:bg-white/10 text-primary shadow-sm"
-          : "text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
+          ? "bg-primary/10 dark:bg-primary/20 text-primary font-semibold"
+          : "text-foreground/60 hover:text-foreground hover:bg-foreground/5"
       )}
     >
-      <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && <span className="font-medium text-sm">{label}</span>}
+      <Icon className={cn("h-[18px] w-[18px] flex-shrink-0", isActive && "text-primary")} />
+      {!collapsed && <span className="text-sm">{label}</span>}
     </NavLink>
   );
 
   if (collapsed) {
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
         <TooltipContent side="right"><p>{label}</p></TooltipContent>
       </Tooltip>
     );
   }
-
-  return linkContent;
+  return content;
 }
 
-function ActionButton({
-  id,
-  href,
-  icon: Icon,
-  label,
-  collapsed,
-  variant,
-  onNavigate,
-  disabled
+/* ── CTA action button ────────────────────────────── */
+function SidebarActionButton({
+  id, href, icon: Icon, label, collapsed, variant, onNavigate, disabled,
 }: {
-  id: string;
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  collapsed: boolean;
-  variant: 'primary' | 'secondary' | 'accent';
-  onNavigate?: () => void;
-  disabled?: boolean;
+  id: string; href: string; icon: React.ElementType; label: string;
+  collapsed: boolean; variant: 'primary' | 'secondary'; onNavigate?: () => void; disabled?: boolean;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isActive = location.pathname === href;
 
-  const variantClasses = {
+  const styles = {
     primary: {
-      active: "bg-background border border-primary text-primary shadow-lg",
-      inactive: "bg-primary text-primary-foreground hover:bg-background hover:text-primary hover:border hover:border-primary"
-    },
-    accent: {
-      active: "bg-background border border-accent text-accent shadow-lg",
-      inactive: "bg-accent text-accent-foreground hover:bg-background hover:text-accent hover:border hover:border-accent"
+      active: "border-primary text-primary bg-primary/10",
+      idle: "bg-primary text-primary-foreground hover:opacity-90",
     },
     secondary: {
-      active: "bg-background border border-secondary text-secondary shadow-lg",
-      inactive: "bg-secondary text-secondary-foreground hover:bg-background hover:text-secondary hover:border hover:border-secondary"
-    }
+      active: "border-secondary text-secondary bg-secondary/10",
+      idle: "bg-secondary text-secondary-foreground hover:opacity-90",
+    },
   };
 
   if (disabled) {
     return (
       <div className={cn(
-        "flex items-center gap-3 p-2.5 rounded-lg cursor-not-allowed opacity-50",
-        collapsed ? "justify-center" : "",
-        "bg-muted text-muted-foreground"
+        "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-not-allowed opacity-40 bg-muted text-muted-foreground",
+        collapsed && "justify-center"
       )}>
-        <Icon className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && <span className="font-medium text-sm">{label}</span>}
+        <Icon className="h-[18px] w-[18px] flex-shrink-0" />
+        {!collapsed && <span className="text-sm font-medium">{label}</span>}
       </div>
     );
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    if (isActive) {
-      e.preventDefault();
-      navigate(href, { state: { reset: true }, replace: true });
-    }
+    if (isActive) { e.preventDefault(); navigate(href, { state: { reset: true }, replace: true }); }
     onNavigate?.();
   };
 
-  const linkContent = (
+  const content = (
     <NavLink
       id={id}
       to={href}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105",
-        collapsed ? "justify-center" : "",
-        isActive ? variantClasses[variant].active : variantClasses[variant].inactive
+        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 font-medium text-sm",
+        collapsed && "justify-center",
+        isActive
+          ? cn("border", styles[variant].active)
+          : styles[variant].idle
       )}
     >
-      <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && <span className="font-medium text-sm">{label}</span>}
+      <Icon className="h-[18px] w-[18px] flex-shrink-0" />
+      {!collapsed && <span>{label}</span>}
     </NavLink>
   );
 
   if (collapsed) {
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
         <TooltipContent side="right"><p>{label}</p></TooltipContent>
       </Tooltip>
     );
   }
-
-  return linkContent;
+  return content;
 }
 
+/* ── Section label (hidden when collapsed) ───────── */
+function SectionLabel({ children, collapsed }: { children: React.ReactNode; collapsed: boolean }) {
+  if (collapsed) return <div className="my-1 mx-auto w-5 border-t border-foreground/10" />;
+  return (
+    <span className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-foreground/35">
+      {children}
+    </span>
+  );
+}
+
+/* ── Main sidebar component ──────────────────────── */
 export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
@@ -176,101 +161,81 @@ export function AppSidebar() {
 
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
-  const isNavigationDisabled = false; // Payment system disabled
+  const isNavigationDisabled = false;
 
-  const navLinks = [
-    { id: "nav-dashboard", href: "/dashboard", icon: Home, label: t.sidebar.home },
-    { id: "nav-brands", href: "/brands", icon: Landmark, label: t.sidebar.brands },
-    { id: "nav-themes", href: "/themes", icon: CalendarDays, label: t.sidebar.themes },
-    { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
-    { id: "nav-defense", href: "/defense", icon: Shield, label: t.sidebar.defense || "Defesa Digital" },
-    { id: "nav-history", href: "/history", icon: Archive, label: t.sidebar.history },
-    { id: "nav-team", href: "/team", icon: Briefcase, label: t.sidebar.team },
-  ];
-
-  const bookLink = {
-    id: "nav-book-content",
-    icon: BookOpen,
-    label: "A Próxima Democracia",
-    href: "/book-content",
-  };
-
-  const actionButtons = [
-    { id: "nav-create-content", href: "/create", icon: FileText, label: t.sidebar.createContent, variant: "primary" as const },
-    { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
-  ];
-
-  const handleMobileNavigate = () => {
-    if (isMobile) setOpen(false);
-  };
+  const handleMobileNavigate = () => { if (isMobile) setOpen(false); };
 
   const sidebarContent = () => (
     <TooltipProvider>
-      {/* Logo */}
-      <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-center">
+      {/* ── Logo ────────────────────────────────── */}
+      <div className="pt-4 pb-1 px-2 flex items-center justify-center">
         <NavLink
           to="/dashboard"
           onClick={handleMobileNavigate}
           id="sidebar-logo"
-          className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-300"
+          className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-200"
         >
-          {collapsed ? (
-            <img src={creatorSymbol} alt="Creator Symbol" className="h-10 w-10 object-contain" />
-          ) : (
-            <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
-          )}
+          {collapsed
+            ? <img src={creatorSymbol} alt="Creator Symbol" className="h-9 w-9 object-contain" />
+            : <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
+          }
         </NavLink>
       </div>
 
-      {/* Navigation */}
+      {/* ── Nav ─────────────────────────────────── */}
       <nav className={cn(
         "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
-        collapsed ? "gap-3 px-2" : "gap-5 px-4"
+        collapsed ? "gap-1 px-2 pt-3" : "gap-0 px-3 pt-2"
       )}>
-        <div className="flex flex-col gap-1.5">
-          {navLinks.map(link => (
-            <NavItem
-              key={link.href}
-              {...link}
-              collapsed={collapsed}
-              onNavigate={handleMobileNavigate}
-              disabled={isNavigationDisabled && link.id !== "nav-history"}
-            />
-          ))}
-          <NavItem
-            id={bookLink.id}
-            href={bookLink.href}
-            icon={bookLink.icon}
-            label={bookLink.label}
-            collapsed={collapsed}
-            onNavigate={handleMobileNavigate}
+        {/* Actions — most prominent */}
+        <div className={cn("flex flex-col", collapsed ? "gap-2" : "gap-1.5 pb-1")}>
+          <SidebarActionButton
+            id="nav-create-content" href="/create" icon={FileText}
+            label={t.sidebar.createContent} variant="primary"
+            collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled}
+          />
+          <SidebarActionButton
+            id="nav-plan-content" href="/plan" icon={Calendar}
+            label={t.sidebar.planContent} variant="secondary"
+            collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled}
           />
         </div>
 
-        <div className="flex flex-col gap-2.5">
-          {actionButtons.map(button => (
-            <ActionButton
-              key={button.id}
-              {...button}
-              collapsed={collapsed}
-              onNavigate={handleMobileNavigate}
-              disabled={isNavigationDisabled}
-            />
-          ))}
+        {/* Section: Principal */}
+        <SectionLabel collapsed={collapsed}>Principal</SectionLabel>
+        <div className="flex flex-col gap-0.5">
+          <SidebarNavItem id="nav-dashboard" href="/dashboard" icon={Home} label={t.sidebar.home} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+          <SidebarNavItem id="nav-brands" href="/brands" icon={Landmark} label={t.sidebar.brands} collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />
+          <SidebarNavItem id="nav-themes" href="/themes" icon={CalendarDays} label={t.sidebar.themes} collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />
+          <SidebarNavItem id="nav-personas" href="/personas" icon={Users} label={t.sidebar.personas} collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />
         </div>
 
-        {/* Instagram & Credits */}
+        {/* Section: Ferramentas */}
+        <SectionLabel collapsed={collapsed}>Ferramentas</SectionLabel>
+        <div className="flex flex-col gap-0.5">
+          <SidebarNavItem id="nav-defense" href="/defense" icon={Shield} label={t.sidebar.defense || "Radar de Imagem"} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+          <SidebarNavItem id="nav-history" href="/history" icon={Archive} label={t.sidebar.history} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+          <SidebarNavItem id="nav-team" href="/team" icon={Briefcase} label={t.sidebar.team} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+        </div>
+
+        {/* Section: Recursos */}
+        <SectionLabel collapsed={collapsed}>Recursos</SectionLabel>
+        <div className="flex flex-col gap-0.5">
+          <SidebarNavItem id="nav-book-content" href="/book-content" icon={BookOpen} label="A Próxima Democracia" collapsed={collapsed} onNavigate={handleMobileNavigate} />
+        </div>
+
+        {/* ── Bottom area ───────────────────────── */}
         {user && (
-          <div className="mt-auto mb-5 flex flex-col gap-2.5">
-            {/* Instagram Button */}
+          <div className="mt-auto mb-4 flex flex-col gap-1.5 pt-2">
+            {/* Instagram */}
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => setInstagramDialogOpen(true)}
-                    className="flex items-center justify-center p-2.5 rounded-lg transition-colors duration-300 text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
+                    className="flex items-center justify-center px-3 py-2 rounded-lg transition-colors duration-200 text-foreground/50 hover:text-foreground hover:bg-foreground/5"
                   >
-                    <Instagram className="h-5 w-5 flex-shrink-0" />
+                    <Instagram className="h-[18px] w-[18px]" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right"><p>Instagram</p></TooltipContent>
@@ -278,24 +243,22 @@ export function AppSidebar() {
             ) : (
               <button
                 onClick={() => setInstagramDialogOpen(true)}
-                className="flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 text-foreground/50 hover:text-foreground hover:bg-foreground/5"
               >
-                <Instagram className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium text-sm">Instagram</span>
+                <Instagram className="h-[18px] w-[18px]" />
+                <span className="text-sm">Instagram</span>
               </button>
             )}
 
-            {/* Credits */}
+            {/* Credits card */}
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <NavLink
-                    id="nav-credits"
-                    to="/credits"
-                    onClick={handleMobileNavigate}
-                    className="flex items-center justify-center gap-3 p-3 rounded-md transition-all duration-300 ease-in-out hover:scale-105 bg-primary text-primary-foreground shadow-sm"
+                    id="nav-credits" to="/credits" onClick={handleMobileNavigate}
+                    className="flex items-center justify-center px-3 py-2.5 rounded-lg bg-primary text-primary-foreground transition-all duration-200 hover:opacity-90"
                   >
-                    <Coins className="h-5 w-5 flex-shrink-0" />
+                    <Coins className="h-[18px] w-[18px]" />
                   </NavLink>
                 </TooltipTrigger>
                 <TooltipContent side="right">
@@ -306,18 +269,16 @@ export function AppSidebar() {
                 </TooltipContent>
               </Tooltip>
             ) : (
-                <NavLink
-                  id="nav-credits"
-                  to="/credits"
-                  onClick={handleMobileNavigate}
-                  className="flex items-center gap-3 p-3 rounded-md transition-all duration-300 ease-in-out hover:scale-105 bg-primary text-primary-foreground shadow-sm"
+              <NavLink
+                id="nav-credits" to="/credits" onClick={handleMobileNavigate}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-primary-foreground transition-all duration-200 hover:opacity-90"
               >
-                <Coins className="h-5 w-5 flex-shrink-0" />
+                <Coins className="h-[18px] w-[18px] flex-shrink-0" />
                 <div className="flex flex-col">
                   <span className="font-bold text-sm">{user.credits || 0} créditos</span>
-                  <div className="flex items-center gap-1 text-xs opacity-80">
+                  <div className="flex items-center gap-1 text-xs opacity-75">
                     <ImageIcon className="h-3 w-3" />
-                    <span>{remaining}/{maxImages} imagens restantes</span>
+                    <span>{remaining}/{maxImages} imagens</span>
                   </div>
                 </div>
               </NavLink>
@@ -343,12 +304,7 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar
-        collapsible="icon"
-        side="left"
-        variant="sidebar"
-        className="border-none shadow-none flex-shrink-0"
-      >
+      <Sidebar collapsible="icon" side="left" variant="sidebar" className="border-none shadow-none flex-shrink-0">
         <SidebarContent className="bg-transparent flex flex-col h-full overflow-y-auto">
           {sidebarContent()}
         </SidebarContent>
