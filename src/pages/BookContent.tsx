@@ -32,6 +32,7 @@ export default function BookContent() {
   const [brandId, setBrandId] = useState<string>("");
   const [personaId, setPersonaId] = useState<string>("");
   const [platform, setPlatform] = useState<string>("");
+  const [selectedThesesIds, setSelectedThesesIds] = useState<string[]>([]);
   const [outputType, setOutputType] = useState<OutputType>("text");
   const [isGenerating, setIsGenerating] = useState(false);
 
