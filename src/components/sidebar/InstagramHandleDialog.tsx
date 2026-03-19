@@ -242,9 +242,17 @@ export function InstagramHandleDialog({ open, onOpenChange }: InstagramHandleDia
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_60%)]" />
           <DialogHeader className="relative">
             <DialogTitle className="flex items-center gap-3 text-white">
-              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
-                <Instagram className="w-5 h-5 text-white" />
-              </div>
+              {(savedPreview?.profilePicture || preview?.profilePicture) ? (
+                <img
+                  src={savedPreview?.profilePicture || preview?.profilePicture || ''}
+                  alt="Perfil"
+                  className="w-11 h-11 rounded-2xl object-cover border border-white/30 shadow-md"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
+                  <Instagram className="w-5 h-5 text-white" />
+                </div>
+              )}
               <div>
                 <span className="text-lg font-bold tracking-tight">Meu Instagram</span>
                 <DialogDescription className="text-sm font-normal text-white/75 mt-0.5">
