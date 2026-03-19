@@ -36,7 +36,7 @@ serve(async (req) => {
     const userId = user.id;
 
     const [profileResult, politicalProfile] = await Promise.all([
-      supabase.from('profiles').select('team_id, credits, name, state, city').eq('id', userId).single(),
+      supabase.from('profiles').select('team_id, credits, name, state, city, instagram_handle').eq('id', userId).single(),
       fetchPoliticalProfile(supabase, userId),
     ]);
 
