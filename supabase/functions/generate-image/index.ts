@@ -384,12 +384,14 @@ function buildDirectorPrompt(params: {
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
   
-  if (pp.political_role || pp.state) {
-    contextLines.push(`- **Cargo/Função:** ${pp.political_role || 'Político(a)'} em ${pp.state || 'Brasil'}`);
+  if (hasPoliticalData) {
+    if (pp.political_role || pp.state) {
+      contextLines.push(`- **Cargo/Função:** ${pp.political_role || 'Político(a)'} em ${pp.state || 'Brasil'}`);
+    }
+    if (pp.political_party) contextLines.push(`- **Partido:** ${pp.political_party}`);
+    if (pp.mandate_stage) contextLines.push(`- **Fase da Campanha/Mandato:** ${pp.mandate_stage}`);
+    if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Foco:** ${pp.focus_areas.join(', ')}`);
   }
-  if (pp.political_party) contextLines.push(`- **Partido:** ${pp.political_party}`);
-  if (pp.mandate_stage) contextLines.push(`- **Fase da Campanha/Mandato:** ${pp.mandate_stage}`);
-  if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Foco:** ${pp.focus_areas.join(', ')}`);
 
   if (params.brandData) {
     contextLines.push(`- **Marca:** ${params.brandData.name}`);
