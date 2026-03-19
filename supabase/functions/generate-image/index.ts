@@ -618,6 +618,7 @@ serve(async (req) => {
       ...politicalProfile,
       state: politicalProfile?.state || profile?.state,
       city: politicalProfile?.city || profile?.city,
+      instagram_handle: profile?.instagram_handle,
     };
 
     const formData = await req.json();
