@@ -563,43 +563,40 @@ function buildDirectorPrompt(params: {
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refLines.join('\n')}`);
   }
 
-  // === 6. COMPLIANCE E ESPECIFICAÇÕES (TSE Eleições 2026 — Res. 23.610/2019 atualizada) ===
-  sections.push(`### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE (TSE Eleições 2026)
+  // === 6. ESPECIFICAÇÕES TÉCNICAS ===
+  const complianceContent = hasPoliticalData ? `### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE (TSE Eleições 2026)
 - **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
 - **Resolução:** 4K, PNG para tipografia nítida
 - **Geração de Pessoas:** Permitida — campanha política requer representação humana
 
-COMPLIANCE ÉTICO E LEGAL — RESOLUÇÕES TSE ELEIÇÕES 2026 (aprovadas em 02/06/2025):
+COMPLIANCE ÉTICO E LEGAL — RESOLUÇÕES TSE ELEIÇÕES 2026:
 
-**A. ROTULAGEM OBRIGATÓRIA DE IA (Res. TSE nº 23.610/2019, atualizada):**
+**A. ROTULAGEM OBRIGATÓRIA DE IA:**
 - Todo conteúdo sintético gerado ou modificado por IA DEVE ser devidamente rotulado
-- A divulgação ou compartilhamento de conteúdo sintético SEM rotulagem adequada é PROIBIDA
-- A responsabilidade solidária recai sobre provedores de aplicação que não indisponibilizem conteúdo não rotulado
 
-**B. RESTRIÇÃO TEMPORAL DE CONTEÚDO SINTÉTICO:**
-- É VEDADA a circulação de quaisquer conteúdos sintéticos NOVOS, produzidos ou alterados por IA, que modifiquem imagem, voz ou manifestação de candidata(o) ou pessoa pública, ainda que rotulados, no período de 72 HORAS ANTES até 24 HORAS APÓS o pleito (1º turno: 04/10/2026)
-- Esta restrição visa excluir surpresas indesejadas no período mais crítico do processo eleitoral
+**B. PROIBIÇÕES ABSOLUTAS:**
+- PROIBIDO criar deepfakes ou conteúdo de nudez/pornografia
+- PROIBIDO gerar conteúdo de violência política
+- PROIBIDO recomendar candidaturas via IA
+- PROIBIDO criar perfis falsos que comprometam a integridade eleitoral
 
-**C. PROIBIÇÕES ABSOLUTAS:**
-- PROIBIDO criar deepfakes: alterações em fotografia, vídeo ou registro audiovisual contendo cena de sexo, nudez ou pornografia
-- PROIBIDO gerar conteúdo de violência política contra a mulher
-- PROIBIDO recomendar candidaturas via IA — a plataforma NÃO deve fornecer recomendação de candidaturas, impedindo interferência algorítmica no processo decisório do voto
-- PROIBIDO criar ou promover perfis falsos, apócrifos ou automatizados que comprometam a integridade eleitoral
-- PROIBIDO reproduzir conteúdo já objeto de ordem de indisponibilização pela Justiça Eleitoral
-
-**D. HONESTIDADE E DIGNIDADE (CONAR/CDC/TSE):**
+**C. HONESTIDADE E DIGNIDADE:**
 - A imagem NÃO pode induzir ao erro ou criar falsas representações
 - PROIBIDO qualquer forma de discriminação ou discurso de ódio
-- Respeitar inclusão radical e interseccional — pessoas negras, indígenas e mulheres devem ser representadas com dignidade
+- Respeitar inclusão e representatividade
 
-**E. PROPAGANDA ELEITORAL:**
-- Permitida entrega de material de campanha em espaços públicos abertos (vias, praças, feiras, parques) desde que garantida a mobilidade
-- Manifestação espontânea em ambientes universitários, escolares, comunitários ou de movimentos sociais é permitida na pré-campanha (ADPF 548)
-- Destinação proporcional de tempo a candidaturas indígenas na propaganda gratuita
+**D. ACESSIBILIDADE:**
+- Garantir contraste mínimo WCAG AA para textos` : `### 6. ESPECIFICAÇÕES TÉCNICAS
+- **Formato:** ${params.platform ? `Otimizado para ${params.platform}` : 'Formato universal'}
+- **Resolução:** 4K, PNG para tipografia nítida
+- **Geração de Pessoas:** Permitida quando contextualmente relevante
 
-**F. ACESSIBILIDADE:**
-- Garantir contraste mínimo WCAG AA para textos
-- Considerar acessibilidade visual para pessoas com deficiência`);
+BOAS PRÁTICAS:
+- A imagem NÃO pode induzir ao erro ou criar falsas representações
+- Respeitar diretrizes de publicidade e ética profissional
+- Design inclusivo e acessível
+- Garantir contraste mínimo WCAG AA para textos`;
+  sections.push(complianceContent);
 
   // === POLITICAL CONTEXT ===
   if (params.politicalContext) {

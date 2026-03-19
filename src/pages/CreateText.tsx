@@ -146,7 +146,7 @@ export default function CreateText() {
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ex: Quero falar sobre as melhorias na saúde pública da minha cidade, como a reforma do hospital e a chegada de novos médicos..."
+                placeholder="Ex: Quero falar sobre as conquistas do meu projeto, lançamento de produto, novidades da marca, evento especial..."
                 className="min-h-[140px] text-base"
                 maxLength={2000}
               />
