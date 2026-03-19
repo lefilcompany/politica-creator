@@ -67,9 +67,10 @@ interface OnboardingData {
   target_audience_description: string;
   state: string;
   city: string;
+  instagram_handle: string;
 }
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export default function PoliticalOnboarding() {
   const { user, reloadUserData } = useAuth();
