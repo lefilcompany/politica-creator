@@ -244,64 +244,6 @@ export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) 
             </div>
           )}
 
-          {/* Theses section */}
-          {theses.length > 0 && (
-            <div className="pt-2 border-t border-border/40">
-              <div className="flex items-center gap-2 mb-3">
-                <BookOpen className="h-4 w-4 text-primary" />
-                <p className="text-xs font-semibold text-foreground">Suas 5 Teses Fundamentais</p>
-                <span className="text-[10px] text-muted-foreground ml-1">— "A Próxima Democracia"</span>
-              </div>
-              <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-thin">
-                {theses.map((thesis, i) => {
-                  const isExpanded = expandedThesis === i;
-                  return (
-                    <motion.button
-                      key={thesis.number}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.06 }}
-                      onClick={() => setExpandedThesis(isExpanded ? null : i)}
-                      className={`relative flex-shrink-0 text-left rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:shadow-md
-                        ${isExpanded
-                          ? "w-72 sm:w-80 border-primary/40 shadow-lg bg-primary/5"
-                          : "w-48 sm:w-52 border-border/50 hover:border-primary/30 bg-card shadow-sm"
-                        }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className="shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
-                          {thesis.number}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
-                            {thesis.title}
-                          </h4>
-                          <Badge
-                            variant="outline"
-                            className={`mt-1 text-[9px] px-1.5 py-0 ${GROUP_COLORS[thesis.group] || ""}`}
-                          >
-                            {GROUP_LABELS[thesis.group] || `Grupo ${thesis.group}`}
-                          </Badge>
-                        </div>
-                        <ChevronRight
-                          className={`w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                        />
-                      </div>
-                      {isExpanded && (
-                        <motion.p
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="text-[10px] text-muted-foreground leading-relaxed mt-2 pl-8"
-                        >
-                          {thesis.relevance}
-                        </motion.p>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
     </motion.div>
