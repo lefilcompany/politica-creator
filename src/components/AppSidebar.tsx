@@ -187,9 +187,10 @@ export function AppSidebar() {
   ];
 
   const bookLink = {
+    id: "nav-book-content",
     icon: BookOpen,
     label: "A Próxima Democracia",
-    url: "/knowledge-base/MAR_POL_DEM_BOOK_2025_v10.pdf",
+    href: "/book-content",
   };
 
   const actionButtons = [
