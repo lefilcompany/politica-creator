@@ -49,6 +49,15 @@ export function buildPoliticalContext(profile: PoliticalProfile | null): string 
   if (profile) {
     const lines: string[] = [];
 
+    // Instagram handle — central reference for tone of voice
+    if (profile.instagram_handle) {
+      lines.push(`- Instagram: @${profile.instagram_handle}`);
+      parts.push(`\n# REFERÊNCIA DE TOM DE VOZ — INSTAGRAM\nO perfil @${profile.instagram_handle} é a PRINCIPAL referência de estilo. Todo conteúdo gerado DEVE imitar o tom de voz, estilo de escrita, linguagem e forma de se comunicar deste perfil no Instagram. Analise mentalmente como @${profile.instagram_handle} se comunica e replique esse padrão.\n`);
+    }
+
+    if (profile.name) lines.push(`- Nome: ${profile.name}`);
+    if (profile.state) lines.push(`- Estado: ${profile.state}`);
+    if (profile.city) lines.push(`- Cidade: ${profile.city}`);
     if (profile.political_role) lines.push(`- Cargo político: ${profile.political_role}`);
     if (profile.political_party) lines.push(`- Partido: ${profile.political_party}`);
     if (profile.political_level) lines.push(`- Nível de atuação: ${profile.political_level}`);
@@ -62,7 +71,7 @@ export function buildPoliticalContext(profile: PoliticalProfile | null): string 
     if (profile.evidence_history) lines.push(`- Evidências e histórico: ${profile.evidence_history}`);
 
     if (lines.length > 0) {
-      parts.push(`\n# PERFIL POLÍTICO DO AUTOR\n${lines.join('\n')}\n`);
+      parts.push(`\n# PERFIL DO AUTOR\n${lines.join('\n')}\n`);
     }
 
     if (profile.red_lines) {
@@ -70,7 +79,7 @@ export function buildPoliticalContext(profile: PoliticalProfile | null): string 
     }
 
     if (lines.length > 0) {
-      parts.push(`\nIMPORTANTE: Considere o perfil político acima para adaptar tom, linguagem e contexto do conteúdo gerado. O conteúdo deve ser adequado ao cargo, partido e áreas de atuação do político.\n`);
+      parts.push(`\nIMPORTANTE: Considere o perfil acima para adaptar tom, linguagem e contexto do conteúdo gerado.\n`);
     }
   }
 
