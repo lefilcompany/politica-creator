@@ -33,27 +33,7 @@ interface ProfileDetailData {
   evidence_history: string;
 }
 
-interface RecommendedThesis {
-  number: number;
-  title: string;
-  group: string;
-  relevance: string;
-}
-
 const FORM_STEPS = 4;
-
-interface Props {
-  open: boolean;
-  onClose: () => void;
-}
-
-const GROUP_LABELS: Record<string, string> = {
-  A: 'Poder e Governança',
-  B: 'Dinâmica Política',
-  C: 'Narrativa e Autenticidade',
-  D: 'Cidadania Expandida',
-  E: 'Complexidade e Ética',
-};
 
 export function DashboardProfileModal({ open, onClose }: Props) {
   const { user, reloadUserData } = useAuth();
