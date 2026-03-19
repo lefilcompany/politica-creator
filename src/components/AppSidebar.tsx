@@ -187,20 +187,6 @@ export function AppSidebar() {
       "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
       collapsed ? "gap-1 px-2 pt-3" : "gap-0 px-3 pt-2"
     )}>
-        {/* Actions — most prominent */}
-        <div className={cn("flex flex-col", collapsed ? "gap-2" : "gap-1.5 pb-1")}>
-          <SidebarActionButton
-          id="nav-create-content" href="/create" icon={FileText}
-          label={t.sidebar.createContent} variant="primary"
-          collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />
-        
-          <SidebarActionButton
-          id="nav-plan-content" href="/plan" icon={Calendar}
-          label={t.sidebar.planContent} variant="secondary"
-          collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />
-        
-        </div>
-
         {/* Section: Principal */}
         <SectionLabel collapsed={collapsed}>Principal</SectionLabel>
         <div className="flex flex-col gap-0.5">
@@ -222,6 +208,20 @@ export function AppSidebar() {
         <SectionLabel collapsed={collapsed}>Recursos</SectionLabel>
         <div className="flex flex-col gap-0.5">
           <SidebarNavItem id="nav-book-content" href="/book-content" icon={BookOpen} label="A Próxima Democracia" collapsed={collapsed} onNavigate={handleMobileNavigate} />
+        </div>
+
+        {/* Actions — below Recursos */}
+        <div className={cn("flex flex-col mt-2", collapsed ? "gap-2" : "gap-1.5 pb-1")}>
+          <SidebarActionButton
+          id="nav-create-content" href="/create" icon={FileText}
+          label={t.sidebar.createContent} variant="primary"
+          collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />
+        
+          <SidebarActionButton
+          id="nav-plan-content" href="/plan" icon={Calendar}
+          label={t.sidebar.planContent} variant="secondary"
+          collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />
+        
         </div>
 
         {/* ── Bottom area ───────────────────────── */}
