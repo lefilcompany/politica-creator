@@ -5,6 +5,7 @@ import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { fetchPoliticalProfile, buildPoliticalContext } from '../_shared/politicalProfile.ts';
 import { callGemini, extractJSON } from '../_shared/geminiClient.ts';
+import { getKnowledgeBaseContext } from '../_shared/knowledgeBase.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
