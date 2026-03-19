@@ -246,7 +246,7 @@ export function AppSidebar() {
                 className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 text-foreground/50 hover:text-foreground hover:bg-foreground/5"
               >
                 <Instagram className="h-[18px] w-[18px]" />
-                <span className="text-sm">Instagram</span>
+                <span className="text-sm">Meu Instagram</span>
               </button>
             )}
 
