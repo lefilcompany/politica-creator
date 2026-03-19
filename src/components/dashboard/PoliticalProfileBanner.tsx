@@ -15,7 +15,6 @@ const EXPERIENCE_LABELS: Record<string, string> = {
 
 export const PoliticalProfileBanner = ({ onEdit }: PoliticalProfileBannerProps) => {
   const { user } = useAuth();
-  const [expandedThesis, setExpandedThesis] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
