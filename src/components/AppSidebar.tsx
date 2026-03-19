@@ -186,6 +186,12 @@ export function AppSidebar() {
     { id: "nav-team", href: "/team", icon: Briefcase, label: t.sidebar.team },
   ];
 
+  const bookLink = {
+    icon: BookOpen,
+    label: "A Próxima Democracia",
+    url: "/knowledge-base/MAR_POL_DEM_BOOK_2025_v10.pdf",
+  };
+
   const actionButtons = [
     { id: "nav-create-content", href: "/create", icon: FileText, label: t.sidebar.createContent, variant: "primary" as const },
     { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
