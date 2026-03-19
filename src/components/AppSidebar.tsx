@@ -172,6 +172,7 @@ export function AppSidebar() {
   const { remaining, maxImages } = useImageLimit();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const [instagramDialogOpen, setInstagramDialogOpen] = useState(false);
 
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
