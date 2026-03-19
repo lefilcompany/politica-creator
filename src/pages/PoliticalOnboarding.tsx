@@ -88,6 +88,7 @@ export default function PoliticalOnboarding() {
     target_audience_description: '',
     state: '',
     city: '',
+    instagram_handle: '',
   });
 
   const handleGetLocation = async () => {
