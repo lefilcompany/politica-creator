@@ -1560,7 +1560,7 @@ export default function CreateImage() {
             <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
               Voltar e editar
             </Button>
-            <Button onClick={handleConfirmAndShowThesis} className="gap-2">
+            <Button onClick={handleConfirmAndGenerate} className="gap-2">
               <Sparkles className="h-4 w-4" />
               Confirmar e Gerar
             </Button>
