@@ -471,7 +471,7 @@ function buildDirectorPrompt(params: {
   // === 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO) ===
   const compositionLines: string[] = [];
   
-  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. O político deve demonstrar um semblante ${toneStr} através da linguagem corporal e expressão facial.`);
+  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. ${hasPoliticalData ? `O político deve demonstrar um semblante ${toneStr} através da linguagem corporal e expressão facial.` : `A composição deve transmitir ${toneStr} de forma clara e impactante.`}`);
 
   // Brand identity
   const colors: string[] = [];
