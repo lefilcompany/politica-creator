@@ -462,7 +462,7 @@ function buildDirectorPrompt(params: {
   // === 3. COMPOSIÇÃO DA IMAGEM (NANO BANANA PRO) ===
   const compositionLines: string[] = [];
   
-  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. ${hasPoliticalData ? `O político deve demonstrar um semblante ${toneStr} através da linguagem corporal e expressão facial.` : `A composição deve transmitir ${toneStr} de forma clara e impactante.`}`);
+  compositionLines.push(`- **Cena:** ${params.enrichedDescription}. A composição deve transmitir ${toneStr} de forma clara e impactante.`);
 
   // Brand identity
   const colors: string[] = [];
@@ -490,11 +490,6 @@ function buildDirectorPrompt(params: {
     compositionLines.push(`- **Tipo:** Conteúdo de ANÚNCIO PAGO — foco em conversão, CTA implícito`);
   } else {
     compositionLines.push(`- **Tipo:** Conteúdo ORGÂNICO — foco em engajamento, autenticidade, conexão`);
-  }
-
-  // Regional adaptation
-  if (hasPoliticalData && pp.state) {
-    compositionLines.push(`- **Regionalismo:** Adapte sutilmente o fundo da imagem (arquitetura, vegetação, elementos culturais) para remeter a ${pp.state}${pp.city ? ` / ${pp.city}` : ''}.`);
   }
 
   // Qualidade
