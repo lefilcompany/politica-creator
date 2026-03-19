@@ -208,7 +208,7 @@ ${complianceSection}
       creditsUsed: CREDIT_COSTS.GENERATE_TEXT,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de texto político (10 variações)',
+      description: 'Geração de texto (10 variações)',
       metadata: { platform, tone, brandId, themeId, personaId },
     });
 
