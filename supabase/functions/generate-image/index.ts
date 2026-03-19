@@ -597,7 +597,7 @@ serve(async (req) => {
 
     // Fetch profile + political profile in parallel
     const [profileResult, politicalProfile] = await Promise.all([
-      supabase.from('profiles').select('team_id, credits, name, state, city').eq('id', authenticatedUserId).single(),
+      supabase.from('profiles').select('team_id, credits, name, state, city, instagram_handle').eq('id', authenticatedUserId).single(),
       fetchPoliticalProfile(supabase, authenticatedUserId)
     ]);
     const { data: profile, error: profileError } = profileResult;
