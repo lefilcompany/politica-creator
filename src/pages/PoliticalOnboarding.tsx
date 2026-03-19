@@ -163,6 +163,7 @@ export default function PoliticalOnboarding() {
           target_audience_description: data.target_audience_description,
           state: data.state,
           city: data.city,
+          instagram_handle: data.instagram_handle || null,
           tutorial_completed: true,
         })
         .eq('id', user.id);
