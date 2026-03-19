@@ -15,8 +15,6 @@ import { usePersonas } from "@/hooks/usePersonas";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import createBanner from "@/assets/create-banner.jpg";
-import { ThesisSelector } from "@/components/criar-texto/ThesisSelector";
-import { getThesisById } from "@/lib/theses";
 
 export default function CreateText() {
   const navigate = useNavigate();
