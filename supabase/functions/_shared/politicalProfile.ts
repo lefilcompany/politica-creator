@@ -15,6 +15,10 @@ export interface PoliticalProfile {
   tone_of_voice: string | null;
   red_lines: string | null;
   evidence_history: string | null;
+  instagram_handle: string | null;
+  name: string | null;
+  state: string | null;
+  city: string | null;
 }
 
 /**
