@@ -233,6 +233,7 @@ DADOS DO FORMULÁRIO:
 ## DADOS CONTEXTUAIS COMPLETOS:
 ${contextParts.join('\n')}
 ${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
+${params?.useBookContext ? `\nBASE CONCEITUAL "A PRÓXIMA DEMOCRACIA":\nA imagem deve refletir visualmente os conceitos do livro. Use simbolismo de democracia em rede, governança líquida, cidadania expandida, mundo figital.\n${getKnowledgeBaseContext().substring(0, 1500)}` : ''}
 
 ## PARÂMETROS VISUAIS DO TOM "${tom.toUpperCase()}":
 - Iluminação: ${toneParams.lighting}

@@ -73,7 +73,7 @@ export default function BookContent() {
       } else {
         const { data, error } = await supabase.functions.invoke("generate-image", {
           body: {
-            message: message.trim(),
+            description: message.trim(),
             brandId: brandId || undefined,
             personaId: personaId || undefined,
             platform: platform || undefined,
