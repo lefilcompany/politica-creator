@@ -345,7 +345,7 @@ export default function TextResult() {
                       disabled={isGenerating}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleGenerateImage(item.text, item.id);
+                        setConfirmImageGen({ text: item.text, textId: item.id });
                       }}
                     >
                       {isGenerating ? (
