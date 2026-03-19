@@ -438,11 +438,12 @@ function buildDirectorPrompt(params: {
   // === 2. DIRETRIZES ESTRATÉGICAS ===
   const stratLines: string[] = [];
   
-  if (pp.mandate_stage) stratLines.push(`- **Fase:** ${pp.mandate_stage} — Adaptar o semblante e maturidade visual para esta fase.`);
+  if (hasPoliticalData && pp.mandate_stage) stratLines.push(`- **Fase:** ${pp.mandate_stage} — Adaptar o semblante e maturidade visual para esta fase.`);
   if (params.objective) stratLines.push(`- **Objetivo do Post:** ${params.objective}`);
   if (params.personaData?.name) stratLines.push(`- **Público-Alvo:** ${params.personaData.name} — O design deve ressoar com este grupo específico.`);
   
-  stratLines.push(`- **Grau de Combatividade:** ${params.politicalTone === 'combativo' ? 'Alto' : params.politicalTone === 'emocional' ? 'Baixo/Propositivo' : 'Médio'}`);
+  const toneLabel = hasPoliticalData ? 'Grau de Combatividade' : 'Intensidade Visual';
+  stratLines.push(`- **${toneLabel}:** ${params.politicalTone === 'combativo' ? 'Alto' : params.politicalTone === 'emocional' ? 'Baixo/Propositivo' : 'Médio'}`);
   
   if (params.politicalTone === 'combativo') {
     stratLines.push(`  → Use contrastes fortes, cores intensas e tipografia impactante.`);
