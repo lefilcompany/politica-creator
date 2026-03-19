@@ -1,6 +1,6 @@
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 Deno.serve(async (req) => {
@@ -23,122 +23,113 @@ Deno.serve(async (req) => {
 
     console.log('Fetching Instagram profile:', profileUrl);
 
-    // Try multiple user agents to get past Instagram's blocks
-    const userAgents = [
-      'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-      'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    ];
-
-    let html = '';
+    let displayName = '';
+    let profilePictureUrl = '';
+    let followers = '';
+    let posts = '';
+    let bio = '';
     let fetchSuccess = false;
 
-    for (const ua of userAgents) {
-      try {
-        const response = await fetch(profileUrl, {
-          headers: {
-            'User-Agent': ua,
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Cache-Control': 'no-cache',
-          },
-          redirect: 'follow',
-        });
-
-        if (response.ok) {
-          html = await response.text();
-          // Check if we got actual profile content (not just a login page)
-          if (html.includes('og:title') || html.includes(`"username":"${cleanHandle}"`) || html.includes(`@${cleanHandle}`)) {
-            fetchSuccess = true;
-            console.log(`Success with UA: ${ua.substring(0, 30)}...`);
-            break;
-          }
+    // Strategy 1: Try Instagram's web_profile_info API
+    try {
+      const apiUrl = `https://i.instagram.com/api/v1/users/web_profile_info/?username=${cleanHandle}`;
+      const apiResponse = await fetch(apiUrl, {
+        headers: {
+          'User-Agent': 'Instagram 275.0.0.27.98 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; en_US; 458229258)',
+          'X-IG-App-ID': '936619743392459',
+        },
+      });
+      if (apiResponse.ok) {
+        const json = await apiResponse.json();
+        const user = json?.data?.user;
+        if (user) {
+          displayName = user.full_name || cleanHandle;
+          profilePictureUrl = user.profile_pic_url_hd || user.profile_pic_url || '';
+          followers = formatCount(user.edge_followed_by?.count);
+          posts = formatCount(user.edge_owner_to_timeline_media?.count);
+          bio = user.biography || '';
+          fetchSuccess = true;
+          console.log('Strategy 1 (API) succeeded');
         }
-      } catch (e) {
-        console.log(`Failed with UA: ${ua.substring(0, 30)}...`, e.message);
+      } else {
+        const text = await apiResponse.text();
+        console.log('Strategy 1 response status:', apiResponse.status, text.substring(0, 200));
+      }
+    } catch (e) {
+      console.log('Strategy 1 failed:', e.message);
+    }
+
+    // Strategy 2: Try fetching the profile page with various user agents
+    if (!fetchSuccess) {
+      const userAgents = [
+        'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+        'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        'Twitterbot/1.0',
+      ];
+
+      for (const ua of userAgents) {
+        try {
+          const response = await fetch(profileUrl, {
+            headers: {
+              'User-Agent': ua,
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+            },
+            redirect: 'follow',
+          });
+
+          if (response.ok) {
+            const html = await response.text();
+
+            const ogTitle = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]*?)"/)?.[1]
+              || html.match(/<meta[^>]+content="([^"]*?)"[^>]+property="og:title"/)?.[1];
+
+            const ogDescription = html.match(/<meta[^>]+property="og:description"[^>]+content="([^"]*?)"/)?.[1]
+              || html.match(/<meta[^>]+content="([^"]*?)"[^>]+property="og:description"/)?.[1];
+
+            const ogImage = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]*?)"/)?.[1]
+              || html.match(/<meta[^>]+content="([^"]*?)"[^>]+property="og:image"/)?.[1];
+
+            if (ogTitle || ogImage || ogDescription) {
+              fetchSuccess = true;
+              console.log(`Strategy 2 succeeded with UA: ${ua.substring(0, 30)}...`);
+
+              if (ogImage) profilePictureUrl = ogImage;
+
+              if (ogDescription) {
+                const decoded = ogDescription.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'");
+                const followersMatch = decoded.match(/([\d,.]+[KkMm]?)\s*(?:Followers|Seguidores)/i);
+                if (followersMatch) followers = followersMatch[1];
+                const postsMatch = decoded.match(/([\d,.]+[KkMm]?)\s*(?:Posts|Publicações)/i);
+                if (postsMatch) posts = postsMatch[1];
+                const bioTextMatch = decoded.match(/["""](.+?)["""]/);
+                if (bioTextMatch) bio = bioTextMatch[1];
+              }
+
+              if (ogTitle) {
+                displayName = ogTitle.replace(/\s*\(.*?\)\s*/, '').replace(/•\s*Instagram.*/, '').trim();
+              }
+
+              break;
+            }
+          } else {
+            await response.text(); // consume body
+          }
+        } catch (e) {
+          console.log(`Strategy 2 failed with UA: ${ua.substring(0, 30)}...`, e.message);
+        }
       }
     }
 
-    // Extract Open Graph meta tags
-    const ogTitle = html.match(/<meta\s+property="og:title"\s+content="([^"]*?)"/)?.[1]
-      || html.match(/<meta\s+content="([^"]*?)"\s+property="og:title"/)?.[1];
+    if (!displayName) displayName = cleanHandle;
 
-    const ogDescription = html.match(/<meta\s+property="og:description"\s+content="([^"]*?)"/)?.[1]
-      || html.match(/<meta\s+content="([^"]*?)"\s+property="og:description"/)?.[1];
-
-    const ogImage = html.match(/<meta\s+property="og:image"\s+content="([^"]*?)"/)?.[1]
-      || html.match(/<meta\s+content="([^"]*?)"\s+property="og:image"/)?.[1];
-
-    const titleTag = html.match(/<title>([^<]*)<\/title>/)?.[1];
-
-    let followers = '';
-    let posts = '';
-    let displayName = '';
-    let bio = '';
-
-    if (ogDescription) {
-      const decoded = ogDescription.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'");
-      
-      const followersMatch = decoded.match(/([\d,.]+[KkMm]?)\s*Followers/i)
-        || decoded.match(/([\d,.]+[KkMm]?)\s*Seguidores/i);
-      if (followersMatch) followers = followersMatch[1];
-
-      const postsMatch = decoded.match(/([\d,.]+[KkMm]?)\s*Posts/i)
-        || decoded.match(/([\d,.]+[KkMm]?)\s*Publicações/i);
-      if (postsMatch) posts = postsMatch[1];
-
-      const nameMatch = decoded.match(/from\s+(.+?)(?:\s*\(@|$)/i);
-      if (nameMatch) displayName = nameMatch[1].trim();
-
-      const bioTextMatch = decoded.match(/["""](.+?)["""]/);
-      if (bioTextMatch) bio = bioTextMatch[1];
-    }
-
-    if (!displayName && ogTitle) {
-      displayName = ogTitle.replace(/\s*\(.*?\)\s*/, '').replace(/•\s*Instagram.*/, '').trim();
-    }
-
-    if (!displayName && titleTag) {
-      displayName = titleTag.replace(/\s*\(.*?\)\s*/, '').replace(/•\s*Instagram.*/, '').trim();
-    }
-
-    // Try to extract from JSON-LD or inline scripts
-    if (!displayName) {
-      const jsonMatch = html.match(/"name"\s*:\s*"([^"]+)"/);
-      if (jsonMatch) displayName = jsonMatch[1];
-    }
-
-    const profileFound = !!(ogTitle || ogImage || displayName || fetchSuccess);
-
-    if (!profileFound) {
-      // If we couldn't scrape but the handle looks valid, return a minimal result
-      // so the user can still save it
-      console.log('Could not extract OG data, returning minimal profile');
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            handle: cleanHandle,
-            displayName: cleanHandle,
-            profilePicture: null,
-            followers: '',
-            posts: '',
-            bio: '',
-            profileUrl,
-            minimal: true,
-          },
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Proxy the profile picture to avoid CORS/referrer blocks
+    // Proxy the profile picture to avoid CORS issues
     let profilePictureDataUrl: string | null = null;
-    if (ogImage) {
+    if (profilePictureUrl) {
       try {
-        const imgResponse = await fetch(ogImage, {
+        const imgResponse = await fetch(profilePictureUrl, {
           headers: {
-            'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+            'User-Agent': 'Instagram 275.0.0.27.98 Android',
             'Referer': 'https://www.instagram.com/',
           },
         });
@@ -152,7 +143,10 @@ Deno.serve(async (req) => {
           }
           const base64 = btoa(binary);
           profilePictureDataUrl = `data:${contentType};base64,${base64}`;
-          console.log('Profile picture proxied successfully');
+          console.log('Profile picture proxied successfully, size:', arrayBuffer.byteLength);
+        } else {
+          console.log('Image fetch failed with status:', imgResponse.status);
+          await imgResponse.text();
         }
       } catch (e) {
         console.log('Failed to proxy profile picture:', e.message);
@@ -164,12 +158,13 @@ Deno.serve(async (req) => {
         success: true,
         data: {
           handle: cleanHandle,
-          displayName: displayName || cleanHandle,
+          displayName,
           profilePicture: profilePictureDataUrl,
           followers,
           posts,
           bio,
           profileUrl,
+          minimal: !fetchSuccess,
         },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -182,3 +177,10 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+function formatCount(count: number | undefined): string {
+  if (!count && count !== 0) return '';
+  if (count >= 1_000_000) return (count / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+  if (count >= 1_000) return (count / 1_000).toFixed(1).replace('.0', '') + 'K';
+  return count.toString();
+}
