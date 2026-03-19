@@ -61,9 +61,6 @@ export function DashboardProfileModal({ open, onClose }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
-  const [showTheses, setShowTheses] = useState(false);
-  const [isLoadingTheses, setIsLoadingTheses] = useState(false);
-  const [recommendedTheses, setRecommendedTheses] = useState<RecommendedThesis[]>([]);
   const [data, setData] = useState<ProfileDetailData>({
     mandate_stage: '',
     biography: '',
