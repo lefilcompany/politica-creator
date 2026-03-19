@@ -490,7 +490,15 @@ export default function ActionView() {
                     <div className="space-y-5">
                       {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
                       {action.details?.platform && renderPlatformField(action.details.platform)}
-                      {action.details?.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                      {action.details?.description && <DetailField label="Prompt"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                      {action.result?.body && (
+                        <DetailField label="Legenda">
+                          <p className="text-sm text-foreground leading-relaxed line-clamp-4 whitespace-pre-wrap">{action.result.body}</p>
+                          {action.result.body.length > 200 && (
+                            <button onClick={() => document.getElementById('legenda-section')?.scrollIntoView({ behavior: 'smooth' })} className="text-xs text-primary hover:underline mt-1">Ver completa ↓</button>
+                          )}
+                        </DetailField>
+                      )}
                       {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
                         <DetailField label="Tom de Voz">
                           <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
