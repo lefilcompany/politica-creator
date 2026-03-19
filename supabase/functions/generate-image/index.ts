@@ -376,22 +376,15 @@ function buildDirectorPrompt(params: {
   const toneParams = TONE_VISUAL_MAP[params.politicalTone] || TONE_VISUAL_MAP['institucional'];
   const pp = params.politicalProfile || {};
 
-  // === ROLE ===
-  const hasPoliticalData = !!(pp.political_role || pp.political_party || pp.mandate_stage);
-  const roleLabel = hasPoliticalData ? 'Consultor de Marketing e Designer de Campanha de Alto Nível' : 'Consultor de Marketing Visual e Designer de Alto Nível';
-  sections.push(`Atue como um ${roleLabel}. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
+  // === ROLE === (universal, non-political framing)
+  sections.push(`Atue como um Consultor de Marketing Visual e Designer de Alto Nível. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
 
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
+  const pp = params.politicalProfile || {};
   
-  if (hasPoliticalData) {
-    if (pp.political_role || pp.state) {
-      contextLines.push(`- **Cargo/Função:** ${pp.political_role || 'Político(a)'} em ${pp.state || 'Brasil'}`);
-    }
-    if (pp.political_party) contextLines.push(`- **Partido:** ${pp.political_party}`);
-    if (pp.mandate_stage) contextLines.push(`- **Fase da Campanha/Mandato:** ${pp.mandate_stage}`);
-    if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Foco:** ${pp.focus_areas.join(', ')}`);
-  }
+  if (pp.political_role) contextLines.push(`- **Atuação Profissional:** ${pp.political_role}`);
+  if (pp.focus_areas?.length) contextLines.push(`- **Áreas de Interesse:** ${pp.focus_areas.join(', ')}`);
 
   if (params.brandData) {
     contextLines.push(`- **Marca:** ${params.brandData.name}`);
