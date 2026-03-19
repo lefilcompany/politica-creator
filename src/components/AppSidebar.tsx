@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, Coins, Briefcase, Shield, ImageIcon, CalendarDays } from "lucide-react";
+import { Home, Landmark, Users, Calendar, Archive, FileText, CheckCircle, Coins, Briefcase, Shield, ImageIcon, CalendarDays, BookOpen } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
