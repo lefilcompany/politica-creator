@@ -20,6 +20,7 @@ import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfil
 import { DashboardProfileModal } from "@/components/dashboard/DashboardProfileModal";
 
 import { PoliticalProfileBanner } from "@/components/dashboard/PoliticalProfileBanner";
+import { InstagramBanner } from "@/components/dashboard/InstagramBanner";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
