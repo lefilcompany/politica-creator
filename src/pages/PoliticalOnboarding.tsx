@@ -141,6 +141,7 @@ export default function PoliticalOnboarding() {
       case 2: return !!data.state;
       case 3: return data.focus_areas.length > 0;
       case 4: return data.main_social_networks.length > 0;
+      case 5: return true; // Instagram é opcional
       default: return true;
     }
   };
