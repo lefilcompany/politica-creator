@@ -10,6 +10,25 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const EXPERIENCE_LABELS: Record<string, string> = {
+  pre_candidato: "Pré-candidato(a)",
+  primeiro_mandato: "Primeiro mandato",
+  reeleicao: "Reeleição",
+  veterano: "Veterano(a)",
+};
+
+const LEVEL_LABELS: Record<string, string> = {
+  municipal: "Municipal",
+  estadual: "Estadual",
+  federal: "Federal",
+};
+
+const MANDATE_LABELS: Record<string, string> = {
+  mandato: "Mandato",
+  pre_campanha: "Pré-campanha",
+  campanha: "Campanha",
+};
+
+interface PoliticalProfileBannerProps {
   onEdit?: () => void;
 }
 
