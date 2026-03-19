@@ -519,7 +519,7 @@ export default function ActionView() {
               {/* Caption below */}
               {action.result && (action.result.title || action.result.body || (action.result.hashtags && action.result.hashtags.length > 0)) && (
                 <SectionCard title="Legenda" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
-                  <div className="space-y-6">
+                  <div id="legenda-section" className="space-y-6">
                     {action.result.title && (
                       <div>
                         <div className="flex items-center justify-between mb-2">
