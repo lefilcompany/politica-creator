@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
+import { CreditConfirmationDialog } from "@/components/CreditConfirmationDialog";
 import createBanner from "@/assets/create-banner.jpg";
 
 interface TextOption {
