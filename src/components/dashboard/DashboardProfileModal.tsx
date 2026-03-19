@@ -35,6 +35,11 @@ interface ProfileDetailData {
 
 const FORM_STEPS = 4;
 
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
+
 export function DashboardProfileModal({ open, onClose }: Props) {
   const { user, reloadUserData } = useAuth();
   const [step, setStep] = useState(0);
