@@ -154,6 +154,7 @@ const App = () => (
                         <Route path="about" element={<SuspenseRoute><About /></SuspenseRoute>} />
                         <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
                         <Route path="defense" element={<SuspenseRoute><Defense /></SuspenseRoute>} />
+                        <Route path="book-content" element={<SuspenseRoute><BookContent /></SuspenseRoute>} />
                         <Route path="repercussion" element={<SuspenseRoute><RepercussionAnalysis /></SuspenseRoute>} />
                         <Route path="repercussion-result" element={<SuspenseRoute><RepercussionResult /></SuspenseRoute>} />
                       </Route>
