@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import createBanner from "@/assets/create-banner.jpg";
 
+const MAX_THESES = 3;
+
 type OutputType = "text" | "image";
 
 export default function BookContent() {
