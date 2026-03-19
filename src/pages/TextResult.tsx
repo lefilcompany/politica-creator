@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
+import { CreditConfirmationDialog } from "@/components/CreditConfirmationDialog";
 import createBanner from "@/assets/create-banner.jpg";
 
 interface TextOption {
@@ -44,6 +45,7 @@ export default function TextResult() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [generatingId, setGeneratingId] = useState<number | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [confirmImageGen, setConfirmImageGen] = useState<{ text: string; textId: number } | null>(null);
 
   if (!state?.texts) {
     return (
@@ -343,7 +345,7 @@ export default function TextResult() {
                       disabled={isGenerating}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleGenerateImage(item.text, item.id);
+                        setConfirmImageGen({ text: item.text, textId: item.id });
                       }}
                     >
                       {isGenerating ? (
@@ -366,6 +368,21 @@ export default function TextResult() {
             );
           })}
         </div>
+
+        <CreditConfirmationDialog
+          isOpen={!!confirmImageGen}
+          onOpenChange={(open) => { if (!open) setConfirmImageGen(null); }}
+          onConfirm={() => {
+            if (confirmImageGen) {
+              handleGenerateImage(confirmImageGen.text, confirmImageGen.textId);
+              setConfirmImageGen(null);
+            }
+          }}
+          currentBalance={user?.credits || 0}
+          cost={CREDIT_COSTS.COMPLETE_IMAGE}
+          resourceType="imagem"
+          title="Gerar imagem para este texto?"
+        />
       </main>
     </div>
   );
