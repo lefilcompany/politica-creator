@@ -543,22 +543,10 @@ export default function CreateImage() {
     setShowConfirmModal(true);
   };
 
-  // Step 2: After confirm, show thesis recommendation modal
-  const handleConfirmAndShowThesis = () => {
+  // Step 2: After confirm, go straight to generate
+  const handleConfirmAndGenerate = () => {
     setShowConfirmModal(false);
-    setShowThesisModal(true);
-  };
-
-  const handleThesisSelected = (thesis: Thesis) => {
-    setSelectedThesis(thesis);
-    setShowThesisModal(false);
-    handleGenerateContent(thesis);
-  };
-
-  const handleContinueWithoutThesis = () => {
-    setSelectedThesis(null);
-    setShowThesisModal(false);
-    handleGenerateContent(null);
+    handleGenerateContent();
   };
 
   // Step 3: Actually generate after user confirms
