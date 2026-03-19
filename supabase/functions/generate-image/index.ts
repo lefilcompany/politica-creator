@@ -377,7 +377,9 @@ function buildDirectorPrompt(params: {
   const pp = params.politicalProfile || {};
 
   // === ROLE ===
-  sections.push(`Atue como um Consultor de Marketing Político e Designer de Campanha de Alto Nível. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
+  const hasPoliticalData = !!(pp.political_role || pp.political_party || pp.mandate_stage);
+  const roleLabel = hasPoliticalData ? 'Consultor de Marketing e Designer de Campanha de Alto Nível' : 'Consultor de Marketing Visual e Designer de Alto Nível';
+  sections.push(`Atue como um ${roleLabel}. O seu objetivo é criar uma peça visual impecável, esteticamente perfeita e com design inteligente para ${params.userName}, respeitando rigorosamente a identidade visual e os dados fornecidos abaixo.`);
 
   // === 1. CONTEXTO DO UTILIZADOR E MARCA ===
   const contextLines: string[] = [];
