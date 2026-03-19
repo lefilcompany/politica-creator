@@ -198,7 +198,7 @@ export default function PoliticalOnboarding() {
     }
   };
 
-  const stepIcons = [User, Building2, MapPin, Target, Share2];
+  const stepIcons = [User, Building2, MapPin, Target, Share2, Instagram];
 
   const steps = [
     // Step 0: Cargo e Nível
