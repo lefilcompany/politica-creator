@@ -6,14 +6,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, BookOpen, Zap, Send, FileText, ImageIcon } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrands } from "@/hooks/useBrands";
 import { usePersonas } from "@/hooks/usePersonas";
 import { supabase } from "@/integrations/supabase/client";
+import { THESIS_GROUPS, ALL_THESES, type Thesis } from "@/lib/theses";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import createBanner from "@/assets/create-banner.jpg";
+
+const MAX_THESES = 3;
 
 type OutputType = "text" | "image";
 
@@ -27,6 +32,7 @@ export default function BookContent() {
   const [brandId, setBrandId] = useState<string>("");
   const [personaId, setPersonaId] = useState<string>("");
   const [platform, setPlatform] = useState<string>("");
+  const [selectedThesesIds, setSelectedThesesIds] = useState<string[]>([]);
   const [outputType, setOutputType] = useState<OutputType>("text");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -38,6 +44,21 @@ export default function BookContent() {
 
   const isLoading = brandsLoading || personasLoading;
   const canSubmit = message.trim().length >= 5 && !isGenerating;
+
+  const handleThesisToggle = (thesisId: string) => {
+    setSelectedThesesIds((prev) => {
+      if (prev.includes(thesisId)) return prev.filter((id) => id !== thesisId);
+      if (prev.length >= MAX_THESES) {
+        toast.info(`Máximo de ${MAX_THESES} teses selecionadas`);
+        return prev;
+      }
+      return [...prev, thesisId];
+    });
+  };
+
+  const selectedThesesData = selectedThesesIds
+    .map((id) => ALL_THESES.find((t) => t.id === id))
+    .filter(Boolean) as Thesis[];
 
   const handleGenerate = async () => {
     if (!canSubmit) return;
@@ -52,6 +73,12 @@ export default function BookContent() {
             personaId: personaId || undefined,
             platform: platform || undefined,
             useBookContext: true,
+            selectedTheses: selectedThesesData.map((t) => ({
+              number: t.number,
+              title: t.title,
+              shortDescription: t.shortDescription,
+              group: t.groupLabel,
+            })),
           },
         });
 
@@ -78,6 +105,12 @@ export default function BookContent() {
             personaId: personaId || undefined,
             platform: platform || undefined,
             useBookContext: true,
+            selectedTheses: selectedThesesData.map((t) => ({
+              number: t.number,
+              title: t.title,
+              shortDescription: t.shortDescription,
+              group: t.groupLabel,
+            })),
           },
         });
 
@@ -211,7 +244,93 @@ export default function BookContent() {
               <p className="text-xs text-muted-foreground text-right">{message.length}/2000</p>
             </div>
 
-            {/* Optional selectors */}
+            {/* Thesis selector */}
+            <div className="space-y-2">
+              <label className="text-base font-semibold text-foreground flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Escolha as bandeiras do seu post (opcional)
+              </label>
+              <p className="text-sm text-muted-foreground">
+                Selecione até {MAX_THESES} teses para fundamentar o conteúdo. Se nenhuma for selecionada, o livro inteiro será usado como referência.
+              </p>
+
+              <Accordion type="single" collapsible className="w-full">
+                {THESIS_GROUPS.map((group) => (
+                  <AccordionItem key={group.id} value={group.id}>
+                    <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                      <span>
+                        <span className="font-bold text-primary">Grupo {group.id}</span>
+                        <span className="text-muted-foreground"> — {group.label}</span>
+                        {group.theses.some((t) => selectedThesesIds.includes(t.id)) && (
+                          <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {group.theses.filter((t) => selectedThesesIds.includes(t.id)).length} selecionada(s)
+                          </span>
+                        )}
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid gap-2 pt-1">
+                        {group.theses.map((thesis) => {
+                          const isSelected = selectedThesesIds.includes(thesis.id);
+                          const isDisabled = !isSelected && selectedThesesIds.length >= MAX_THESES;
+
+                          return (
+                            <button
+                              key={thesis.id}
+                              type="button"
+                              onClick={() => handleThesisToggle(thesis.id)}
+                              disabled={isDisabled}
+                              className={cn(
+                                "w-full text-left rounded-xl border p-3 transition-all duration-200",
+                                isDisabled
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "hover:shadow-sm hover:border-primary/40",
+                                isSelected
+                                  ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/30"
+                                  : "border-border bg-card"
+                              )}
+                            >
+                              <div className="flex items-start gap-2">
+                                <span className="text-xs font-bold text-primary bg-primary/10 rounded-md px-1.5 py-0.5 mt-0.5 shrink-0">
+                                  {thesis.number}
+                                </span>
+                                <div className="min-w-0">
+                                  <span className="text-sm font-semibold text-foreground">{thesis.title}</span>
+                                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                                    {thesis.shortDescription}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+
+              {selectedThesesIds.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs text-primary font-medium">
+                    ✅ {selectedThesesIds.length} tese(s) selecionada(s) — todo o conteúdo será fundamentado nelas
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedThesesData.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => handleThesisToggle(t.id)}
+                        className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1"
+                      >
+                        #{t.number} {t.title} ✕
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">Persona (opcional)</label>

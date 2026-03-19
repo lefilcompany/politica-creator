@@ -166,7 +166,7 @@ async function enrichPromptWithFlash(
   politicalContext: string,
   politicalTone: string,
   politicalProfile: any,
-  params?: { textContent?: string; headline?: string; promptContext?: string; useBookContext?: boolean }
+  params?: { textContent?: string; headline?: string; promptContext?: string; useBookContext?: boolean; selectedTheses?: any[] }
 ): Promise<{ enrichedDescription: string; briefingVisual: string; headline: string; subtexto: string }> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   if (!GEMINI_API_KEY) {
@@ -233,7 +233,7 @@ DADOS DO FORMULÁRIO:
 ## DADOS CONTEXTUAIS COMPLETOS:
 ${contextParts.join('\n')}
 ${politicalContext ? `\nCONTEXTO POLÍTICO COMPLETO:\n${politicalContext.substring(0, 800)}` : ''}
-${params?.useBookContext ? `\nBASE CONCEITUAL "A PRÓXIMA DEMOCRACIA":\nA imagem deve refletir visualmente os conceitos do livro. Use simbolismo de democracia em rede, governança líquida, cidadania expandida, mundo figital.\n${getKnowledgeBaseContext().substring(0, 1500)}` : ''}
+${params?.useBookContext ? `\nBASE CONCEITUAL "A PRÓXIMA DEMOCRACIA":\nA imagem deve refletir visualmente os conceitos do livro.${params?.selectedTheses && params.selectedTheses.length > 0 ? `\n\nTESES SELECIONADAS (foco visual principal):\n${params.selectedTheses.map((t: any) => `- Tese ${t.number}: "${t.title}" — ${t.shortDescription}`).join('\n')}\n\nA imagem DEVE representar visualmente estas teses específicas.` : ` Use simbolismo de democracia em rede, governança líquida, cidadania expandida, mundo figital.\n${getKnowledgeBaseContext().substring(0, 1500)}`}` : ''}
 
 ## PARÂMETROS VISUAIS DO TOM "${tom.toUpperCase()}":
 - Iluminação: ${toneParams.lighting}
@@ -707,6 +707,7 @@ serve(async (req) => {
         headline: formData.headline,
         promptContext: formData.promptContext,
         useBookContext: formData.useBookContext,
+        selectedTheses: formData.selectedTheses,
       }
     );
 
