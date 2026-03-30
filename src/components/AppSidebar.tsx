@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useImageLimit } from "@/hooks/useImageLimit";
 import { useTranslation } from "@/hooks/useTranslation";
 import { InstagramHandleDialog } from "@/components/sidebar/InstagramHandleDialog";
-import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
+import logoCreatorPreta from "@/assets/5f2628da-2c5a-46e4-8306-5137e0ab77df.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
 
