@@ -177,7 +177,7 @@ export function AppSidebar() {
         
           {collapsed ?
         <img src={creatorSymbol} alt="Creator Symbol" className="h-9 w-9 object-contain" /> :
-         <img src={logo} alt="Creator Logo" className="h-12 w-auto" />
+         <img src={logo} alt="Creator Logo" className="h-16 w-auto" />
         }
         </NavLink>
       </div>
