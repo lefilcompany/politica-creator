@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useImageLimit } from "@/hooks/useImageLimit";
 import { useTranslation } from "@/hooks/useTranslation";
 import { InstagramHandleDialog } from "@/components/sidebar/InstagramHandleDialog";
-import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
+import logoCreatorPreta from "@/assets/46843b67-b36d-4a05-8188-81dc66ea0e0d.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
 
@@ -177,7 +177,7 @@ export function AppSidebar() {
         
           {collapsed ?
         <img src={creatorSymbol} alt="Creator Symbol" className="h-9 w-9 object-contain" /> :
-        <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
+         <img src={logo} alt="Creator Logo" className="h-8 w-auto text-2xl" />
         }
         </NavLink>
       </div>
