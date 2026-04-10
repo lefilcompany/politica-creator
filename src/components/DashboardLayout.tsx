@@ -20,7 +20,7 @@ export const DashboardLayout = () => {
             : "flex flex-1 flex-col min-w-0 bg-card rounded-lg shadow-md mt-4 mr-4 mb-4 ml-1 overflow-hidden border border-border/30"
         }>
           <Header />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto relative">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto">
             <div className="w-full h-full p-4 sm:p-6 lg:p-8 pb-24 sm:pb-28 lg:pb-32">
               <Outlet />
             </div>
