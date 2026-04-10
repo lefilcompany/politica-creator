@@ -222,7 +222,7 @@ export function AppSidebar() {
         <SectionLabel collapsed={collapsed}>Recursos</SectionLabel>
         <div className="flex flex-col gap-0.5">
           <SidebarNavItem id="nav-book-content" href="/book-content" icon={BookOpen} label="A Próxima Democracia" collapsed={collapsed} onNavigate={handleMobileNavigate} />
-          <SidebarNavItem id="nav-book-chat" href="/book-chat" icon={MessageSquareText} label="Conversar com o Livro" collapsed={collapsed} onNavigate={handleMobileNavigate} />
+          <SidebarNavItem id="nav-book-chat" href="/book-chat" icon={MessageSquareText} label="Cenário Político" collapsed={collapsed} onNavigate={handleMobileNavigate} />
         </div>
 
         {/* ── Bottom area ───────────────────────── */}
