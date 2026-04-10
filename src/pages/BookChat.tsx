@@ -233,7 +233,7 @@ export default function BookChat() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex h-full overflow-hidden -m-4 sm:-m-6 lg:-m-8" style={{ height: 'calc(100% + 2rem)', maxHeight: 'calc(100vh - 5rem)' }}>
       {/* Sidebar */}
       <BookChatSidebar
         conversations={conversations}
