@@ -65,6 +65,7 @@ const ActionView = lazy(() => import("./pages/ActionView"));
 const RepercussionAnalysis = lazy(() => import("./pages/RepercussionAnalysis"));
 const RepercussionResult = lazy(() => import("./pages/RepercussionResult"));
 const BookContent = lazy(() => import("./pages/BookContent"));
+const BookChat = lazy(() => import("./pages/BookChat"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
@@ -155,6 +156,7 @@ const App = () => (
                         <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
                         <Route path="defense" element={<SuspenseRoute><Defense /></SuspenseRoute>} />
                         <Route path="book-content" element={<SuspenseRoute><BookContent /></SuspenseRoute>} />
+                        <Route path="book-chat" element={<SuspenseRoute><BookChat /></SuspenseRoute>} />
                         <Route path="repercussion" element={<SuspenseRoute><RepercussionAnalysis /></SuspenseRoute>} />
                         <Route path="repercussion-result" element={<SuspenseRoute><RepercussionResult /></SuspenseRoute>} />
                       </Route>
