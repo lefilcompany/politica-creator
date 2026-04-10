@@ -27,7 +27,7 @@ export function BookChatInput({ onSend, isLoading }: BookChatInputProps) {
   };
 
   return (
-    <div className="border-t p-4 bg-background/80 backdrop-blur-sm">
+    <div className="shrink-0 border-t p-4 bg-background/80 backdrop-blur-sm">
       <form ref={formRef} onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2">
         <Textarea
           id="book-chat-input"

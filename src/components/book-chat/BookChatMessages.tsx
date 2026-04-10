@@ -13,7 +13,7 @@ interface BookChatMessagesProps {
 export function BookChatMessages({ messages, isLoading, scrollRef }: BookChatMessagesProps) {
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 min-h-0 flex items-center justify-center p-8">
         <div className="text-center max-w-md space-y-4">
           <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
             <BookOpen className="h-8 w-8 text-primary" />
@@ -60,8 +60,8 @@ export function BookChatMessages({ messages, isLoading, scrollRef }: BookChatMes
   }
 
   return (
-    <ScrollArea className="flex-1">
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6" ref={scrollRef}>
+    <ScrollArea className="flex-1 min-h-0">
+      <div className="w-full max-w-3xl mx-auto px-4 py-6 space-y-6" ref={scrollRef}>
         {messages.map((msg, idx) => (
           <div
             key={idx}

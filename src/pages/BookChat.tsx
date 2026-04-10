@@ -233,8 +233,7 @@ export default function BookChat() {
   };
 
   return (
-    <div className="flex overflow-hidden -m-4 sm:-m-6 lg:-m-8 -mb-24 sm:-mb-28 lg:-mb-32" style={{ height: 'calc(100vh - 4.5rem)' }}>
-      {/* Sidebar */}
+    <div className="flex h-full min-h-0 overflow-hidden">
       <BookChatSidebar
         conversations={conversations}
         activeConversationId={activeConversationId}
@@ -245,10 +244,8 @@ export default function BookChat() {
         onOpenChange={setSidebarOpen}
       />
 
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b bg-background/80 backdrop-blur-sm">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col bg-background">
+        <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b bg-background/80 backdrop-blur-sm">
           {!sidebarOpen && (
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="shrink-0">
               <Menu className="h-5 w-5" />
@@ -261,14 +258,12 @@ export default function BookChat() {
           </div>
         </div>
 
-        {/* Messages */}
         <BookChatMessages
           messages={messages}
           isLoading={isLoading}
           scrollRef={scrollRef}
         />
 
-        {/* Input */}
         <BookChatInput onSend={handleSend} isLoading={isLoading} />
       </div>
     </div>
